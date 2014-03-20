@@ -8,7 +8,7 @@ layout: default
 {% if page.categories.size != 0 %}
  | 
 <span class="categories">
-  categories
+  分类
   {% for cat in page.categories %}
   <a href="/categories/#{{ cat }}" title="{{ cat }}">{{ cat }}</a>&nbsp;
   {% endfor %}
@@ -17,7 +17,7 @@ layout: default
 {% if page.tags.size != 0 %}
  | 
 <span class="tags">
-  tags
+  标签
   {% for tag in page.tags %}
   <a href="/tags/#{{ tag }}" title="{{ tag }}">{{ tag }}</a>&nbsp;
   {% endfor %}
@@ -36,24 +36,3 @@ layout: default
 </span>
 </section>
 {% include comments.md %}
-
-<script type="text/javascript">
-$(function(){
-  $(document).keydown(function(e) {
-    var url = false;
-        if (e.which == 37 || e.which == 74) {  // Left arrow and J
-            {% if page.previous %}
-        url = '{{ site.url }}{{ page.previous.url }}';
-        {% endif %}
-        }
-        else if (e.which == 39 || e.which == 75) {  // Right arrow and K
-            {% if page.next %}
-        url = '{{ site.url }}{{ page.next.url }}';
-        {% endif %}
-        }
-        if (url) {
-            window.location = url;
-        }
-  });
-})
-</script>
