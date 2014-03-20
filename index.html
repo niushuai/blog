@@ -1,11 +1,34 @@
 ---
 layout: default
-title: 飘过的小牛
+title:
+description: 这是 PIZn 的又一个博客，它是基于 Jekyll 搭建起来的。在这里，不仅仅是用来快速记录工作，学习，生活的一点一滴的地方，更是 PIZn 对 Jekyll 的学习和使用的一次有意义的实践。
+keywords: PIZn, GitHub, Jekyll, Plugins, Works, Archives, Quotes, Violet, css, html, javascript, wordpress, logo, design, geek
+isIndex: true
 ---
 
-<h2>{{ page.title }}</h2>
-　<ul>
-　　{% for post in site.posts %}
-　　　　<li>{{ post.date | date_to_string }} <a href="{{ post.url }}">{{ post.title }}</a></li>
-　　{% endfor %}
-　</ul>
+{% for rpost in paginator.posts %}
+<article class="main-article">
+    <div class="violet-post">
+        <h3 class="main-article-title"><a href="{{ rpost.url }}" title="{{ rpost.title }}" rel="bookmark">{{ rpost.title }}</a></h3>
+        <p class="main-article-meta"><time pubdate="{{ rpost.date | date_to_utc | date: '%Y-%m-%d' }}">{{ rpost.date | date_to_utc | date: "%Y-%m-%d" }}</time></p>
+        <div class="main-article-contant">
+            <p>{{ rpost.description }}</p>
+            <p class="main-article-more"><a href="{{ rpost.url }}" title="Read More" rel="nofollow">Read More</a></p>
+        </div>
+    </div>
+</article>
+{% endfor %}
+{% if paginator.total_pages > 1 %}
+<nav class="pagination fn-clear" id="violet-paging">
+    <ul class="pagination-list">
+        {% for page in (1..paginator.total_pages) %}
+            {% if page == paginator.page %}
+                <li class="current"><a href="javascript:void(0);">{{ page }}</a></li>
+            {% else %}
+                <li><a href="{{ site.url }}/{%if page > 1 %}page{{ page }}/{% endif %}">{{ page }}</a></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+

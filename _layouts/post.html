@@ -1,0 +1,39 @@
+---
+layout: default
+isPost: true
+comment: true
+---
+<article class="main-article main-article-page">
+    <div class="violet-title">
+        <h3 class="violet-title-item">{{ page.title }}</h3>
+    </div>
+    <div class="violet-post">
+        <p class="main-article-meta"><time pubdate="{{ rpost.date | date_to_utc | date: '%Y-%m-%d' }}">{{ page.date | date_to_utc | date: "%Y-%m-%d" }}</time></p>
+        <div class="main-article-contant">
+            {{ content }}
+        </div>
+    </div>
+</article>
+<nav class="pagination fn-clear" id="violet-paging">
+    <div class="pagination-list">
+        {% if page.previous %}
+        <a class="prev" href="{{ page.previous.url }}" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>{{ page.previous.title | truncatewords:5 }}</a>
+        {% endif %}
+        {% if page.next %}
+        <a class="next" href="{{ page.next.url }}" rel="bookmark">{{ page.next.title | truncatewords:5 }}<i class="fa fa-chevron-circle-right"></i></a>
+        {% endif %}
+    </div>
+</nav>
+<div class="comment">
+    {% if site.disqus.config %}
+        <div class="comment-cnt">
+            <div id="disqus_thread"></div>
+        </div>
+    {% else %}
+        {% if site.duoshuo.config %}
+        <div class="comment-cnt">
+            <div class="ds-thread"></div>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
