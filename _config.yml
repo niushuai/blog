@@ -1,16 +1,14 @@
 markdown: rdiscount
 permalink: /:title/
 url: http://github.thinkingbar.com
-name: 飘过的小牛
+name: niushuai
 author: niushuai
 qq: 389346114
 email: hnns1990@gmail.com
 duoshuo: niushuai
-beian: Coder
-cnzz: 1990
 weibo: 1891858481
 github: niushuai
 pygments: true
 safe: true
 paginate: 20
-about: "这里是 飘过的小牛 的个人博客，创建于 2014 年。各位大神轻拍......"
+about: "弱菜一个。"
