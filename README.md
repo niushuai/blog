@@ -1,6 +1,6 @@
-[Yonsm.NET](http://www.yonsm.net) 的博客
+[飘过的小牛](http://github.thinkingbar.com) 的博客
 
-本博客运行于 [Jekyll](http://jekyllrb.com) @ [GitHub](http://github.com/Yonsm/NET)，博客模板修改自 [WebFrog](http://webfrogs.me/) 的博客。本博客模板已经全部通用化，使用极其简单。
+本博客运行于 [Jekyll](http://jekyllrb.com) @ [GitHub](http://github.com/niushuai/reading)，博客模板修改自 [WebFrog](http://webfrogs.me/) 的博客。本博客模板已经全部通用化，使用极其简单。
 
 
 ## 安装
@@ -49,6 +49,6 @@
 * 点击 Powered by 里面的 **Po** 撰写新文章；点击 **ed** 编辑当前页面。
 * 虽然可以用在线的编辑器来编辑和发布文章，但为了批量修改方便，还是推荐 Check Out 后修改。
 
-Yonsm
+飘过的小牛
 
-2013-07-17
+2014-03-20
