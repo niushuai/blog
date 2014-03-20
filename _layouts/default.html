@@ -1,121 +1,48 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <!--
-     **
-     * Author:         掌心
-     * Contact:        zhanxin.info@gmail.com
-     * Theme Name:     Violet ( Violet 主题代表着一种颜色，一种情感，还有一种美)
-     * Create Date:    2013.10
-     **
-    -->
-    <meta charset="utf-8" />
-    <title>
-        {% if page.title %}
-            {{ page.title }}
-        {% else %}
-            {{ site.title }}
-        {% endif %}         
-    </title>
-    <meta name="generator" content="Jekyll" />
-    <meta name="author" content="{{ site.author.name }}" />
-    <meta name="description" content="{{ page.description }}" />
-    <meta name="keywords" content="{{ page.keywords | join: ',' }}" />
-    <!-- //页面样式 -->
-    <link rel="stylesheet" href="{{ site.url }}{{ site.themes }}/css/style.css" type="text/css" />
-    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="{{ site.feed }}" />
-    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
-    <link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>
-    <link rel="shortcut icon" href="{{ site.url }}{{ site.themes }}/images/favicon.ico" type="image/x-icon" />
-    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-</head>
-<body id="violet">
-    <div class="page-wrapper">
-        <section class="head" id="violet-head">
-            <header class="header" id="violet-header">
-                <h1 class="logo"><a href="{{ site.url }}">{{ site.title }}</a></h1>
-                <h2 class="subtitle">{{ site.subTitle }}</h2>
-            </header>
-            <nav class="nav" id="violet-nav">
-                <ul class="nav-list">
-                    {% for link in site.nav %}
-                    {% assign active = nil %}
-                    {% if page.url == link.url%}
-                      {% assign active = 'nav-item-active' %}
-                    {% endif %}
-                    <li class="nav-item {{ active }}">
-                        <a href="{{ link.url }}">
-                            {{ link.text }}
-                        </a>
-                        {{ indicator }}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </nav>
-        </section>
-        <section class="main" id="violet-main">
-            {{ content }}
-        </section>
-        <footer class="foot" id="violet-foot">
-            <div class="footer fn-clear">
-                <h1 class="logo">{{ site.title }}</h1>
-            </div>
-            <div class="copyright">
-                <div class="copyright-cnt fn-clear">
-                    {% for link in site.follow %}
-                    <a class="follow" href="{{ link.url }}" target="_blank"><i class="fa {{ link.class }}"></i></a>
-                    {% endfor %}
-                    <p class="text">© 2013 Violet Jekyll Theme.Design by <a href="http://www.zhanxin.info">zhanxin.lin</a></p>
-                </div>
-            </div>
-        </footer>
-    </div>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" lang="zh-CN">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="{{ site.author }}" />
+    <title>{% if page.path == 'index.html' %}{{ site.name }}{% else %}{% unless page.id %}{{ site.name }} - {% endunless %}{{ page.title }}{% endif %}</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link href="/feed/" rel="alternate" title="{{ site.author }}" type="application/atom+xml" />
+    <link rel="stylesheet" href="/media/css/style.css" />
+    <link rel="stylesheet" href="/media/css/highlight.css" />
+    <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="main" role="main">
+        <header>
+        <h1>{{ page.title }}</h1>
+        </header>
+        <nav>
+        <span><a title="网站首页" class="" href="/">首页</a></span>
+        <span><a title="文章分类" class="" href="/categories/">分类</a></span>
+        <span><a title="标签索引" class="" href="/tags/">标签</a></span>
+        <!--<span><a title="友情链接" class="" href="/links/">链接</a></span>-->
+        <span><a title="留言交流" class="" href="/guestbook/">留言</a></span>
+        <span><a title="关于站长" class="" href="/about/">关于</a></span>
+        <span><a title="种子订阅" class="" href="/feed/" target="_blank">订阅</a></span>
+        </nav>
+        <article class="content">
+        {{ content }}
+        </article>
+      </div>
 
-    <script type="text/javascript" src="{{ site.url }}{{ site.themes }}/js/jquery-1.8.3.js"></script>
-    <script type="text/javascript" src="{{ site.url }}{{ site.themes }}/js/jquery-scrollTo.js"></script>
-    <script type="text/javascript" src="{{ site.url }}{{ site.themes }}/js/common.js"></script>
-    <script type="text/javascript">
-        var headImgArr = [];
-        {% for imgsrc in site.headimg %}
-            headImgArr.push("{{ imgsrc.item }}");
-        {% endfor %}
-        if(headImgArr.length <= 0) {
-            headImgArr = ["/themes/violet/images/hdbg03.jpg"];
-            var item = 0;
-        } else {
-            var item = Math.floor(Math.random() * (headImgArr.length));
-        }
-        $("#violet-head").css({
-            "background-image": "url(" + headImgArr[item] + ")"
-        });
-    </script>
-    {% if page.comment %}
-        {% if site.disqus.config %}
-        <script type="text/javascript">
-            //disqus
-            var disqus_shortname = '{{ site.disqus.id }}';
-            (function() {
-                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] ||
-                    document.getElementsByTagName('body')[0]).appendChild(dsq);
-            })();
-        </script>
-        {% else %}
-            {% if site.duoshuo.config %}
-            <script type="text/javascript">
-                var duoshuoQuery = {short_name:"{{ site.duoshuo.id }}"};
-                (function() {
-                    var ds = document.createElement('script');
-                    ds.type = 'text/javascript';ds.async = true;
-                    ds.src = 'http://static.duoshuo.com/embed.js';
-                    ds.charset = 'UTF-8';
-                    (document.getElementsByTagName('head')[0]
-                    || document.getElementsByTagName('body')[0]).appendChild(ds);
-                })();
-            </script>
-            {% endif %}
-        {% endif %}
-    {% endif %}
-</body>
+    <footer>
+        <p><small>
+            <a href="http://github.com/{{ site.github }}/NET/new/gh-pages/_posts" target="_blank" title="撰写文章">Po</a>wer<a href="http://github.com/{{ site.github }}/NET/edit/gh-pages/{{ page.path }}" target="_blank" title="编辑页面">ed</a> by <a href="http://jekyllrb.com" target="_blank">Jekyll</a> @ <a href="http://github.com/{{ site.github }}/NET" target="_blank" title="项目主页">GitHub</a>
+             | <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/cn/" target="_blank" title="许可协议">©</a> 2004 - {{site.time | date:"%Y"}} <a href="/about/">{{ site.author }}</a>
+{% if site.beian %}
+             | <a href="http://www.miibeian.gov.cn" target="_blank">{{ site.beian }}</a>
+{% endif %}
+{% if site.cnzz %}
+             | <script src="http://s85.cnzz.com/stat.php?id={{ site.cnzz }}"></script>
+{% endif %}
+         </small></p>
+    </footer>
+
+    </div>
+  </body>
 </html>
