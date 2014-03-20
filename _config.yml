@@ -9,7 +9,7 @@ safe: false
 title: 飘过的小牛
 subTitle: Stop talking, start doing.
 description: 
-url: http://niushuai.github.io
+url: http://github.thinkingbar.com
 feed: /atom.xml
 
 #菜单配置
@@ -18,10 +18,6 @@ nav:
     url: /index.html
   - text: 文章归档
     url: /archives.html
-  - text: 作品
-    url: /works.html
-  - text: 联系我
-    url: http://www.zhanxin.info/contact.html
   - text: 博客源代码
     url: https://github.com/reading
 
