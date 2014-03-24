@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [Java编程思想] - 第七章、复用类
+title: Java编程思想 - 第七章、复用类
 categories: Java编程思想
 tags: Java编程思想
 ---

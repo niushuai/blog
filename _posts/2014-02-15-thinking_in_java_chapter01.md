@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [Java编程思想] - 第一章、对象导论
+title: Java编程思想 - 第一章、对象导论
 categories: Java编程思想
 tags: Java编程思想
 ---

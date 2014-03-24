@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [Java编程思想] - 第十章、内部类
+title: Java编程思想 - 第十章、内部类
 categories: Java编程思想
 tags: Java编程思想
 ---

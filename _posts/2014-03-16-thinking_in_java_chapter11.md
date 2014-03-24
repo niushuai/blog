@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [Java编程思想] - 第十一章、持有对象
+title: Java编程思想 - 第十一章、持有对象
 categories: Java编程思想
 tags: Java编程思想
 ---

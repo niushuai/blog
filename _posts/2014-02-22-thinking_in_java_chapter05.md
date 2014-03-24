@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [Java编程思想] - 第五章、初始化与清理
+title: Java编程思想 - 第五章、初始化与清理
 categories: Java编程思想
 tags: Java编程思想
 ---

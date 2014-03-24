@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [Java编程思想] - 第八章、多态
+title: Java编程思想 - 第八章、多态
 categories: Java编程思想
 tags: Java编程思想
 ---

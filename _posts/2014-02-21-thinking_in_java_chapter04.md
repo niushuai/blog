@@ -1,6 +1,6 @@
 ---
 layout: post
-title: [Java编程思想] - 第四章、控制执行流程
+title: Java编程思想 - 第四章、控制执行流程
 categories: Java编程思想
 tags: Java编程思想
 ---
