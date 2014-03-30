@@ -156,3 +156,47 @@ explicit的反编译结果：
 tips:
 
 不要出现```StringBuilder.append(a + ":" + c);```这样的代码，因为这样会让编译器在括号内重新生成一个StringBuilder对象来进行拼接。要确定一个append()中只含有一个字符串。
+
+###2. 无意识的递归
+
+判断下面程序的输出：
+
+```
+package Chapter13;
+
+import java.util.*;
+
+public class InfiniteRecursion {
+	public String toString() {
+		return "InfiniteRecursion address: " + this + "\n";
+	}
+	public static void main(String[] args) {
+		List<InfiniteRecursion> v = new ArrayList<InfiniteRecursion>();
+		for(int i = 0; i < 10; ++i) {
+			v.add(new InfiniteRecursion());
+		}
+		System.out.println(v);
+	}
+}
+```
+
+大眼一看，就知道是打印数组中元素的内存地址。但实际一执行，发现stackoverflow了。很明显，是栈溢出。说明程序中有递归，而且递归没有终止条件。问题就出在toString()上，在遇到this时，String需要把this和前面的字符串合并，但是this不是String类型，于是编译器会尝试将this（InfiniteRecursion类型）转换为String类型，方法就是调用InfiniteRecursion的toString()，于是无限递归产生。
+
+改进方法很简单，调用父类(Object)的toString()，这样就可以了。但是道理我还没想清楚。
+
+###3. Java格式化输出
+
+简单说几点就够了：
+
+1. ```System.out.println("%d %f", x, y);```
+2. ```System.out.printf("%d %f", x, y);```
+3. java.util.Formatter类
+4. ```String.format("%d %f", x, y);```
+
+###4. 正则表达式
+
+这个其实算是正则表达式在Java中的一种应用吧，其实正则表达式算是一种语法，推荐这个教程：[正则表达式30分钟入门教程](http://deerchao.net/tutorials/regex/regex.htm#grouping)
+
+然后还有一个小游戏：[东北linux - 正则表达式闯关](http://regexlinux.com)
+
+###5. 
