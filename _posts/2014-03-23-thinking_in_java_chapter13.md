@@ -199,4 +199,6 @@ public class InfiniteRecursion {
 
 然后还有一个小游戏：[东北linux - 正则表达式闯关](http://regexlinux.com)
 
-###5. 
+###5. Scanner
+
+因为在项目中写的Java程序是处于后台的，不会和用户有交互。所以没有用到输入相关的操作，但是在日常的使用中，扫描输入是一个非常常见的功能，比如ACM中JAVA的输入，记得当时是使用Scanner类。现在看到这一点，大概知道怎么用了。就是扫描标准输入流```Scanner scanner = new Scanner(System.in);```，然后取得值的方法和迭代器的next相似，是跳过区域的值。
