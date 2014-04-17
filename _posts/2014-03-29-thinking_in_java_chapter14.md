@@ -80,6 +80,10 @@ Java使用Class对象来执行RTTI，即使你正在执行的是类型转型这�
 
 > 当类第一次被使用时，类加载器首先检查这个类的Class对象是否已经被加载。如果尚未加载，默认的类加载器就会根据类名查找.class文件。而且在这个字节码被加载时，它们会接受验证，确保没有受到破坏，并且不包含不良代码。一旦这个类的Class对象被载入内存，它就会被用来创建这个类的所有对象（可以说Class对象是这个类所有对象的模板）。
 
+Tips:
+
+有一个很有趣的现象，当使用.class来创建对Class对象的引用时，不会自动地初始化该Class对象。而Class.forClass("xx")则会立即初始化该Class对象。
+
 ###3. 类字面常量
 
 当写完一个类，并编译之后（在Eclipse中是自动编译的，你可以使用navigator视图在bin下面查看生成对应的xx.class），会产生对应的class文件。而调用xx.class有两种方法：
@@ -94,7 +98,7 @@ Java使用Class对象来执行RTTI，即使你正在执行的是类型转型这�
 
 然后有一个标准字段TYPE，TYPE字段是一个引用，它指向对应的基本数据类型的Class对象，比如boolean.class等价于boolean.TYPE。
 
-这个例子太经典了，必须仔细研究啊
+这个例子太经典了，必须仔细研究啊(和上面的Tips结合起来看)
 
 ```
 package Chapter14;
@@ -173,4 +177,12 @@ After creating Initable3 ref
 */
 ```
 
-###3. 
+###4. 类型转换前先做检查
+
+到这里，RTTI的形式已经有了这几种：
+
+1. 传统的类型转换：用Circle、Triangle、Square装入ArrayList<Shape>时，3个形状向上转型为Shape；取出时，List会自动将Object转换为Shape。然后调用方法时，会实现多态功能。
+2. Class对象：通过查询Class对象，我们可以知道很多额外的信息（比如类的名字、完整的包名、超类、是否为接口等等）
+3. instanceof：这个好像见过，比如在第一部分提出的那个问题，我们就可以使用```(if shape instanceof Circle)```来判断是否为Circle。
+
+
