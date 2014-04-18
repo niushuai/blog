@@ -24,35 +24,35 @@ import java.util.*;
 abstract class Shape {
 		void draw() {
 					System.out.println(this + ".draw()");
-						}
-			abstract public String toString();
+		}
+		abstract public String toString();
 }
 
 class Circle extends Shape {
 		public String toString() {
-					return "Circle";
-						}
+			return "Circle";
+		}
 }
 
 class Triangle extends Shape {
 		public String toString() {
-					return "Trangle";
-						}
+			return "Trangle";
+		}
 }
 
 class Square extends Shape {
 		public String toString() {
-					return "Square";
-						}
+			return "Square";
+		}
 }
 
 public class Shapes {
 		public static void main(String[] args) {
-					List<Shape> shapes = Arrays.asList(new Circle(), new Square(), new Triangle());
-							for(Shape shape : shapes) {
-											shape.draw();
-													}
-								}
+			List<Shape> shapes = Arrays.asList(new Circle(), new Square(), new Triangle());
+					for(Shape shape : shapes) {
+							shape.draw();
+					}
+		}
 }
 /** output:
 Circle.draw()
@@ -185,4 +185,146 @@ After creating Initable3 ref
 2. Class对象：通过查询Class对象，我们可以知道很多额外的信息（比如类的名字、完整的包名、超类、是否为接口等等）
 3. instanceof：这个好像见过，比如在第一部分提出的那个问题，我们就可以使用```(if shape instanceof Circle)```来判断是否为Circle。
 
+###5. instanceof与Class的等价性
 
+在查询类型信息时，以instanceof的形式（即以instanceof的形式或者isInstance()的形式，它们产生相同的结果）与直接比较Class对象有一个很重要的区别。Don not BB, show me the Code:
+
+```
+package Chapter14;
+
+class Base {}
+class Derived extends Base {}
+
+public class FamilyVsExactType {
+	static void test(Object x) {
+		System.out.println("Testing x of type " + x.getClass());
+		System.out.println("x instanceof Base " + (x instanceof Base));
+		System.out.println("x instanceof Derived " + (x instanceof Derived));
+		System.out.println("Base.isInstance(x) " + Base.class.isInstance(x));
+		System.out.println("Derived.isInstance(x) " + Derived.class.isInstance(x));
+		System.out.println("x.getClass() == Base.class " + (x.getClass() == Base.class));
+		System.out.println("x.getClass() == Derived.class " + (x.getClass() == Derived.class));
+		System.out.println("x.getClass().equals(Base.class) " + (x.getClass().equals(Base.class)));
+		System.out.println("x.getClass().equals(Derived.calss) " + (x.getClass().equals(Derived.class)));
+	}
+	public static void main(String[] args) {
+		test(new Base());
+		System.out.println();
+		test(new Derived());
+	}
+}
+/** output:
+Testing x of type class Chapter14.Base
+x instanceof Base true
+x instanceof Derived false
+Base.isInstance(x) true
+Derived.isInstance(x) false
+x.getClass() == Base.class true
+x.getClass() == Derived.class false
+x.getClass().equals(Base.class) true
+x.getClass().equals(Derived.calss) false
+
+Testing x of type class Chapter14.Derived
+x instanceof Base true
+x instanceof Derived true
+Base.isInstance(x) true
+Derived.isInstance(x) true
+x.getClass() == Base.class false
+x.getClass() == Derived.class true
+x.getClass().equals(Base.class) false
+x.getClass().equals(Derived.calss) true
+*/
+```
+
+从结果我们可以看出，在相同的类中，instanceof和isInstance的结果是完全相同的。但是Base和Derived的结果却不同：
+
+1. instanceof和isInstance保持了**类型的概念**，它指的是“你是这个类吗？或者你是这个类的派生类吗？”
+2. 用==或者equals比较实际的Class对象，就没有考虑继承的概念，因为Class对于不同的类都是唯一的（这个从编译后生成的Class对象就可以知道）。所以它**或者是这个确切的Class对象，或者不是，没有继承和其它情况**
+
+###6. 反射
+
+终于到反射了！好激动，一定要把反射搞清楚，然后就可以把热加载技术搞定了。。。。。目标就是搞定Spring的热加载，让ABTest可以热加载！
+
+咳咳，书上说“重要的是，要认识到反射机制并没有什么神奇之处。”那就简单总结一下书上的原因：
+
+> 当通过反射与一个未知类型的对象打交道时，JVM只是简单地检查这个对象，看它属于哪个特定的类（就像RTTI一样）。在用它做其他事情之前必须先加载那个类的Class对象。因此，那个类的.class文件对于JVM来说必须是可获取的：要么在本地机器上，要么可以通过网络获得。所以RTTI和反射之间的真正的区别只在于，对RTTI来说，编译器在编译时打开和检查的.class文件。（换句话说，我们可以用“普通”方式调用对象的所有方法。）而对于反射机制来说，.class文件在编译时是不可获取的，所以是在运行时打开和检查.class文件。
+
+###7. 反射提供方法查找基类的方法列表
+
+Do not BB, show me the CODE:
+
+```
+package Chapter14;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.regex.Pattern;
+
+public class ShowMethods {
+	private static String usage = "usage:\n" +
+			"ShowMethods qualified.class.name\n" +
+			"To show all methods in class or:\n" +
+			"ShowMethods qualified.class.name word\n" +
+			"To search for methods involving 'word'";
+	private static Pattern p = Pattern.compile("\\w+\\.");
+	public static void main(String[] args) {
+		if(args.length < 1) {
+			System.out.println(usage);
+			System.exit(0);
+		}
+		int lines = 0;
+		try {
+			Class<?> c = Class.forName(args[0]);
+			Method[] methods = c.getMethods();
+			Constructor[] ctors = c.getConstructors();
+			if(args.length == 1) {
+				for(Method method : methods) {
+					System.out.println(p.matcher(method.toString()).replaceAll(""));
+					System.out.println("#" + method.toString());
+				}
+				for(Constructor ctor : ctors) {
+					System.out.println(p.matcher(ctor.toString()).replaceAll(""));
+				}
+			} else {
+				for(Method method : methods) {
+					if(method.toString().indexOf(args[1]) != -1) {
+						System.out.println(p.matcher(method.toString()).replaceAll(""));
+						lines++;
+					}
+				}
+				for(Constructor ctor : ctors) {
+					if(ctor.toString().indexOf(args[1]) != -1) {
+						System.out.println(p.matcher(ctor.toString()).replaceAll(""));
+						lines++;
+					}
+				}
+			}
+		} catch(ClassNotFoundException e) {
+			System.out.println("No such class: " + e);
+		}
+	}
+}
+/** output:
+public static void main(String[])
+#public static void Chapter14.ShowMethods.main(java.lang.String[])
+public final void wait(long,int) throws InterruptedException
+#public final void java.lang.Object.wait(long,int) throws java.lang.InterruptedException
+public final native void wait(long) throws InterruptedException
+#public final native void java.lang.Object.wait(long) throws java.lang.InterruptedException
+public final void wait() throws InterruptedException
+#public final void java.lang.Object.wait() throws java.lang.InterruptedException
+public boolean equals(Object)
+#public boolean java.lang.Object.equals(java.lang.Object)
+public String toString()
+#public java.lang.String java.lang.Object.toString()
+public native int hashCode()
+#public native int java.lang.Object.hashCode()
+public final native Class getClass()
+#public final native java.lang.Class java.lang.Object.getClass()
+public final native void notify()
+#public final native void java.lang.Object.notify()
+public final native void notifyAll()
+#public final native void java.lang.Object.notifyAll()
+public ShowMethods()
+*/
+```
