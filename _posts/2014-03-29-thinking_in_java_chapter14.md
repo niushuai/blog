@@ -300,7 +300,7 @@ public class ShowMethods {
 				}
 			}
 		} catch(ClassNotFoundException e) {
-			System.out.println("No such class: " + e);
+#			System.out.println("No such class: " + e);
 		}
 	}
 }
@@ -328,3 +328,196 @@ public final native void notifyAll()
 public ShowMethods()
 */
 ```
+
+额，才一天没看，上面这个例子我都忘了咋编译了呢！编译请使用```javac Chapter14/ShowMethods.java```, 运行使用```java Chapter14.ShowMethods 完整包名的类```。比如这个程序的运行是这样的：```java Chapter14.ShowMethods Chapter14.ShowMethods```
+
+然后我们就可以清楚的看见每个方法的名称和构造函数了。。。
+
+###8. 动态代理
+
+看到这个名字就觉得很牛逼的样子，然后实际看了，确实很牛逼。。代理是什么东西其实很简单，就拿简单的翻墙来说，我们在国内无法访问Twitter，但是在国外可以，假如google架设了一台服务器可以访问Twitter，我们访问google，告诉它我想要访问Twitter，然后google去Twitter访问后把响应数据传输给用户。这样google就相当于代理。其实在实际的使用中，我们是无法感受到代理的存在的，我们直接访问的是Twitter，但实际上我们是通过代理来和Twitter交互的。
+
+那么，Java的动态比普通的代理更进一步：
+> 因为它可以动态地创建代理并动态地处理对所代理方法的调用。在动态代理上所做的所有操作都会被重定向到单一的调用处理器上，它的工作是揭示调用的类型并确定相应的对策。下面就用一个实际的例子来说明为什么要代理，它的好处是什么？
+
+一个简单的代理CODE:
+
+```
+package Chapter14;
+
+interface Interface {
+	void doSomething();
+	void somethingElse(String arg);
+}
+
+class RealObject implements Interface {
+	public void doSomething() {
+		System.out.println("doSomething");
+	}
+	public void somethingElse(String arg) {
+		System.out.println("somethingElse " + arg);
+	}
+}
+
+class SimpleProxy implements Interface {
+	private Interface proxy;
+	public SimpleProxy(Interface realInterface) {
+		proxy = realInterface;
+	}
+	public void doSomething() {
+		System.out.println("SimpleProxy doSomething");
+		proxy.doSomething();
+	}
+	public void somethingElse(String arg) {
+		System.out.println("SimpleProxy somethingElse");
+		proxy.somethingElse(arg);
+	}
+}
+
+public class SimpleProxyDemo {
+	public static void consumer(Interface iface) {
+		iface.doSomething();
+		iface.somethingElse("bonobo");
+	}
+	public static void main(String[] args) {
+		consumer(new RealObject());
+		consumer(new SimpleProxy(new RealObject()));
+	}
+}
+/** output:
+*/
+doSomething
+somethingElse bonobo
+SimpleProxy doSomething
+doSomething
+SimpleProxy somethingElse
+somethingElse bonobo
+```
+
+然后我们使用Java给我们提供的动态代理：
+
+```
+package Chapter14;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+class DynamicProxyHandler implements InvocationHandler {
+	private Object proxied;
+	public DynamicProxyHandler(Object proxied) {
+		this.proxied = proxied;
+	}
+	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable{
+		System.out.println("*** proxy: " + proxy.getClass() + ", method: " + method + ", args: " + args);
+		if(args != null) {
+			for(Object arg : args) {
+				System.out.println(" " + arg);
+			}
+		}
+		return method.invoke(proxied, args);
+	}
+}
+
+public class SimpleDynamicProxy {
+	public static void consumer(Interface iface) {
+		iface.doSomething();
+		iface.somethingElse("bonobo");
+	}
+	public static void main(String[] args) {
+		RealObject real = new RealObject();
+		consumer(real);
+		
+		Interface proxy = (Interface)Proxy.newProxyInstance(
+				Interface.class.getClassLoader(), 
+				new Class[]{ Interface.class }, 
+				new DynamicProxyHandler(real)
+		);
+		consumer(proxy);
+	}
+}
+/** output: 
+doSomething
+somethingElse bonobo
+*** proxy: class Chapter14.$Proxy0, method: public abstract void Chapter14.Interface.doSomething(), args: null
+doSomething
+*** proxy: class Chapter14.$Proxy0, method: public abstract void Chapter14.Interface.somethingElse(java.lang.String), args: [Ljava.lang.Object;@6150818a
+ bonobo
+somethingElse bonobo
+*/
+```
+
+然后我们再来看一下如何过滤某些方法的调用：
+
+```
+package Chapter14;
+
+import java.lang.reflect.*;
+
+class MethodSelector implements InvocationHandler {
+	private Object proxied;
+	MethodSelector(Object proxied) {
+		this.proxied = proxied;
+	}
+	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable{
+		if(method.getName().equals("interesting")) {
+			System.out.println("Proxy detected the interesting method");
+		}
+		return method.invoke(proxied, args);
+	}
+}
+
+interface SomeMethods {
+	void boring1();
+	void boring2();
+	void interesting(String arg);
+	void boring3();
+}
+
+class Implementation implements SomeMethods {
+	public void boring1() {
+		System.out.println("boring1");
+	}
+	public void boring2() {
+		System.out.println("boring2");
+	}
+	public void interesting(String arg) {
+		System.out.println("interesting " + arg);
+	}
+	public void boring3() {
+		System.out.println("boring3");
+	}
+}
+
+public class SelectingMethods {
+	public static void main(String[] args) {
+		SomeMethods proxy = (SomeMethods)Proxy.newProxyInstance(
+					SomeMethods.class.getClassLoader(),
+					new Class[] { SomeMethods.class },
+					new MethodSelector(new Implementation())
+				);
+		proxy.boring1();
+		proxy.boring2();
+		proxy.interesting("bonobo");
+		proxy.boring3();
+	}
+}
+/** output:
+boring1
+boring2
+Proxy detected the interesting method
+interesting bonobo
+boring3
+*/
+```
+
+上面三个例子其实都比较简单，我们来大概说一下用法：
+
+1. 第一个就是使用SimpleProxy，它内部有一个目标对象，通过它来间接使用Interface
+2. 第二个使用了Java自带的Proxy.newProxyInstance()函数，它的三个参数为：类加载器、希望该代理实现的接口列表、实现InvocationHandler接口的类（调用Method.invoke()）
+3. 和第二个一样，只是我们对Methods进行了过滤（对，就是使用简单的String默认实现的Compareble接口）
+
+然后使用Java的invoke()函数也需要搞清楚它是怎样工作的：
+> Proxy.newProxyInstance()返回一个Object对象，我们将它转换为最终要代理的接口。而其中的三个参数很关键，因为是动态代理，所以编译的时候我们是无法知道代理的具体目标，所以需要一个类加载器，当需要这个类的时候我们可以使用这个加载器加载被代理对象。而第二个是这个代理要实现的接口，第三个就是InvocationHandler接口的实现。我猜了一下流程就是JVM发现这是一个Proxy代理，想创建一个新代理。而这个新代理是第二个参数，于是我使用第一个参数提供的类加载器来加载被代理的接口，接着当调用这个代理的时候，就会调用InvocationHandler中的invoke()，invoke的三个参数分别为被代理对象、方法调用、参数，所以调用invoke就会通过Method.invoke函数来调用被代理接口的对应函数，并提供对应的参数。
+
+###9. 
