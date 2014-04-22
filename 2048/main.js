@@ -177,6 +177,10 @@ function moveUp() {
                         board[i][j] = 0;
                     } else if ((board[k][j] == board[i][j]) && !blockVertical(board, j, i, k)) {
                         //move
+												showMoveAnimation(i, j, k, j);
+
+												//add number
+												board[k][j] <<= 1;
                         board[i][j] = 0;
                     }
                 }

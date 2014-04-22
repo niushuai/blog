@@ -37,6 +37,9 @@ header p{
     font-size: 25px;
     margin: 20px auto;
 }
+html,body {
+		overflow:hidden;
+}
 
 #grid-container{
     width: 460px;
