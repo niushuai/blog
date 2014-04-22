@@ -1,4 +1,5 @@
 var board = new Array();
+var hasconflict = new Array();
 var score = 0;
 
 $(document).ready(function() {
@@ -15,6 +16,9 @@ function newGame() {
 }
 
 function init() {
+
+    score = 0;
+
     for(var i = 0; i < 4; i++)
         for(var j = 0; j < 4; j++) {
             var gridCell = $('#grid-cell-' + i + "-" + j);
@@ -24,8 +28,10 @@ function init() {
 
     for(var i = 0; i < 4; i++) {
         board[i] = new Array();
+        hasconflict[i] = new Array();
         for(var j = 0; j < 4; j++) {
             board[i][j] = 0;
+            hasconflict[i][j] = 0;
         }
     }
 
@@ -58,6 +64,7 @@ function updateBoardView() {
                 theNumberCell.css('color', getNumberColor(board[i][j]));
                 theNumberCell.text(board[i][j]);
             }
+            hasconflict[i][j] = false;
         }
 }
 
@@ -69,13 +76,33 @@ function generateOneNumber(){
     var randx = parseInt(Math.floor(Math.random() * 4));
     var randy = parseInt(Math.floor(Math.random() * 4));
 
-    while(true) {
+    var times = 0;
+    while(times < 50) {
         if(board[randx][randy] == 0)
             break;
 
         //重新生成位置
         randx = parseInt(Math.floor(Math.random() * 4));
         randy = parseInt(Math.floor(Math.random() * 4));
+
+        times++;
+    }
+
+    if(times == 50) {
+        var find = false;
+        for(var i = 0; i < 4; i++) {
+            if(find == true) {
+                break;
+            }
+            for(var j = 0; j < 4; j++) {
+                if(board[i][j] == 0) {
+                    randx = i;
+                    randy = j;
+                    find = true;
+                    break;
+                }
+            }
+        }
     }
 
     //随机一个数字
@@ -95,26 +122,26 @@ $(document).keydown( function(event) {
    switch(event.keyCode) {
        case 37: //left
            if(moveLeft()){
-               generateOneNumber();
-               isGameOver();
+               setTimeout("generateOneNumber()", 210);
+               setTimeout("isGameOver()", 300);
            }
            break;
        case 38: //up
            if(moveUp()) {
-               generateOneNumber();
-               isGameOver();
+               setTimeout("generateOneNumber()", 210);
+               setTimeout("isGameOver()", 300);
            }
            break;
        case 39: //right
            if(moveRight()) {
-               generateOneNumber();
-               isGameOver();
+               setTimeout("generateOneNumber()", 210);
+               setTimeout("isGameOver()", 300);
            }
            break;
        case 40: //down
            if(moveDown()) {
-               generateOneNumber();
-               isGameOver();
+               setTimeout("generateOneNumber()", 210);
+               setTimeout("isGameOver()", 300);
            }
            break;
        default: //default
@@ -123,7 +150,18 @@ $(document).keydown( function(event) {
 });
 
 function isGameOver(){
+    if(
+        noSpace(board) &&
+        !canMoveLeft(board) &&
+        !canMoveUp(board) &&
+        !canMoveRight(board) &&
+        !canMoveDown(board)
+    ) {
+        alert("game is over");
+        return true;
+    }
 
+    return false;
 }
 
 function moveLeft() {
@@ -142,13 +180,19 @@ function moveLeft() {
 
                         board[i][k] = board[i][j];
                         board[i][j] = 0;
-                    } else if ((board[i][k] == board[i][j]) && !blockHorizontal(board, i, j, k)) {
+                    } else if ((board[i][k] == board[i][j]) && !blockHorizontal(board, i, j, k) && !hasconflict[i][k]) {
                         //move
                         showMoveAnimation(i, j, i, k);
 
                         //add number
                         board[i][k] <<= 1;
                         board[i][j] = 0;
+
+                        //add score
+                        score += board[i][k];
+                        updateSocre(score);
+
+                        hasconflict[i][k] = true;
                     }
                 }
             }
@@ -175,13 +219,19 @@ function moveUp() {
 
                         board[k][j] = board[i][j];
                         board[i][j] = 0;
-                    } else if ((board[k][j] == board[i][j]) && !blockVertical(board, j, i, k)) {
+                    } else if ((board[k][j] == board[i][j]) && !blockVertical(board, j, i, k) && !hasconflict[k][j]) {
                         //move
-												showMoveAnimation(i, j, k, j);
+                        showMoveAnimation(i, j, k, j);
 
-												//add number
-												board[k][j] <<= 1;
+                        //add number
+                        board[k][j] <<= 1;
                         board[i][j] = 0;
+
+                        //add score
+                        score += board[k][j];
+                        updateSocre(score);
+
+                        hasconflict[k][j] = true;
                     }
                 }
             }
@@ -208,13 +258,19 @@ function moveRight() {
 
                         board[i][k] = board[i][j];
                         board[i][j] = 0;
-                    } else if ((board[i][k] == board[i][j]) && !blockHorizontal(board, i, j, k)) {
+                    } else if ((board[i][k] == board[i][j]) && !blockHorizontal(board, i, j, k) && !hasconflict[i][k]) {
                         //move
                         showMoveAnimation(i, j, i, k);
 
                         //add number
                         board[i][k] <<= 1;
                         board[i][j] = 0;
+
+                        //add score
+                        score += board[i][k];
+                        updateSocre(score);
+
+                        hasconflict[i][k] = true;
                     }
                 }
             }
@@ -241,13 +297,19 @@ function moveDown() {
 
                         board[k][j] = board[i][j];
                         board[i][j] = 0;
-                    } else if ((board[k][j] == board[i][j]) && !blockVertical(board, j, i, k)) {
+                    } else if ((board[k][j] == board[i][j]) && !blockVertical(board, j, i, k) && !hasconflict[k][j]) {
                         //move
                         showMoveAnimation(i, j, k, j);
 
                         //add number
                         board[k][j] <<= 1;
                         board[i][j] = 0;
+
+                        //add score
+                        score += board[k][j];
+                        updateSocre(score);
+
+                        hasconflict[k][j] = true;
                     }
                 }
             }
