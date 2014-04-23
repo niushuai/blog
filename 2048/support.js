@@ -1,13 +1,16 @@
+//top像素计算
 function getPosTop(i, j) {
     return 20 + i * 120;
 }
 
+//left像素计算
 function getPosLeft(i, j) {
     return 20 + j * 120;
 }
 
+//每个数字背景色
 function getNumberBackgroundColor(number) {
-    switch(number) {
+    switch (number) {
         case 2:
             return "#eee4da";
             break;
@@ -52,26 +55,27 @@ function getNumberBackgroundColor(number) {
     return 'black';
 }
 
+//数字颜色
 function getNumberColor(number) {
-    if(number <= 4)
+    if (number <= 4)
         return "#776e65";
     else
         return "white";
 }
 
 function noSpace(board) {
-    for(var i = 0; i < 4; i++)
-        for(var j = 0; j < 4; j++)
-            if(board[i][j] == 0)
+    for (var i = 0; i < 4; i++)
+        for (var j = 0; j < 4; j++)
+            if (board[i][j] == 0)
                 return false;
     return true;
 }
 
 function canMoveLeft(board) {
-    for(var i = 0; i < 4; i++)
-        for(var j = 1; j < 4; j++)
-            if(board[i][j] != 0) {
-                //左边为空或者两个数字相等
+    for (var i = 0; i < 4; i++)
+        for (var j = 1; j < 4; j++)
+            if (board[i][j] != 0) {
+                //left为空或者两个数字相等
                 if (board[i][j - 1] == 0 || board[i][j] == board[i][j - 1])
                     return true;
             }
@@ -81,11 +85,11 @@ function canMoveLeft(board) {
 
 function canMoveUp(board) {
 
-    for(var i = 1; i < 4; i++)
-        for(var j = 0; j < 4; j++)
-            if(board[i][j] != 0) {
+    for (var i = 1; i < 4; i++)
+        for (var j = 0; j < 4; j++)
+            if (board[i][j] != 0) {
                 //up为空或者两个数字相等
-                if(board[i - 1][j] == 0 || board[i][j] == board[i - 1][j])
+                if (board[i - 1][j] == 0 || board[i][j] == board[i - 1][j])
                     return true;
             }
 
@@ -93,10 +97,10 @@ function canMoveUp(board) {
 }
 
 function canMoveRight(board) {
-    for(var i = 0; i < 4; i++)
-        for(var j = 2; j >= 0; j--)
-            if(board[i][j] != 0) {
-                //为空或者相等
+    for (var i = 0; i < 4; i++)
+        for (var j = 2; j >= 0; j--)
+            if (board[i][j] != 0) {
+                //right为空或者两个数字相等
                 if (board[i][j + 1] == 0 || board[i][j] == board[i][j + 1])
                     return true;
             }
@@ -105,10 +109,10 @@ function canMoveRight(board) {
 }
 
 function canMoveDown(board) {
-    for(var j = 0; j < 4; j++)
-        for(var i = 2; i >= 0; i--)
-            if(board[i][j] != 0) {
-                //为空或者相等
+    for (var j = 0; j < 4; j++)
+        for (var i = 2; i >= 0; i--)
+            if (board[i][j] != 0) {
+                //down为空或者两个数字相等
                 if (board[i + 1][j] == 0 || board[i][j] == board[i + 1][j])
                     return true;
             }
@@ -116,11 +120,11 @@ function canMoveDown(board) {
     return false;
 }
 
-//水平方向判断
+//水平方向判断是否有阻碍
 function blockHorizontal(board, row, col1, col2) {
     var from, to;
 
-    if(col1 > col2) {
+    if (col1 > col2) {
         from = col2;
         to = col1;
     } else {
@@ -128,18 +132,18 @@ function blockHorizontal(board, row, col1, col2) {
         to = col2;
     }
 
-    for(var i = from + 1; i < to; i++) {
-        if(board[row][i] != 0)
+    for (var i = from + 1; i < to; i++) {
+        if (board[row][i] != 0)
             return true;
     }
     return false;
 }
 
-//垂直方向判断
+//垂直方向判断是否有阻碍
 function blockVertical(board, col, row1, row2) {
     var from, to;
 
-    if(row1 > row2) {
+    if (row1 > row2) {
         from = row2;
         to = row1;
     } else {
@@ -147,8 +151,8 @@ function blockVertical(board, col, row1, row2) {
         to = row2;
     }
 
-    for(var i = from + 1; i < to; i++) {
-        if(board[i][col] != 0)
+    for (var i = from + 1; i < to; i++) {
+        if (board[i][col] != 0)
             return true;
     }
     return false;
