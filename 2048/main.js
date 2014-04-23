@@ -1,5 +1,40 @@
 var board = new Array();
 var hasconflict = new Array();
+
+var my_list = {
+    2:'小白',
+    4:'实习生',
+    8:'程序猿',
+    16:'项目经理',
+    32:'架构师',
+    64:'技术经理',
+    128:'高级经理',
+    256:'技术总监',
+    512:'副总裁',
+    1024:'CTO',
+    2048:'总裁',
+    4096:'总裁他爹',
+    8192:'~~~~',
+    16384:'8192',
+    32768:'16384',
+    65536:'32768',
+    131072:'65536',
+    262144:'131072',
+    524288:'262144',
+    1048576:'524288',
+    2097152:'1048576',
+    4194304:'2097152',
+    8388608:'4194304',
+    16777216:'8388608',
+    33554432:'16777216',
+    67108864:'33554432',
+    134217728:'67108864',
+    268435456:'134217728',
+    536870912:'268435456',
+    1073741824:'536870912',
+    2147483648:'1073741824'}
+
+
 var score = 0;
 
 $(document).ready(function() {
@@ -62,7 +97,7 @@ function updateBoardView() {
                 theNumberCell.css('left', getPosLeft(i, j));
                 theNumberCell.css('background-color', getNumberBackgroundColor(board[i][j]));
                 theNumberCell.css('color', getNumberColor(board[i][j]));
-                theNumberCell.text(board[i][j]);
+                theNumberCell.text(my_list[board[i][j]]);
             }
             hasconflict[i][j] = false;
         }
