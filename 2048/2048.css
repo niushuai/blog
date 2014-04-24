@@ -39,10 +39,6 @@ header p {
     margin: 20px auto;
 }
 
-html, body {
-    overflow: hidden; /*防止页面出现滚动条和上下操作叠加，还没找到合适解决方法*/
-}
-
 #grid-container {
     width: 460px;
     height: 460px;

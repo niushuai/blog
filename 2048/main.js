@@ -33,6 +33,8 @@ $(document).ready(function () {
 //js采用事件响应机制
 $(document).keydown(function (event) {
 
+		//禁止上下左右的滚动条按键
+		event.preventDefault();
     switch (event.keyCode) {
         case 37: //left
             if (moveLeft()) {
