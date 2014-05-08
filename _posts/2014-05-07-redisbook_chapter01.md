@@ -1,6 +1,6 @@
 ---
 layout: post
-title: redis的设计与实现（一）、内部数据结构
+title: Redis设计与实现（一）、内部数据结构
 categories: redis
 tags: redis
 ---
