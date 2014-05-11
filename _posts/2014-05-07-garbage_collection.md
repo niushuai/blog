@@ -231,3 +231,78 @@ CMS收集器的优点在于**并发收集、低停顿**，但是也不是完美�
 
 1. 采用标记-整理算法
 2. 可以非常精确的控制停顿时间，能让使用者明确指定在一个长度为M毫秒的时间片段内，消耗在垃圾收集上的时间不得超过N毫秒，这几乎已经是实时Java的垃圾收集器的特征了。G1收集器没有分代的概念，而是将整个Java堆划分为多个大小固定的独立区域，然后跟踪这些区域内面的垃圾堆积程度，在后台维护一个优先队列，每次回收根据优先算法优先回收垃圾最多的区域。**区域划分和优先级的设定，保证了G1收集器在有限的时间内”智能“的获得最高的收集效率。**
+
+###8. 内存分配与回收策略
+
+Java技术体系中所提倡的自动内存管理最终可以总结为两个点：
+
+1. 给对象分配内存
+2. 回收分配给对象的内存
+
+上面的篇幅中，我们主要讨论了JVM中的垃圾收集器如何回收分配给对象的内存，下面我们来谈谈第一条：如何给对象分配内存。。
+
+当然，有几个常用的JVM参数查看我们必须知道，因为有些操作是针对特定收集器，如果你的JVM使用了其他收集器，那么你的程序会有所不同。
+
+* -XX:+PrintFlagsInitial:JVM的默认参数配置
+* -XX:+PrintFlagsFinal:经过修改的JVM参数配置
+* -XX:+PrintCommandLineFlags:显示和默认配置不同的JVM选项以及参数
+
+使用上面几个参数，结合grep就可以得到所有变量的配置，比如查看使用的是哪种收集器组合，哪个参数的值是多少等等。
+
+首先，我们要查看一下JVM的配置，使用```java -X```，就可以查看每个选项是做什么的。这里比较重要的3个参数为：
+
+1. -Xms:设置初始Java堆大小
+2. -Xmx:设置最大Java堆大小
+3. -Xss:设置Java线程堆栈大小
+
+下面我们根据这3个参数来跑一个程序测试一下。
+
+命令为：```java -verbose:gc -Xms20M -Xmx20M -Xmn10M -XX:SurvivorRatio=8 -XX:+PrintGCDetails JVMPara```：
+
+```
+public class JVMPara {
+	
+	private static final int SIZE = 1024 * 1024;
+	
+	public static void testAllocation() {
+		byte[] a1, a2, a3, a4;
+		a1 = new byte[2 * SIZE];
+		a2 = new byte[2 * SIZE];
+		a3 = new byte[2 * SIZE];
+		a4 = new byte[4 * SIZE];
+	}
+	public static void main(String[] args) {
+		testAllocation();
+	}
+}
+/**output:
+Heap
+ PSYoungGen      total 9216K, used 7143K [0x0000000118a00000, 0x0000000119400000, 0x0000000119400000)
+  eden space 8192K, 87% used [0x0000000118a00000,0x00000001190f9f10,0x0000000119200000)
+  from space 1024K, 0% used [0x0000000119300000,0x0000000119300000,0x0000000119400000)
+  to   space 1024K, 0% used [0x0000000119200000,0x0000000119200000,0x0000000119300000)
+ ParOldGen       total 10240K, used 4096K [0x0000000118000000, 0x0000000118a00000, 0x0000000118a00000)
+  object space 10240K, 40% used [0x0000000118000000,0x0000000118400010,0x0000000118a00000)
+ PSPermGen       total 21504K, used 2550K [0x0000000112e00000, 0x0000000114300000, 0x0000000118000000)
+  object space 21504K, 11% used [0x0000000112e00000,0x000000011307db70,0x0000000114300000)
+*/
+```
+
+从log中我们可以发现，新生代中Eden是8M,Survivor是1M+1M，分别为from和to。所以，新生代总大小(PSYoungGen:9M)，因为不包含to的Survivor。当分配了a1,a2,a3之后，发现新生代只剩下3M了,所以有两种选择：1.新生代垃圾收集，很不幸，发现a1,a2,a3都无法回收，于是会将a1,a2,a3复制到老年代，然后对新生代垃圾收集;2.分配担保，使用老年代。结果我们可以看出，JVM使用了第二种方法，于是我们看到，ParOldGen中有4M被a4占用了。但是为什么JVM会使用第二种呢？原来这里有一个参数：```-XX:PretenureSizeThreshold```,我们使用```java -XX:+PrintFlagsInitial | grep 'PretenureSizeThreshold'```查看，会发现值为0，说明当新生代空间不够时，只要大于0，就会直接在老年代分配。我们可以试验一下，将这个值设为5M的大小（这个参数不能直接写5M，要写字节5*1024*1024B（1Byte=8bit）），就会发现JVM按照第一种方法执行了。我修改以后运行，发现出现错误，原来作者提到了,PretenureSizeThreshold变量只对Serial和ParNew两款收集器有效，而我查看JVM发现我使用的是Parallel Scavenge和Parallel Old收集器，所以就没法搞了- -，如果想试验这个，可以改为ParNew和CMS组合。
+
+下面我们来说下分代的情况。因为收集器分为新生代和老年代，那么，在分配内存的时候，JVM是怎样判断一个对象是属于哪个generation呢？原来JVM使用了一个简单的对象年龄计数器来完成的：
+
+> 如果对象在Eden出生并经过第一次Minor GC后仍然存活，并且能被Survivor容纳的话，将被移动到Survivor空间中，并将对象年龄设为1.对象在Survivor区中每熬过一次Minor GC，年龄就增加1岁，当它的年龄超过阈值（默认是15岁），就会被晋升到老年代中。**对象晋升老年代的阈值，可以通过参数```-XX:MaxTenuringThreshold```设置。我们可以用```java -XX:+PrintFlagsFinal | grep 'MaxTenuringThreshold'```查看。
+
+但是实际情况可能不是酱紫滴，因为JVM会采用一种更smart的方法——动态对象年龄判定
+
+> 为了更好地适应不同程序的内存状况，JVM不是在达到年龄阈值才会将对象晋升到老年代，**如果在Survivor空间中，相同年龄所有对象的大小总和 > Survivor空间一半，那么，年龄大于等于该年龄的对象就可以直接进入老年代，而不必等待达到年龄阈值。
+
+而所谓的Minor GC和Full GC就是这样区分的：
+
+* 年轻代Young GC(Minor GC):指发生在新生代的垃圾收集，因为Java对象98%情况都是朝生夕死，所以Minor非常频繁，一般回收速度也比较快
+* 老年代Full GC:指老生在老年代的GC，出现了Full GC，经常会伴随至少一次的Minor GC（也不是绝对的，PS收集器可以选择），Full GC的速度一般会比Young GC慢10倍以上
+
+前面说到了分配担保，这里解释一下：
+
+> 分配担保：在发生Young GC时，JVM会检测之前每次晋升老年代的对象平均大小和老年代剩余空间的大小。如果大于，直接进行Full GC。如果小于，则查看```HandlePromotionFailure```设置是否允许担保失败：如果允许，只会进行Young GC；如果不允许，则也要改为进行一次Full GC。**一般情况下是把这个开关打开，要不然会出现频繁Full GC的情况。**
