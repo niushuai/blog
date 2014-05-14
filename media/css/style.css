@@ -1,217 +1,134 @@
-@charset "UTF-8";
 /*------------------------------------
- * sext-vi
- *
- * @author linghua.zhang@me.com
- * @link http://lhzhang.com/
- * @update 2014-03-17
- *
- * |/ | (~ (~
- * |\.|._)._)
- * --------------------------------- */
-@import url(/media/fonts/telex-regular.css);
-@import url(http://fonts.googleapis.com/css?family=Ubuntu:300);
-* {
-  margin: 0;
-  padding: 0; }
+* sext
+*
+* @author linghua.zhang@me.com
+* @link http://lhzhang.com/
+* @update 2011-12-20
+* 
+* |/ | (~ (~
+* |\.|._)._)
+* --------------------------------- */
 
-body {
-  font-size: 14px;
-  font-family: "telexregular", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  color: #555;
-  background-color: #f9f9f9; }
+@import url(http://fonts.googleapis.com/css?family=Galdeano);
+@import url(http://fonts.googleapis.com/css?family=Electrolize);
+@import url(http://fonts.googleapis.com/css?family=Cuprum);
+body{font-size:14px;word-spacing:1px;
+	margin-left:auto;
+margin-right:auto;
+	font-family:"Galdeano","Hiragino Sans GB","Microsoft YaHei",Trebuchet,"Trebuchet MS",Tahoma,"Lucida Grande","Lucida Sans Unicode",Verdana,sans-serif;color:#000000;background-color:#ffffff;}
+*{border:none;outline:none;}
+a{color:#dd0000;text-decoration:none;}
+a:hover{color:#333333;text-decoration:underline;}
+hr{margin:.7em 0;border-top:1px dashed #d0d0d0;border-bottom:1px dashed #f9f9f9;}
+p{padding:.5em 0;}
+li{padding: .2em 2em;}
+ul,li{list-style-position:inside;padding: .3em 0;}
+ol,ul{list-style-position:inside;border: rgb(226, 222, 222);border-style: solid;border-radius: 10px;padding: .3em 0;}
+ol ul, ul ol, ul ul, ol ol {margin-left:1em;}
+pre code{margin:1em 0;font-size:13px;line-height:1.6;display:block;overflow:auto;}
+blockquote{display:block;text-align:justify;border-left:4px solid #eeeeee;}
+blockquote{margin:1em 0em;padding-left:1.5em;}
+blockquote p{margin:0;padding:.5em 0;}
+#container{width:850px;margin:2em auto;display:block;padding:0 2em;}
+.content{font-size:16px;line-height:24px;}
+.content h1{padding:.5em 0;}
+.content img{max-width:640px;display:block;margin:4px auto;-webkit-box-shadow:#999 1px 1px 4px;-moz-box-shadow:#999 1px 1px 4px;box-shadow:#999 1px 1px 4px;}
+#tag_cloud{margin-bottom: 1em;}
+#tag_cloud a:hover{color:#333333 !important;text-decoration:none;}
+.listing-item,.listing-seperator{list-style-type:none;}
+.listing-item a{
+	padding:.2em 1em;
 
-ol, ul {
-  list-style-position: inside; }
+}
 
-li {
-  padding: .2em 0; }
+.listing-item time{color:#999999;}
+.listing-seperator{font-weight:bold;}
+.meta{font-size:12px;color:#888;}
+.pageNav{font-weight:bold;font-size:17px;}
+.pageNavInvalid{font-weight:bold;font-size:17px;color:#D0D0D0;}
+header{padding:.5em 0;border-bottom: 1px solid #cccccc;}
+nav{font-family:"Electrolize",sans-serif;font-size:1.1em;text-transform:uppercase;float:left;margin-left:-8em;width:6em;text-align:center;padding: 0em 0em;}
+nav a{display:block;padding:.7em 1em;color:#000000;}
+nav a:hover{background-color:#ff0000;text-decoration:none;color:#f9f9f9;-webkit-transition:color .2s linear;}
+.post{padding:.5em 0em;}
+h1{font-family:"Cuprum","Hiragino Sans GB","Microsoft YaHei",sans-serif;font-size:1.6em;color:#000;}
+h2{font-family:"Cuprum","Hiragino Sans GB","Microsoft YaHei",sans-serif;font-size:1.4em;color:#111;}
+h3{font-family:"Cuprum","Hiragino Sans GB","Microsoft YaHei",sans-serif;font-size:1.2em;color:#222;padding: .5em 0em;}
+h4{font-family:"Cuprum","Hiragino Sans GB","Microsoft YaHei",sans-serif;font-size:1em;color:#333;}
+pre,code{font-family:Menlo,"Andale Mono",Consolas,"Courier New",Monaco,monospace;font-size:13px;}
+code{background-color:#D0D0D0;}
+embed,object,iframe{display:block;margin:4px auto;}
+.gist{font-size: 12px;line-height:1.6;}
 
-hr {
-  width: 4em;
-  border: none;
-  border-top: 1px dashed #d0d0d0;
-  border-bottom: 1px dashed #f9f9f9; }
+footer{
+text-align:center;
+display:block;
+border-top: 1px dashed #CCC;
+}
 
-.center {
-  text-align: center; }
+footer small {
+font-size: 13px;
+color: #AAA;
+}
 
-::selection {
-  color: #fff;
-  background-color: #333; }
+footer a {
+color: #888;
+text-decoration: none;
+}
 
-a, header #header h1 a, article .title a, article .meta .tags a, article .divider a {
-  text-decoration: none;
-  color: #bb2222; }
-  a:hover, header #header h1 a:hover, article .title a:hover, article .meta .tags a:hover, article .divider a:hover {
-    color: #dd1144; }
+footer a:hover {
+border-bottom: 1px dashed #BBB;
+text-decoration: none;
+}
 
-blockquote, pre code {
-  background-color: #f8f8f8;
-  padding: 0 1em;
-  border: 1px dashed #eee !important;
-  border-color: #e0e0e0 !important;
-  font-size: 13px;
-  line-height: 1.6;
-  display: block;
-  overflow: auto; }
+.label {
+font-size:11.25px;
+font-weight:700;
+color:#fff;
+text-transform:uppercase;
+background-color:#999;
+-webkit-border-radius:3px;
+-moz-border-radius:3px;
+border-radius:3px;
+padding:1px 3px 2px;
+}
 
-code {
-  background-color: #f8f8f8;
-  padding: 2px 5px;
-  border: 1px dashed #e0e0e0;
-  font-family: "Ubuntu", monospace; }
+.label-important {
+background-color:#b94a48;
+}
 
-h1, h2 {
-  font-size: 1.4em; }
+.label-warning {
+background-color:#f89406;
+}
 
-time {
-  font-family: "Ubuntu", monospace; }
+.label-success {
+background-color:#468847;
+}
 
-header {
-  width: 680px;
-  margin: 0 auto;
-  text-align: justify;
-  margin: 3em auto; }
-  header:after {
-    content: '';
-    width: 100%;
-    display: inline-block; }
-  header #header {
-    display: inline-block;
-    position: relative;
-    top: 1em; }
-    header #header h1 {
-      font-family: "telexregular", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
-      header #header h1 a {
-        color: #a9a9a9;
-        display: block; }
-  header nav {
-    display: inline-block;
-    position: relative;
-    top: 1em; }
-    header nav span {
-      margin: .5em; }
-    header nav a, header nav #header h1 a, header #header h1 nav a, header nav article .title a, article .title header nav a, header nav article .meta .tags a, article .meta .tags header nav a, header nav article .divider a, article .divider header nav a {
-      font-family: "telexregular", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      color: #ccc; }
+.label-info {
+background-color:#3a87ad;
+}
 
-#content {
-  width: 680px;
-  margin: 0 auto;
-  line-height: 2em; }
-  #content .main-listing {
-    margin-bottom: 2em; }
+.paginator {
+font: 14px Arial,Helvetica,sans-serif;
+color: #AAA;
+margin: 20px 0;
+line-height: 150%;
+display: block;
+}
 
-ul.listing {
-  margin-top: 1em; }
-  ul.listing li {
-    list-style-type: none;
-    padding: 0; }
-    ul.listing li.listing-item a, ul.listing li.listing-item header #header h1 a, header #header h1 ul.listing li.listing-item a {
-      padding: .2em 0 .2em 2em; }
-    ul.listing li.listing-item time {
-      color: #999; }
-    ul.listing li.listing-item:hover {
-      background-color: #f9f9f9; }
-    ul.listing li.listing-seperator {
-      font-family: "telexregular", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
-      ul.listing li.listing-seperator:before {
-        content: "⭠ ";
-        color: #ccc; }
+.paginator a,.paginator span{
+padding: 0 4px;
+margin: 2px;
+text-decoration: none;
+}
 
-article {
-  margin: 2em 0; }
-  article p {
-    padding: .7em 0; }
-  article .title {
-    font-family: "telexregular", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
-    article .title header #header h1 a, header #header h1 article .title a, article .title a, article .title .meta .tags a, article .meta .tags .title a {
-      color: #777; }
-  article .meta {
-    display: block;
-    overflow: auto;
-    margin-top: -.5em;
-    font-size: .9em; }
-    article .meta .tags header #header h1 a, header #header h1 article .meta .tags a, article .meta .tags a {
-      color: #999999;
-      padding: .25em; }
-  article .post img {
-    max-width: 680px;
-    display: block;
-    margin: .5em auto; }
-  article .comment {
-    margin: 3em 0; }
-  article .divider {
-    margin: 2em 0; }
-    article .divider i {
-      margin: 0 2em;
-      color: #e9e9e9; }
-    article .divider header #header h1 a, header #header h1 article .divider a, article .divider .meta .tags a, article .meta .tags .divider a, article .divider a {
-      font-family: "telexregular", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      margin: 0 2em; }
-      article .divider header #header h1 a i, header #header h1 article .divider a i, article .divider .meta .tags a i, article .meta .tags .divider a i, article .divider a i {
-        color: #999999;
-        margin: 0; }
-        article .divider header #header h1 a i:hover, header #header h1 article .divider a i:hover, article .divider a i:hover {
-          color: #bb2222 !important; }
-  article .divider {
-    position: relative;
-    font-size: 1em;
-    z-index: 1;
-    overflow: hidden;
-    text-align: center; }
-  article .divider:before, article .divider:after {
-    position: absolute;
-    top: 51%;
-    overflow: hidden;
-    width: 49%;
-    height: 2px;
-    content: '\a0';
-    background-color: #f0f0f0; }
-  article .divider:before {
-    margin-left: -50%;
-    text-align: right; }
-  article .divider:after {
-    margin-left: 1%; }
+.paginator .current-page {
+color: white;
+background: #ff0000;
+}
 
-footer {
-  width: 680px;
-  margin: 0 auto;
-  display: block;
-  color: #909090;
-  font-family: "telexregular", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  font-size: .9em;
-  text-align: center;
-  margin: 1em auto; }
-  footer a, footer header #header h1 a, header #header h1 footer a, footer article .title a, article .title footer a, footer article .meta .tags a, article .meta .tags footer a, footer article .divider a, article .divider footer a {
-    color: #cccccc; }
-    footer a:hover, footer header #header h1 a:hover, header #header h1 footer a:hover, footer article .meta .tags a:hover, article .meta .tags footer a:hover {
-      color: #999999; }
-
-#tag_cloud {
-  margin-bottom: 1em; }
-
-.gist {
-  font-size: 13px;
-  line-height: 1.6; }
-
-.like-button {
-  font-family: "FontAwesome";
-  padding-right: 5px; }
-
-.unlike-button {
-  font-family: "FontAwesome";
-  padding-right: 5px;
-  color: #999; }
-
-.like-button:hover {
-  color: #dd1144; }
-
-#like-wrapper {
-  color: #999; }
-  #like-wrapper .like-button, #like-wrapper .unlike-button {
-    font-family: "FontAwesome";
-    padding-right: 5px; }
-  #like-wrapper .like-button:hover {
-    color: #dd1144; }
+.paginator a:hover{
+color: white;
+background: #83BF73;
+}
