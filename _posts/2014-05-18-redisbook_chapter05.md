@@ -22,6 +22,26 @@ tag: redis
 
 ```
 typedef struct redisDb {
+	//数据库编号
+	int id;
 
+	//保存数据库所有键值对数据，也成为键空间（key space）
+	dict *dict;
+
+	//保存着键的过期信息
+	dict *expires;
+
+	//实现列表阻塞原语，如BLPOP
+	dict *blocking_keys;
+	dict *ready_keys;
+
+	//用于实现WATCH命令
+	dict *watched_keys
 }
 ```
+
+主要来介绍3个属性：
+
+* id：数据库编号，但是不是```select NUM```这个里面的，id这个属性是为redis内部提供的，比如AOF程序需要知道当前在哪个数据库中操作的，如果没有id来标识，就只能通过指针来遍历地址相等，效率比较低
+* dict：因为redis本身就是一个键值对数据库，所以这个dict存放的就是整个数据库的键值对。键是一个string，值可以是redis五种数据结构的任意一种。**因为数据库本身是一个字典，所以对数据库的操作，基本都是对字典的操作**
+* 键的过期时间：
