@@ -159,4 +159,121 @@ def READ_AND_LOAD_AOF():
     file.close()
 ```
 
+###AOF重写
 
+上面提到，AOF可以对redis的每个操作都记录，但这带来一个问题，当redis的操作越来越多之后，AOF文件会变得很大。而且，里面很大一部分都是无用的操作，你如我对一个整型+1，然后-1，然后再加1，然后再-1（比如这是一个互斥锁的开关），那么，过一段时间后，可能+1、-1操作就执行了几万次，这时候，如果能对AOF重写，把无效的命令清除，AOF会明显瘦身，这样既可以减少AOF的体积，在恢复的时候，也能用最短的指令和最少的时间来恢复整个数据库，迫于这个构想，redis提供了对AOF的重写。
+
+所谓的重写呢，其实说的不够明确。因为**redis所针对的重写实际上指数据库中键的当前值。AOF 重写是一个有歧义的名字，实际的重写工作是针对数据库的当前值来进行的，程序既不读写、也不使用原有的 AOF 文件**。比如现在有一个列表，push了1、2、3、4，然后删除4、删除1、加入1，这样列表最后的元素是1、2、3，如果不进行缩减，AOF会记录4次redis操作，但是AOF重写它看的是列表最后的值：1、2、3，于是它会用一条rpush 1 2 3来完成，这样由4条变为1条命令，恢复到最近的状态的代价就变为最小。
+
+整个重写过程的伪代码如下：
+
+```
+def AOF_REWRITE(tmp_tile_name):
+
+  f = create(tmp_tile_name)
+
+  # 遍历所有数据库
+  for db in redisServer.db:
+
+    # 如果数据库为空，那么跳过这个数据库
+    if db.is_empty(): continue
+
+    # 写入 SELECT 命令，用于切换数据库
+    f.write_command("SELECT " + db.number)
+
+    # 遍历所有键
+    for key in db:
+
+      # 如果键带有过期时间，并且已经过期，那么跳过这个键
+      if key.have_expire_time() and key.is_expired(): continue
+
+      if key.type == String:
+
+        # 用 SET key value 命令来保存字符串键
+
+        value = get_value_from_string(key)
+
+        f.write_command("SET " + key + value)
+
+      elif key.type == List:
+
+        # 用 RPUSH key item1 item2 ... itemN 命令来保存列表键
+
+        item1, item2, ..., itemN = get_item_from_list(key)
+
+        f.write_command("RPUSH " + key + item1 + item2 + ... + itemN)
+
+      elif key.type == Set:
+
+        # 用 SADD key member1 member2 ... memberN 命令来保存集合键
+
+        member1, member2, ..., memberN = get_member_from_set(key)
+
+        f.write_command("SADD " + key + member1 + member2 + ... + memberN)
+
+      elif key.type == Hash:
+
+        # 用 HMSET key field1 value1 field2 value2 ... fieldN valueN 命令来保存哈希键
+
+        field1, value1, field2, value2, ..., fieldN, valueN =\
+        get_field_and_value_from_hash(key)
+
+        f.write_command("HMSET " + key + field1 + value1 + field2 + value2 +\
+                        ... + fieldN + valueN)
+
+      elif key.type == SortedSet:
+
+        # 用 ZADD key score1 member1 score2 member2 ... scoreN memberN
+        # 命令来保存有序集键
+
+        score1, member1, score2, member2, ..., scoreN, memberN = \
+        get_score_and_member_from_sorted_set(key)
+
+        f.write_command("ZADD " + key + score1 + member1 + score2 + member2 +\
+                        ... + scoreN + memberN)
+
+      else:
+
+        raise_type_error()
+
+      # 如果键带有过期时间，那么用 EXPIREAT key time 命令来保存键的过期时间
+      if key.have_expire_time():
+        f.write_command("EXPIREAT " + key + key.expire_time_in_unix_timestamp())
+
+    # 关闭文件
+    f.close()
+```
+
+###AOF重写的一个问题：如何实现重写？
+
+是使用后台线程还是使用子进程（redis是单进程的），这个问题值得讨论下。额，对进程线程只是概念级的，等看完之后得拿redis的进程、线程机制开刀好好学一下。
+
+redis肯定是以效率为先，所以不希望AOF重写造成客户端无法请求，所以redis采用了AOF重写子进程执行，这样的好处有：
+
+1. 子进程对AOF重写时，主进程可以继续执行客户端的请求
+2. 子进程带有主进程的数据副本，使用子进程而不是线程，可以在避免锁的情况下，保证数据的安全性
+
+当然，有有点肯定有缺点：
+
+* 因为子进程在进行AOF重写时，主进程没有阻塞，所以肯定继续处理命令，而这时候的命令会对现在的数据修改，这些修改也是需要写入AOF文件的。这样重写的AOF和实际AOF会出现数据不一致。
+
+为了解决这个问题，**redis增加了一个AOF重写缓存（在内存中）**，这个缓存在fort出子进程之后开始启用，redis主进程在接到新的写命令之后，除了会将这个写命令的协议内容追加到AOF文件之外，还会同时追加到这个缓存中。这样，当子进程完成AOF重写之后，它会给主进程发送一个信号，主进程接收信号后，会将AOF重写缓存中的内容全部写入新AOF文件中，然后对新AOF改名，覆盖老的AOF文件。
+
+在整个AOF重写过程中，只有最后的写入缓存和改名操作会造成主进程的阻塞（要是不阻塞，客户端请求到达又会造成数据不一致），所以，整个过程将AOF重写对性能的消耗降到了最低。
+
+###AOF触发条件
+
+最后说一下AOF是如何触发的，当然，如果手动触发，是通过```BGREWRITEAOF```执行的。如果要用redis的自动触发，就要涉及下面3个变量（AOF的功能要开启哦 ```appendonlyfile yes```）：
+
+* 记录当前AOF文件大小的变量aof_current_size
+* 记录最后一次AOF重写之后，AOF文件大小的变量aof_rewrite_base_size
+* 增长百分比变量aof_rewrite_perc
+
+每当serverCron函数（redis的crontab）执行时，会检查以下条件是否全部满足，如果是的话，就会触发自动的AOF重写：
+
+1. 没有 BGSAVE 命令在执行
+2. 没有 BGREWRITEAOF 在执行
+3. 当前AOF文件大小 > server.aof_rewrite_min_size(默认为1MB)
+4. 当前AOF文件大小和最后一次AOF重写后的大小之间的比率大于等于指定的增长百分比(默认为1倍，100%)
+
+默认情况下，增长百分比为100%。也就是说，如果前面三个条件已经满足，并且当前AOF文件大小比最后一次AOF重写的大小大一倍就会触发自动AOF重写。
