@@ -2,7 +2,7 @@
 layout: post
 title: Java编程思想 - 第十二章、通过异常处理错误
 tags: Java编程思想
-categories: Java编程思想
+categories: Java
 ---
 
 ###本章主题

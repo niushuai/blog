@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Java编程思想 - 第十四章、类型信息
-categories: Java编程思想
+categories: Java
 tags: Java编程思想
 ---
 

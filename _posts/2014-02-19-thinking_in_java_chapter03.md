@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Java编程思想 - 第三章、操作符
-categories: Java编程思想
+categories: Java
 tags: Java编程思想
 ---
 

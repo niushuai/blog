@@ -1,8 +1,8 @@
 ---
 layout: post
-title: Spring知识点
+title: Spring AOP技术底层实现-动态代理
 categories: Java
-tag: Spring
+tag: dynamic_proxy
 ---
 
 ##1. XML文件语法的知识点

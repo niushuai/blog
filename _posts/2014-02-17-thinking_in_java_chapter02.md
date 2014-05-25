@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Java编程思想 - 第二章、一切都是对象
-categories: Java编程思想
+categories: Java
 tags: Java编程思想
 ---
 

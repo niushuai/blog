@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Java编程思想 - 第十三章、字符串
-categories: Java编程思想
+categories: Java
 tags: Java编程思想
 ---
 
