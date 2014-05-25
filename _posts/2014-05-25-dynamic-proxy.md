@@ -7,7 +7,7 @@ tag: dynamic_proxy
 
 在 JDK 1.3之后提供了动态代理技术，允许在运行期间创建接口的代理实例。而Spring的AOP（Aspect-Oriented-Programming）就使用了动态代理最为它的底层实现。今天就来简单讨论一下动态代理的原理。
 
-###1. 一个问题
+##1. 一个问题
 
 现在有这样一个场景：
 
@@ -66,7 +66,7 @@ public class WorkImpl implements Work {
 
 > 我们需要记录每个方法的执行时间
 
-###2. 解决方案
+##2. 解决方案
 
 1. 改代码：只要在search()和result()的开头和结尾加上时间戳，一运行就可以知道了。是的，这是最简单的一种，但是也是最不规范的一种
 2. 组合：我们可以在work和service中间加一个代理，让代理调用work的方法时再前后加上时间戳。然后service调用这个代理
@@ -79,7 +79,7 @@ public class WorkImpl implements Work {
 2. 对于2、3来说，如果代码规模比较大，比如几十、上百个类，那么分分钟累死的节奏
 3. 使用Spring的动态代理，就配置一下就好，如果不用，注释掉。方便省事。所以还是配置级的灵活性最强
 
-###3. 动态代理
+##3. 动态代理
 
 现在开始算是正文部分，我们来详解介绍一下AOP的底层实现——动态代理。
 
@@ -178,7 +178,7 @@ public class WorkService {
 
 		System.out.println("\nnew monitor:\n");
         
-        //业务逻辑类
+    //业务逻辑类
 		Work work2 = new WorkImpl();
 		//将业务逻辑类和横切逻辑类编织
 		WorkMonitorHandler workMonitorHandler = new WorkMonitorHandler(work2);
@@ -208,3 +208,16 @@ ok!
 从结果来看，第一个过程是searching the proxy...和ok。他们没有使用横切逻辑。
 
 下面new monitor是使用横切逻辑的输出结果。因为我们只对search采用了横切逻辑，所以result的执行只有ok。
+
+##4. 原理
+
+上面介绍了动态代理的使用，那么，动态代理是如何实现的呢？首先我们打印一下workMonitor是不是WorkImpl，打印结果是Proxy4。其实，整个过程还是挺清晰的：
+
+1. 首先我们使用Proxy的静态方法newProxyInstance方法，其中有3个参数：
+	* classLoader：这个参数的意义很明确，因为代理中必定带有一个被代理对象，如果classLoader不一致的话，代理对象和被代理对象就会被隔离，导致无法访问，自然无法实现代理的功能
+	* interfaces：被代理对象可能实现了多个接口，那么，我们代理的时候就要明确指定被代理对象实现的是哪个接口，这样 JDK 才能得到接口的对应方法
+	* InvocationHandler：这个是关键，其实代理对象调用的函数是传入这个处理器中进行具体的代理动作
+2. 然后返回一个Object被转型为对应的接口
+3. 调用WorkMonitor.search("proxy");当调用的时候，最核心的是回到了InvocationHandler中的invoke函数中，传入的参数是(代理对象,方法，参数），然后采用反射机制调用被代理对象的具体函数。**注意：传入invoke的是Proxy.newProxyInstance产生的代理对象，而不是被代理对象**
+
+整个具体的实现可以参考 JDK 的源代码，这里只是一个逻辑结构，可能细节会有一点出入。
