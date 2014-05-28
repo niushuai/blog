@@ -161,7 +161,7 @@ public class WorkMonitorHandler implements InvocationHandler {
 
 下面我们展示不使用动态代理和使用动态代理的方式：
 
-{% highlight java %}
+{% highlight java linenos %}
 package com.sina.service;
 
 import java.lang.reflect.Proxy;
