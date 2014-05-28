@@ -161,7 +161,7 @@ public class WorkMonitorHandler implements InvocationHandler {
 
 下面我们展示不使用动态代理和使用动态代理的方式：
 
-```
+{% highlight java %}
 package com.sina.service;
 
 import java.lang.reflect.Proxy;
@@ -203,7 +203,7 @@ Work done!
 Work cost Time: 41ms
 ok!
 */
-```
+{% endhighlight java %}
 
 从结果来看，第一个过程是searching the proxy...和ok。他们没有使用横切逻辑。
 
