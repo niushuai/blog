@@ -1,7 +1,7 @@
 markdown: rdiscount
 permalink: /:title/
 url: http://github.thinkingbar.com
-pygments: true
+highlighter: pygments
 name: 飘过的小牛
 author: niushuai
 qq: 389346114
@@ -9,7 +9,6 @@ email: hnns1990@gmail.com
 duoshuo: niushuai
 weibo: 1891858481
 hub: niushuai
-pygments: true
 safe: true
 paginate: 20
 about: "弱菜一枚。"
