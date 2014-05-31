@@ -9,8 +9,8 @@ tag: 网络层
 
 因为最近遇到了几个网络问题，但是对细节记不清楚了。于是趁端午放假简单复习一下网络层的知识。当然，学习一个知识最科学有效的是先从整体把握，所以先推荐两篇非常好的文章：
 
-* [互联网入门（一）]()
-* [互联网入门（二）]()
+* [互联网入门（一）](http://www.ruanyifeng.com/blog/2012/05/internet_protocol_suite_part_i.html)
+* [互联网入门（二）](http://www.ruanyifeng.com/blog/2012/0666666/internet_protocol_suite_part_ii.html)
 
 看完之后，应该对网络有个整体的把握，下面从细节部分进行学习。
 
