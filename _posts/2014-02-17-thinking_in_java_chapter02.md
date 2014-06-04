@@ -29,16 +29,16 @@ tags: Java编程思想
 ###3. 移植性的原因：一致性
 **JAVA会固定每种基本类型所占存储空间的大小**。它们的大小并不像大多数语言那样随机器硬件架构的变化而变化。这种所占存储空间大小的不变性是JAVA程序比大多数其它语言编写的程序更具有移植性的原因之一。比如C/C++中，int的大小可能会是2字节或者是4字节，这就给平台移植带来了一定的麻烦。下面是JAVA的基本数据类型：
 
-| 基本类型 | 大小(字节) | 包装器类型 |
-| -: | -: | -: |
-| boolean | - | Boolean |
-| char | 2|Character|
-|byte|1|Byte|
-|short|2|Short|
-|int|4|Integer|
-|long|8|Long|
-|float|4|Float|
-|double|8|Double|
+ 基本类型 | 大小(字节) | 包装器类型 
+ -: | -: | -: 
+ boolean | - | Boolean 
+ char | 2|Character
+byte|1|Byte
+short|2|Short
+int|4|Integer
+long|8|Long
+float|4|Float
+double|8|Double
 
 下面是一些tips：
 
