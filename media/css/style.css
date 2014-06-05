@@ -22,7 +22,8 @@ a:hover{color:#333333;text-decoration:underline;}
 hr{margin:.7em 0;border-top:1px dashed #d0d0d0;border-bottom:1px dashed #f9f9f9;}
 p{padding:.5em 0;margin:.5em 0;}
 li{padding: .2em 2em;}
-ol,ul{list-style-position:inside;border: rgb(226, 222, 222);border-style: solid;border-radius: 10px;padding: .3em 0;}
+ol{list-style-position:inside;border: rgb(226, 222, 222);border-style: solid;border-radius: 10px;padding: .3em 0;}
+ul{list-style-position:inside;border: rgb(226, 222, 222);padding: .3em 0;}
 ol ul, ul ol, ul ul, ol ol {margin-left:1em;}
 pre code{margin:1em 0;font-size:13px;line-height:1.6;display:block;overflow:auto;}
 blockquote{display:block;text-align:justify;border-left:4px solid #eeeeee;}
