@@ -5,7 +5,7 @@ categories: Java
 tag: dynamic_proxy
 ---
 
-在 JDK 1.3之后提供了动态代理技术，允许在运行期间创建接口的代理实例。而Spring的AOP（Aspect-Oriented-Programming）就使用了动态代理最为它的底层实现。今天就来简单讨论一下动态代理的原理。
+在 JDK 1.3之后提供了动态代理技术，允许在运行期间创建接口的代理实例。而Spring的AOP（Aspect-Oriented-Programming）就使用了动态代理作为它的底层实现。今天就来简单讨论一下动态代理的原理。
 
 ##1. 一个问题
 
