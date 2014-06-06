@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 正向代理、反向代理、透明代理
-categories: Proxy
+categories: 计算机知识
 tag: Proxy
 ---
 

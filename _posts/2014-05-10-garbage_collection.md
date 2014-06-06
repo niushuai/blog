@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Java GC机制学习
-categories: GC
+categories: Java
 tags: GC
 ---
 

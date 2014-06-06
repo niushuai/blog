@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 虚拟IP
-categories: vip
+categories: 计算机知识
 tag: virtual ip
 ---
 
