@@ -87,16 +87,18 @@ C++饱受诟病的一点就是内存泄露，因为C++对于效率的追求较�
 
 对应于类、域、方法，注释方法如下所示：
 
-    /** A class comment */
-    public class HelloWorld {
+{% highlight java linenos %}
+/** A class comment */
+public class HelloWorld {
 
-        /** A field comment */
-        public int number;
+    /** A field comment */
+    public int number;
 
-        /** A method comment */
-        public void function() {
-        }
+    /** A method comment */
+    public void function() {
     }
+}
+{% endhighlight java %}
 
 但是对于private和包内可访问成员，javadoc会忽略。因为只有public和protected的成员才能在文件之外被使用，这是客户端程序员所期望的。
 
@@ -112,23 +114,25 @@ C++饱受诟病的一点就是内存泄露，因为C++对于效率的追求较�
 
 举一个例子吧：
 
-    import java.util.*;
+{% highlight java linenos %}
+import java.util.*;
     
-    /**
-    * @author niushuai
-    * @version 1.0
+/**
+* @author niushuai
+* @version 1.0
+*/
+
+public class HelloWorld {
+    /** Entry point to class & application
+    * @param args array of string arguments
+    * @throws exceptions No exceptions thrown
     */
 
-    public class HelloWorld {
-        /** Entry point to class & application
-        * @param args array of string arguments
-        * @throws exceptions No exceptions thrown
-        */
-
-        public static void mian(String[] args) {
-            System.out.println("Hello world!");
-        }
+    public static void mian(String[] args) {
+        System.out.println("Hello world!");
     }
+}
+{% endhighlight java %}
 
 
 ###7. 编码风格
