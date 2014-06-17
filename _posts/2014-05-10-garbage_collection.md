@@ -7,21 +7,21 @@ tags: GC
 
 ###前言
 
-最近项目上线以后，LOAD突然报警，上去查看了一下发现平时在3-4的LOAD，一下子提高到7-8.于是使用jstack分析，发现Java进程中占用CPU最高的线程有3个都是GC，因为临近周末，就简单调高了JVM的内存，然后观察了几个小时发现LOAD恢复正常。但毕竟不是长久之计，因为以前对JVM都不怎么熟悉，于是趁着周末学习一下JVM的GC原理吧，简单做个笔记备忘：）
+最近项目上线不长时间LOAD突然报警，查看了一下发现平时在3-4的LOAD，一下子提高到7-8。于是使用jstack分析占用CPU最高的线程，发现Java进程中占用CPU最高的线程有3个都是GC收集线程。因为临近周末，就简单调高了JVM的内存，这样就会减少GC的回收次数，达到减少CPU调用的结果。之后观察了几个小时发现LOAD恢复正常。但这个做法毕竟不是长久之计，因为以前对JVM不怎么熟悉，于是趁着周末学习一下JVM的GC原理，简单做个笔记备忘：）
 
 ###1. 为什么需要学习GC？
 
-我们知道，Java有GC机制，而C++没有。所以Java程序员不用担心内存回收的问题，这一切都是JVM帮我们实现的。但在一些情况下，我们还是要学习GC。比如：当需要排查各种内存溢出、内存泄露问题时，当垃圾回收成为系统达到更高病发病的平静时，我们就需要看看当前的GC机制是否是最合适的，并且对这些“自动化”的技术实施必要的监控和调节。
+我们知道，Java有GC机制，而C++没有。所以Java程序员不用担心内存回收的问题，这一切都是JVM帮我们实现的。但在一些情况下，我们还是要学习GC。比如：当需要排查各种内存溢出、内存泄露问题时、当垃圾回收成为系统达到更高性能的瓶颈时，我们就需要看看当前的GC机制是否是最合适的，并且对这些“自动化”的技术实施必要的监控和调优。
 
 ###2. 对象已死？
 
-在《Java编程思想》中我们了解到，几乎所有对象对象实例都是存放在堆中的（除了基本类型），那么垃圾回收器在对堆进行回收钱，第一件事就是**判断哪些对象还存活着，哪些对象已经死去（即不可能再被任何其他途径使用的对象，比如循环中创建的变量，在循环结束以后就不会再使用了）。**
+在《Java编程思想》中我们了解到，几乎所有对象对象实例都是存放在堆中的（除了基本类型），那么垃圾回收器在对堆进行回收前，第一件事就是**判断哪些对象还存活着，哪些对象已经死去（即不可能再被任何其他途径使用的对象。**比如循环中创建的局部变量，在循环结束以后就不会再使用了）。
 
 那么，在Java中使用那种方法来判断对象是否存活呢？
 
 首先我们可能会想到最简单的引用计数法，但是这种计数法无法解决循环引用的问题，show code(运行```java -XX:+printGCDetails TestGC```)：
 
-```
+{% highlight java linenos %}
 public class TestGC {
 	private Object instance = null;
 	private static final int SIZE = 1024 * 1024;
@@ -57,8 +57,9 @@ Heap
  PSPermGen       total 21504K, used 2553K [0x0000000111d00000, 0x0000000113200000, 0x0000000116f00000)
   object space 21504K, 11% used [0x0000000111d00000,0x0000000111f7e410,0x0000000113200000)
 */
-```
-很囧的说，我不太会用JVM参数哎。。。所以结果跟作者的结果不一样，他那个明显看出来JVM是把这个相互引用回收了的。。。T_T
+{% endhighlight java %}
+
+很囧的说，我不太会用JVM参数。。。所以结果跟作者的结果不一样，他那个明显看出来JVM是把这个相互引用回收了的。。。T_T
 
 其实，在Java中使用的是**根搜索算法**来实现判断对象存活与否的。这个算法其实也比较简单啦，就是判断是不是同根，使用并查集的路径压缩可以轻松搞定。
 
@@ -85,7 +86,7 @@ Heap
 
 show code：
 
-```
+{% highlight java linenos %}
 public class FinalizeEscapeGC {
 	public static FinalizeEscapeGC SAVE_HOOK = null;
 	
@@ -129,7 +130,7 @@ finalize method executed!
 haha, i'm still alive!
 5555, i'm dead!
 */
-```
+{% endhighlight java %}
 
 我们可以清楚的看到，第一次在finalize()中赋值给类变量，所以和root同根自救了一次，但是因为finalize()只会执行一次，所以第二次标记时，JVM发现已经调用这个对象的finalize()，就知道没必要再执行finalize了。
 
@@ -259,7 +260,7 @@ Java技术体系中所提倡的自动内存管理最终可以总结为两个点�
 
 命令为：```java -verbose:gc -Xms20M -Xmx20M -Xmn10M -XX:SurvivorRatio=8 -XX:+PrintGCDetails JVMPara```：
 
-```
+{% highlight java linenos %}
 public class JVMPara {
 	
 	private static final int SIZE = 1024 * 1024;
@@ -286,7 +287,7 @@ Heap
  PSPermGen       total 21504K, used 2550K [0x0000000112e00000, 0x0000000114300000, 0x0000000118000000)
   object space 21504K, 11% used [0x0000000112e00000,0x000000011307db70,0x0000000114300000)
 */
-```
+{% endhighlight java %}
 
 从log中我们可以发现，新生代中Eden是8M,Survivor是1M+1M，分别为from和to。所以，新生代总大小(PSYoungGen:9M)，因为不包含to的Survivor。当分配了a1,a2,a3之后，发现新生代只剩下3M了,所以有两种选择：1.新生代垃圾收集，很不幸，发现a1,a2,a3都无法回收，于是会将a1,a2,a3复制到老年代，然后对新生代垃圾收集;2.分配担保，使用老年代。结果我们可以看出，JVM使用了第二种方法，于是我们看到，ParOldGen中有4M被a4占用了。但是为什么JVM会使用第二种呢？原来这里有一个参数：```-XX:PretenureSizeThreshold```,我们使用```java -XX:+PrintFlagsInitial | grep 'PretenureSizeThreshold'```查看，会发现值为0，说明当新生代空间不够时，只要大于0，就会直接在老年代分配。我们可以试验一下，将这个值设为5M的大小（这个参数不能直接写5M，要写字节5*1024*1024B（1Byte=8bit）），就会发现JVM按照第一种方法执行了。我修改以后运行，发现出现错误，原来作者提到了,PretenureSizeThreshold变量只对Serial和ParNew两款收集器有效，而我查看JVM发现我使用的是Parallel Scavenge和Parallel Old收集器，所以就没法搞了- -，如果想试验这个，可以改为ParNew和CMS组合。
 
