@@ -184,7 +184,7 @@ Parallel Scavenge也是**一个新生代收集器**，它也是**使用复制算
 
 > 控制CPU的吞吐量
 
-我们知道，Stop The World到现在还是没有办法消除的，只是一直在缩减停顿时间。CMS等一众优秀的收集器关注点都是**尽可能地缩短垃圾收集时用户线程的停顿时间，而Parallel Scavenge收集器的目的就是达到一个可控制的吞吐量。所谓吞吐量就是CPU用于运行用户代码的时间与CPU总消耗时间的比值，即吞吐量=运行用户代码时间/（运行用户代码时间+垃圾回收时间）。比如虚拟机运行了100分钟，垃圾回收使用了1分钟，那么吞吐量就是99%。
+我们知道，Stop The World到现在还是没有办法消除的，只是一直在缩减停顿时间。CMS等一众优秀的收集器关注点都是**尽可能地缩短垃圾收集时用户线程的停顿时间**，而Parallel Scavenge收集器的目的就是达到一个可控制的吞吐量。所谓吞吐量就是CPU用于运行用户代码的时间与CPU总消耗时间的比值，即吞吐量=运行用户代码时间/（运行用户代码时间+垃圾回收时间）。比如虚拟机运行了100分钟，垃圾回收使用了1分钟，那么吞吐量就是99%。
 
 这就说说一下应用场景了。
 
@@ -194,7 +194,7 @@ Parallel Scavenge也是**一个新生代收集器**，它也是**使用复制算
 为了这两个目的，Parallel Scavenge收集器提供了2个参数：
 
 * -XX:MaxGCPauseMillis:大于0的毫秒数，收集器将尽力保证内存回收时间不超过这个值。不过不要异想天开认为把这个值设的特别小，就能使系统垃圾收集速度更快，GC停顿时间缩短肯定是有代价的，它会牺牲吞吐量和新生代空间来实现。比如原来新生代空间为500M，10s收集一次，100ms的停顿收集时间；现在设定70ms的停顿收集时间，那么就会把新生代空间设为300M，5s收集一次（更小的空间肯定收集更快）。现在算算，原来10s的吞吐量是10s-100ms/10s=0.99,现在10s的吞吐量是10s-140ms/10s=0.986。
-* -XX:GCTimeRatio:大于0小于100的整数.假如设为N，那么垃圾收集时间占总时间的比率就是1(1+N),比如设置为19,占比就是1(1+19)=5%，默认值是99，即1%。
+* -XX:GCTimeRatio:大于0小于100的整数.假如设为N，那么垃圾收集时间占总时间的比率就是1/(1+N),比如设置为19,占比就是1/(1+19)=5%，默认值是99，即1%。
 * -XX:+UseAdaptiveSizePolicy:这也是一个有用的参数，放在这里说一下。它是一个开关参数，当这个参数打开之后，就不需要手工指定新生代的大小(-Xmn)、Eden、Survivor区的比例(-XX:SurvivorRatio)、晋升老年代对象年龄(-XX:PretenureSizeThreshold)等细节参数了，虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以一同最合适的停顿时间或最大的吞吐量，这种调节方式称为GC自适应的调节策略（GC Ergonomics）。所以，当我们不懂收集器的原理时，就只需要把基本的内存数据设置好（如-Xmx设置最大堆），然后设置最大停顿时间或者吞吐量，给虚拟机设置一个优化目标，剩下的参数细节虚拟机就会自动调整了。**自适应调节策略也是Parallel Scavenge收集器和ParNew收集器的一个重要区别**
 
 ####4. Serial Old 收集器
@@ -203,7 +203,7 @@ Serial Old是Serial收集器的老年代版本，它同样是一个单线程收�
 
 ####5. Parallel Old收集器
 
-Parallel Old是Parallel Scavenge收集器的老年代版本，使用多线程和标记-整理算法。是在JDK 1.6之后才提供的。前面说过，Parallel Scavenge收集器采用了独立的架构，无法和CMS配合使用。那么，在JDK 1.6以前，Parallel Scavenge只能和Serial Old配合使用。因为Serial Old是单线程的，所以在多CPU情况下无法发挥性能，所以根本实现不了高吞吐量的需求，直到JDK 1.6推出了Parallel Old之后，Parallel Scavenge收集器和Parallel Old搭配，才真正实现了对吞吐量优先的控制。所以，**在注重吞吐量及CPU资源敏感的场合，都可以考虑PS和PO组合。
+Parallel Old是Parallel Scavenge收集器的老年代版本，使用多线程和标记-整理算法。是在JDK 1.6之后才提供的。前面说过，Parallel Scavenge收集器采用了独立的架构，无法和CMS配合使用。那么，在JDK 1.6以前，Parallel Scavenge只能和Serial Old配合使用。因为Serial Old是单线程的，所以在多CPU情况下无法发挥性能，所以根本实现不了高吞吐量的需求，直到JDK 1.6推出了Parallel Old之后，Parallel Scavenge收集器和Parallel Old搭配，才真正实现了对吞吐量优先的控制。所以，**在注重吞吐量及CPU资源敏感的场合，都可以考虑Parallel Scavenge和Parallel Old组合**。
 
 ####6. CMS（Comcurrent Mark Sweep）收集器
 
@@ -289,15 +289,20 @@ Heap
 */
 {% endhighlight java %}
 
-从log中我们可以发现，新生代中Eden是8M,Survivor是1M+1M，分别为from和to。所以，新生代总大小(PSYoungGen:9M)，因为不包含to的Survivor。当分配了a1,a2,a3之后，发现新生代只剩下3M了,所以有两种选择：1.新生代垃圾收集，很不幸，发现a1,a2,a3都无法回收，于是会将a1,a2,a3复制到老年代，然后对新生代垃圾收集;2.分配担保，使用老年代。结果我们可以看出，JVM使用了第二种方法，于是我们看到，ParOldGen中有4M被a4占用了。但是为什么JVM会使用第二种呢？原来这里有一个参数：```-XX:PretenureSizeThreshold```,我们使用```java -XX:+PrintFlagsInitial | grep 'PretenureSizeThreshold'```查看，会发现值为0，说明当新生代空间不够时，只要大于0，就会直接在老年代分配。我们可以试验一下，将这个值设为5M的大小（这个参数不能直接写5M，要写字节5*1024*1024B（1Byte=8bit）），就会发现JVM按照第一种方法执行了。我修改以后运行，发现出现错误，原来作者提到了,PretenureSizeThreshold变量只对Serial和ParNew两款收集器有效，而我查看JVM发现我使用的是Parallel Scavenge和Parallel Old收集器，所以就没法搞了- -，如果想试验这个，可以改为ParNew和CMS组合。
+从log中我们可以发现，新生代中Eden是8M,Survivor是1M+1M，分别为from和to。所以，新生代总大小(PSYoungGen:9M)，因为不包含to的Survivor。当分配了a1,a2,a3之后，发现新生代只剩下3M了,所以有两种选择：
+
+1.新生代垃圾收集，很不幸，发现a1,a2,a3都无法回收，于是会将a1,a2,a3复制到老年代，然后对新生代垃圾收集
+2.分配担保，使用老年代
+
+结果我们可以看出，JVM使用了第二种方法，于是我们看到，ParOldGen中有4M被a4占用了。但是为什么JVM会使用第二种呢？原来这里有一个参数：```-XX:PretenureSizeThreshold```,我们使用```java -XX:+PrintFlagsInitial | grep 'PretenureSizeThreshold'```查看，会发现值为0，说明当新生代空间不够时，只要大于0，就会直接在老年代分配。我们可以试验一下，将这个值设为5M的大小（这个参数不能直接写5M，要写字节5*1024*1024B（1Byte=8bit）），就会发现JVM按照第一种方法执行了。我修改以后运行，发现出现错误，原来作者提到了,PretenureSizeThreshold变量只对Serial和ParNew两款收集器有效，而我查看JVM发现我使用的是Parallel Scavenge和Parallel Old收集器，所以就没法搞了- -，如果想试验这个，可以改为ParNew和CMS组合。
 
 下面我们来说下分代的情况。因为收集器分为新生代和老年代，那么，在分配内存的时候，JVM是怎样判断一个对象是属于哪个generation呢？原来JVM使用了一个简单的对象年龄计数器来完成的：
 
-> 如果对象在Eden出生并经过第一次Minor GC后仍然存活，并且能被Survivor容纳的话，将被移动到Survivor空间中，并将对象年龄设为1.对象在Survivor区中每熬过一次Minor GC，年龄就增加1岁，当它的年龄超过阈值（默认是15岁），就会被晋升到老年代中。**对象晋升老年代的阈值，可以通过参数```-XX:MaxTenuringThreshold```设置。我们可以用```java -XX:+PrintFlagsFinal | grep 'MaxTenuringThreshold'```查看。
+> 如果对象在Eden出生并经过第一次Minor GC后仍然存活，并且能被Survivor容纳的话，将被移动到Survivor空间中，并将对象年龄设为1.对象在Survivor区中每熬过一次Minor GC，年龄就增加1岁，当它的年龄超过阈值（默认是15岁），就会被晋升到老年代中。**对象晋升老年代的阈值，可以通过参数```-XX:MaxTenuringThreshold```设置**。我们可以用```java -XX:+PrintFlagsFinal | grep 'MaxTenuringThreshold'```查看。
 
 但是实际情况可能不是酱紫滴，因为JVM会采用一种更smart的方法——动态对象年龄判定
 
-> 为了更好地适应不同程序的内存状况，JVM不是在达到年龄阈值才会将对象晋升到老年代，**如果在Survivor空间中，相同年龄所有对象的大小总和 > Survivor空间一半，那么，年龄大于等于该年龄的对象就可以直接进入老年代，而不必等待达到年龄阈值。
+> 为了更好地适应不同程序的内存状况，JVM不是在达到年龄阈值才会将对象晋升到老年代，**如果在Survivor空间中，相同年龄所有对象的大小总和 > Survivor空间一半，那么，年龄大于等于该年龄的对象就可以直接进入老年代，而不必等待达到年龄阈值**。
 
 而所谓的Minor GC和Full GC就是这样区分的：
 
