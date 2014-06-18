@@ -115,7 +115,7 @@ typedef struct redisObject {
 
 ##3. 哈希表
 
-哈希表，嗯，其实我更愿意叫做Map。它的底层实现也有两种：
+哈希表，嗯，它的底层实现也有两种：
 
 * REDIS_ENCODING_ZIPLIST
 * REDIS_ENCODING_HT(字典)
