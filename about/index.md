@@ -10,8 +10,6 @@ comments: no
 
 ###联系方式：
 
-{% if site.qq %}
-{% endif %}
 网站：[{{ site.name }}]({{ site.url }})
 
 邮箱：[{{ site.email }}](mailto:{{ site.email }})
