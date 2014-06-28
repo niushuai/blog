@@ -15,19 +15,19 @@ tag: dynamic_proxy
 
 为了说明动态代理技术，我们把这个问题再简化一下：
 
-> 已知这次改动主要是对```com.sina```这个package下面的代码进行了更新，而这个package的核心是一个Work接口和实现类。代码结构如下：
+> 已知这次改动主要是对`com.sina`这个package下面的代码进行了更新，而这个package的核心是一个Work接口和实现类。代码结构如下：
 
-```
+{% highlight java linenos %}
 com.sina
         -work
             -impl
         -service
         -monitor[测试使用，非线上]
-```
+{% endhighlight java %}
 
 其中核心部分是work，service是work的包装类，用于外部调用。monitor是我们这次试验创建的package。下面是work的代码（一个接口和一个具体的实现）：
 
-```
+{% highlight java linenos %}
 package com.sina.work.impl;
 
 import com.sina.work.Work;
@@ -60,7 +60,7 @@ public class WorkImpl implements Work {
 		System.out.println("ok!");
 	}
 }
-```
+{% endhighlight java %}
 
 背景已经介绍完了，现在要解决的问题也清晰了：
 
@@ -90,7 +90,7 @@ public class WorkImpl implements Work {
 
 下面是自己实现的WorkMonitor，它的作用是在某个函数的开头和结尾加上时间戳，并打印函数执行的时间（这就是传说中的横切逻辑）：
 
-```
+{% highlight java linenos %}
 package com.sina.monitor;
 
 public class WorkMonitor {
@@ -107,11 +107,11 @@ public class WorkMonitor {
 		System.out.println("Work cost Time: " + (endTime - time) + "ms");
 	}
 }
-```
+{% endhighlight java %}
 
 现在，业务逻辑有了，横切逻辑也有了。下面通过实现InvocationHandler来将它们编织在一起：
 
-```
+{% highlight java linenos %}
 package com.sina.monitor;
 
 import java.lang.reflect.InvocationHandler;
@@ -153,7 +153,7 @@ public class WorkMonitorHandler implements InvocationHandler {
 	}
 
 }
-```
+{% endhighlight java %}
 
 从代码我们可以看出，InvocationHandler接口的invoke函数将业务逻辑和横切逻辑巧妙的编织在一起，实在是优美。不用我们再去每个业务类代理里到处写横切逻辑了。
 
