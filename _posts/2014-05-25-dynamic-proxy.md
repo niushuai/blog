@@ -81,7 +81,7 @@ public class WorkImpl implements Work {
 
 ##3. 动态代理
 
-现在开始算是正文部分，我们来详解介绍一下AOP的底层实现——动态代理。
+现在开始算是正文部分，我们来详细介绍一下AOP的底层实现——动态代理。
 
 要实现动态代理，需要用到java.lang.reflect包下面的Proxy和InvocationHandler：
 
