@@ -22,7 +22,7 @@ tags: Java编程思想
 
 这个也算是常见操作，比如我定义一个数组发现不够用了，于是我新建一个大的，把原来的元素添加进去。但添加元素也有一定的讲究，比如Arrays.asList。这个方法的限制在于**它对所产生的List的类型做出了最理想的假设，而并没有注意程序员赋予它什么样的类型**，而这就会出现问题：
 
-```
+{% highlight java linenos %}
 package Chapter11;
 
 import java.util.*;
@@ -52,7 +52,7 @@ public class AsListInference {
 		
 	}
 }
-```
+{% endhighlight java %}
 
 很囧的是，书上的例子和我的结果不对。。我估计是jdk的版本不一致吧，记得有次switch()参数问题就是因为我使用的是jdk1.7才添加的，而线上环境使用的是jdk1.6。
 ###3. List
@@ -64,7 +64,7 @@ public class AsListInference {
 
 下面是对ArrayList的简单使用：
 
-```
+{% highlight java linenos %}
 package Chapter11;
 
 import java.util.*;
@@ -153,7 +153,7 @@ public class Exercise05 {
 		
 	}
 }
-```
+{% endhighlight java %}
 
 ###4. 迭代器
 
@@ -168,7 +168,7 @@ public class Exercise05 {
 
 一个简单的例子：
 
-```
+{% highlight java linenos %}
 package Chapter11;
 
 /**
@@ -205,7 +205,7 @@ public class SimpleIteration {
 		System.out.println(ints);
 	}
 }
-```
+{% endhighlight java %}
 
 如果我们认真思考会发现，```Iterator<Integer> it = ints.iterator();```将准备返回第一个元素。而在while循环中，it.next()获得序列的下一个元素，也就是第二个元素。那第一个元素去哪里了？？？带着这个疑问，google了一下：
 > 迭代器只是一个位置，它指向的是元素的首地址。初始化的时候，它指向的是容器第一个元素的起始地址，hasNext先判断这个位置后面是否有元素，有的话，调用next()。而next()方法**用于将游标移至下一个元素的是起始地址，它返回的是所越过的哪个元素的引用**。意思就是它从第一个元素的起始地址移动到第二个元素的起始地址，越过的是第一个元素。所以返回的就是第一个元素的引用。
@@ -230,7 +230,7 @@ Set不保存重复的元素，它的最重要用途是**查询归属性，即某
 
 额，原来不光有containsKey()，还有containsValue()用法。
 
-```
+{% highlight java linenos %}
 package Chapter11;
 
 import java.util.*;
@@ -252,7 +252,7 @@ public class Exercise17 {
 		}
 	}
 }
-```
+{% endhighlight java %}
 
 1. 首先没想到的是import。我上来先```import java.util.*;```我以为util下面所有的包的所有类都已经import了，但是Entry报错！必须再引进```import java.util.Map.Entry;```，我表示很费解。
 2. 知道了原来经常使用的Entry原来就是Pair呀（C++）。以前用到时候老忘，现在一下子明白了：
@@ -262,7 +262,7 @@ public class Exercise17 {
 ###7. Queue
 
 这个以前在写算法题的时候经常用，但都是自己实现的（用一个数组和一个”指针”就可以维护了）。现在想象，Queue在项目中用到最多的地方是**多线程的任务交接**。
-```
+{% highlight java linenos %}
 package Chapter11;
 
 /**
@@ -318,13 +318,13 @@ public class UsingCommand {
 		Server.exec(queue);
 	}
 }
-```
+{% endhighlight java %}
 
 ###8. PriorityQueue
 
 优先队列的话，以前在算法用到的也挺多。比如用优先队列优化的Dijkstra算法。现在Java在5.0之后直接提供了。于是照着例子使用了一下：
 
-```
+{% highlight java linenos %}
 package Chapter11;
 
 import java.util.*;
@@ -379,7 +379,7 @@ public class PriorityQueueDemo {
 		
 	}
 }
-```
+{% endhighlight java %}
 
 因为默认的String、Integer、Character都默认实现了Comparator接口。如果你自己也想按照某种排序方法来存放进队列，那么就要自己实现这个接口。也没啥难的。如果你不实现的话，你就只能往优先队列中插入一个元素（因为不需要比较），但是插入第二个的时候肯定就会抛出异常，因为编译器不知道怎么判断元素之间的优先级。
 
@@ -397,7 +397,7 @@ public class PriorityQueueDemo {
 
 通过实现Collection接口来实现（借助一下AbstractCollection的默认实现）
 
-```
+{% highlight java linenos %}
 package Chapter11;
 
 import java.util.*;
@@ -445,11 +445,11 @@ public class CollectionSequence extends AbstractCollection<Integer> {
 	}
 }
 
-```
+{% endhighlight java %}
 
 然后看看仅仅使用内部类迭代器版本：
 
-```
+{% highlight java linenos %}
 package Chapter11;
 
 import java.util.*;
@@ -497,11 +497,11 @@ public class NonCollectionSequence extends IntSequence {
 		display(nc.iterator());
 	}
 }
-```
+{% endhighlight java %}
 
 其实上个例子是很简单，逻辑性强。但我们也可以使用匿名内部类来搞定，这样更紧凑一些。
 
-```
+{% highlight java linenos %}
 package Chapter11;
 
 import java.util.*;
@@ -561,7 +561,7 @@ public class NonCollectionSequence extends IntSequence {
 		display(nc.iterator());
 	}
 }
-```
+{% endhighlight java %}
 
 这样，我们不需要创建一个临时引用，直接返回一个结果的引用。会减少一次垃圾回收。同时，目的性更明确。我们仅仅需要返回一个迭代器即可。
 
@@ -570,7 +570,7 @@ public class NonCollectionSequence extends IntSequence {
 
 如果你想给自己的类实现foreach方法，就需要实现Iterable<E>接口。我简单写了一个例子：
 
-```
+{% highlight java linenos %}
 package Chapter11;
 
 import java.util.*;
@@ -612,4 +612,4 @@ public class TestForeach {
 		}
 	}
 }
-```
+{% endhighlight java %}
