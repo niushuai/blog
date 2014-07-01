@@ -9,16 +9,34 @@ tags: Java编程思想
 
 其实从目录结构我们就知道，这一章是讲JAVA的数据结构的。在日常使用中，这些容器类的使用非常频繁，但是能站在一定高度上认知它们的原理，就会理解的更深。回忆了一下，目前使用最频繁的有HashMap、ArrayList、Queue、Set。
 
-本质来说有两大类：
+首先我们看一下Java容器的整体架构图：
 
-1. Collection：容器的基本单位就是一个对象 元素，就是加上一些限制（比如Queue是FIFO，Stack是FILO等等）。所以很常用的一点就是，所有单元素容器都implements Collection接口
-2. Map：容器的基本单位是一对对象，一般代表一种映射关系
+![img](../image/vessel.jpg)
+
+如果要深刻理解Java容器，我认为有几点需要掌握：
+
+1. 哪个是接口，哪个是实现
+2. 容器和迭代器的关系（要注意，迭代器是一个不得已的轮子，要理解它的缺点，然后才是优点）
+3. 常用容器（ArrayList/HashMap/TreeMap/HashSet/LinkedList）等的底层实现
+4. 是否是线程安全
+5. 有什么设计不合理的地方（比如List已经被喷无数次了，要总结一下）
+
+从本质来说，Java容器一共分为两大类：
+
+1. Collection：独立元素的序列，符合一条或者多条规则（比如Queue是FIFO，Stack是FILO等等，Set不能有重复元素）。**所有单元素容器都implements Collection接口**
+2. Map：一组成对的“键值对”对象，允许使用键来查找值
 
 ###1. 一个tips
 
 在平常代码中，不能因为接口而使用接口。虽然面向接口编程有一定的好处，但是接口无法调用实现类新增的方法。就好像```List<Apple> appleList = new ArrayList<Apple>();```，虽然我们以后重构可以马上改为```List<Apple> appleList = new LinkedList<Apple>();```，但是LinkedList在List基础上添加了方法，而这是List引用无法调用的。所以，不同的场景下有不同的用法。
 
 ###2. 关于容器中添加一组元素
+
+在java.util包中的Arrays和Collections类中有很多使用方法，可以在一个Collection中添加一组元素。
+
+* Arrays.asList()方法接受一个数组或是一个用逗号分隔的元素列表（使用可变参数），并将其转换为一个List
+* Collections.addAll()方法接受一个Collection对象以及一个数组或是一个用逗号分隔的列表，将元素添加到Collection中
+* Collection.addAll()方法只接受Collection对象
 
 这个也算是常见操作，比如我定义一个数组发现不够用了，于是我新建一个大的，把原来的元素添加进去。但添加元素也有一定的讲究，比如Arrays.asList。这个方法的限制在于**它对所产生的List的类型做出了最理想的假设，而并没有注意程序员赋予它什么样的类型**，而这就会出现问题：
 
@@ -55,9 +73,10 @@ public class AsListInference {
 {% endhighlight java %}
 
 很囧的是，书上的例子和我的结果不对。。我估计是jdk的版本不一致吧，记得有次switch()参数问题就是因为我使用的是jdk1.7才添加的，而线上环境使用的是jdk1.6。
+
 ###3. List
 
-**List承诺可以将元素维护在特定的序列中。**List是一个接口，它implements了Collection接口，并且在它的基础上添加了大量的方法。使得**可以在List的中间插入和移除元素。有两种类型的List：
+**List承诺可以将元素维护在特定的序列中。**List是一个接口，它implements了Collection接口，并且在它的基础上添加了大量的方法。使得**可以在List的中间插入和移除元素**（看下源码的结构就非常清晰了）。有两种类型的List：
 
 1. ArrayList：长于随机访问元素，劣于在中间插入/删除较慢
 2. LinkedList：长于通过较低的代价在List中间插入/删除，并提供了更多的特性集。劣于在随机访问速度较慢
@@ -107,7 +126,6 @@ public class Exercise05 {
 		//跟顺序无关，只要元素全部包括就行
 		System.out.println("11:" + ints.containsAll(sub));
 		
-		//将sub数组中元素进行随机排列
 		Collections.shuffle(sub, random);
 		System.out.println("Shuffled subList: " + sub);
 		System.out.println("12" + ints.containsAll(sub));
@@ -152,7 +170,36 @@ public class Exercise05 {
 		System.out.println("23:" + in[3]);
 		
 	}
-}
+}/*output:
+1:[1, 2, 3, 4, 5, 6, 7]
+2:[1, 2, 3, 4, 5, 6, 7, 10]
+3:true
+4:3 2
+5:-1
+6:false
+7:true
+8:[1, 2, 4, 5, 6, 7]
+9:[1, 2, 4, 16, 5, 6, 7]
+subList: [2, 4, 16]
+10:true
+Sorted subList: [2, 4, 16]
+11:true
+Shuffled subList: [4, 2, 16]
+12true
+copy: [1, 4, 2, 16, 5, 6, 7]
+sub: [4, 5]
+13:[4, 5]
+14:[1, 4, 16, 5, 6, 7]
+15:[1, 16, 6, 7]
+16:[1, 22, 6, 7]
+17:[1, 22, 4, 5, 6, 7]
+18:false
+19:[]
+20:true
+21:[33, 44, 55, 66]
+22:66
+23:66
+*/
 {% endhighlight java %}
 
 ###4. 迭代器
