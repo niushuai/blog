@@ -15,13 +15,13 @@ tags: Java编程思想
 
 如果要深刻理解Java容器，我认为有几点需要掌握：
 
-1. 哪个是接口，哪个是实现
+1. 哪些是接口，哪些是实现
 2. 容器和迭代器的关系（要注意，迭代器是一个不得已的轮子，要理解它的缺点，然后才是优点）
 3. 常用容器（ArrayList/HashMap/TreeMap/HashSet/LinkedList）等的底层实现
 4. 是否是线程安全
 5. 有什么设计不合理的地方（比如List已经被喷无数次了，要总结一下）
 
-从本质来说，Java容器一共分为两大类：
+从本质来说，Java容器一共分为两大类（因为数组不能调整大小，所以很多情况下不适应；但是数组也广泛存在在已知大小的情境中）：
 
 1. Collection：独立元素的序列，符合一条或者多条规则（比如Queue是FIFO，Stack是FILO等等，Set不能有重复元素）。**所有单元素容器都implements Collection接口**
 2. Map：一组成对的“键值对”对象，允许使用键来查找值
@@ -204,9 +204,9 @@ sub: [4, 5]
 
 ###4. 迭代器
 
-这个也算是非常常用的东西。以前在学内部类的时候碰到一个类似的例子。就是迭代器是一个接口，没个容器在自己的内部实现一个private或者匿名的implements 迭代器接口内部类。这样客户端程序员就只能使用一种方法遍历容器，且不能改变。既保证了通用，也保证了安全。所以，**迭代器是一种设计模式**。
+这个也算是非常常用的东西。以前在学内部类的时候碰到一个类似的例子。就是迭代器是一个接口，每个容器在自己的内部实现一个private或者匿名的implements 迭代器接口（或者是extends迭代器接口的接口，比如ListIterator接口）内部类。这样客户端程序员就有了统一协议的迭代器去遍历容器。既保证了通用，也保证了安全。所以，**迭代器是一种设计模式**。
 
-记住Java中，Iterator只能单向移动，而且只能用来：
+记住Java中，Iterator只能单向移动（ListIterator是双向的），而且只能用来：
 
 1. 使用方法iterator()要求容器返回一个Iterator。Iterator将准备返回容器的第一个元素
 2. 使用next()获得序列中的下一个元素
@@ -220,7 +220,7 @@ package Chapter11;
 
 /**
  *  @author niushuai
- *  
+ * 
  *   容器的iterator()要求容器返回一个Iterator。Iterator将准备好返回容器的第一个元素
  *   所以在最后一个for循环前要重新定位it的位置，因为第一次while迭代后it已经指向了最后
  *   一个元素了
@@ -255,13 +255,14 @@ public class SimpleIteration {
 {% endhighlight java %}
 
 如果我们认真思考会发现，```Iterator<Integer> it = ints.iterator();```将准备返回第一个元素。而在while循环中，it.next()获得序列的下一个元素，也就是第二个元素。那第一个元素去哪里了？？？带着这个疑问，google了一下：
+
 > 迭代器只是一个位置，它指向的是元素的首地址。初始化的时候，它指向的是容器第一个元素的起始地址，hasNext先判断这个位置后面是否有元素，有的话，调用next()。而next()方法**用于将游标移至下一个元素的是起始地址，它返回的是所越过的哪个元素的引用**。意思就是它从第一个元素的起始地址移动到第二个元素的起始地址，越过的是第一个元素。所以返回的就是第一个元素的引用。
 
 我是从这篇文章弄懂的：[遍历聚合对象中的元素——迭代器模式（五）](blog.csdn.net/lovelion/article/details/9992799)
 
 ###5. Set
 
-Set不保存重复的元素，它的最重要用途是**查询归属性，即某个元素是否存在**。所以，在需要多查询的情况下，set绝对是最佳选择（Collection是遍历好吗？O(n)和O(1)完全没法比嘛）。
+Set不保存重复的元素，它的最重要用途是**查询归属性，即某个元素是否存在**。所以，在需要元素唯一性的场合，使用set更佳。
 
 常用的Set有：
 
@@ -275,7 +276,7 @@ Set不保存重复的元素，它的最重要用途是**查询归属性，即某
 
 这玩意在我们项目中用的是最多的了，几乎所有重要的数据都是存在HashMap中了，速度快是第一要求。虽然Map的用法极其简单，但前不久刚因为HashMap的非线程安全被坑了一次，所以还是好好看一下什么地方容易出错。
 
-额，原来不光有containsKey()，还有containsValue()用法。
+Map去掉了contains()方法，取而代之的是containsKey()，还有containsValue()。
 
 {% highlight java linenos %}
 package Chapter11;
@@ -302,8 +303,8 @@ public class Exercise17 {
 {% endhighlight java %}
 
 1. 首先没想到的是import。我上来先```import java.util.*;```我以为util下面所有的包的所有类都已经import了，但是Entry报错！必须再引进```import java.util.Map.Entry;```，我表示很费解。
-2. 知道了原来经常使用的Entry原来就是Pair呀（C++）。以前用到时候老忘，现在一下子明白了：
-    > Map可以返回它的键的Set，它的值的Collection，或者它的键值对的Set。所以，keySet()方法产生了所有键组成的Set，而EntrySet()方法产生了所有键值对组成的Set。所以在foreach中用来遍历Map
+2. 知道了原来经常使用的Entry和C++的Pair功能类似，都是一个KV对。以前用到时候老忘，现在一下子明白了：
+    > Map.keySet()返回它的键的Set，Map.entrySet()返回键值对的Set。而Set是实现了Collection接口，Collection又可以使用foreach语法，所以可以还是用foreach语法遍历Map的key，或者KV对。
 
 
 ###7. Queue
@@ -440,7 +441,10 @@ public class PriorityQueueDemo {
 2. Iterator：实现iterator()，用迭代器
 
 那么，取决于哪种实现就看你的需求，假如你实现一个不是Collection的外部类时，去实现Collection接口就会很冗余，而实现一个Iteator就会很简单高效。总结一下就是：
-> Collection含有13个抽象方法，如果你的类需要使用Collection序列存放，而你implements Collection，那么你必须实现所有的方法（不管你会不会用到）。当然，AbstractCollection是一个实现了Collection的抽线类，它帮你实现了大部分的方法，你只需要覆盖size()和iteraot()就可以了。你可以继承AbstractCollection，但是如果你的类继承了别的类，就无法继承AbstractColletion。那么必须手动完成所有Collection的方法。在这时候，继承并创建迭代器就会变得非常简单友好了。大概看了下ArrayList的源代码，发现它也是通过一个private的类实现了Iterator<E>来完成ArrayList的迭代器遍历。
+
+1. Collection含有13个抽象方法，如果你的类需要使用Collection序列存放，而你implements Collection，那么你必须实现所有的方法（不管你会不会用到）
+2. 当然，AbstractCollection是一个实现了Collection的抽象类，它帮你实现了大部分的方法，你只需要重写size()和iterator()就可以了。你可以继承AbstractCollection，但是如果你的类继承了别的类，就无法继承AbstractColletion，这时候就必须implements Collection接口了
+3. 还有一个办法是继承原来的类并在内部创建迭代器。大概看了下ArrayList的源代码，发现它是通过一个private的内部类实现了Iterator<E>来完成ArrayList的迭代器遍历。而LinkedList是用private内部类实现的ListIterator<E>接口。
 
 通过实现Collection接口来实现（借助一下AbstractCollection的默认实现）
 
@@ -546,7 +550,7 @@ public class NonCollectionSequence extends IntSequence {
 }
 {% endhighlight java %}
 
-其实上个例子是很简单，逻辑性强。但我们也可以使用匿名内部类来搞定，这样更紧凑一些。
+其实上个例子很简单，逻辑性强。但我们也可以使用匿名内部类来搞定，这样更紧凑一些。
 
 {% highlight java linenos %}
 package Chapter11;
@@ -559,27 +563,6 @@ class IntSequence {
 
 public class NonCollectionSequence extends IntSequence {
 	
-	private class MyIterator implements Iterator<Integer> {
-
-		private int index = 0;
-		@Override
-		public boolean hasNext() {
-			return index < ints.length;
-		}
-
-		@Override
-		public Integer next() {
-			return ints[index++];
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-		
-	}
-	
-	//匿名内部类使结构更加紧凑
 	public Iterator<Integer> iterator() {
 		return new Iterator<Integer>() {
 			private int index = 0;
@@ -610,12 +593,22 @@ public class NonCollectionSequence extends IntSequence {
 }
 {% endhighlight java %}
 
-这样，我们不需要创建一个临时引用，直接返回一个结果的引用。会减少一次垃圾回收。同时，目的性更明确。我们仅仅需要返回一个迭代器即可。
+这样，我们不需要创建一个临时引用，直接返回一个结果的引用。会减轻垃圾回收的负载。同时，目的性更明确。我们仅仅需要返回一个迭代器即可。
 
 
 ###10. Foreach和迭代器
 
-如果你想给自己的类实现foreach方法，就需要实现Iterable<E>接口。我简单写了一个例子：
+在JAVA SE5提出了foreach()遍历机制，而这里引入了一个值得思考的问题：
+
+> iterable和iterator的区别是神马？
+
+关于这个问题，我在网上搜到的答案全是千篇一律的复制一个答案，大概打开了20多个链接，都是这个。然后google还特么上不去，只好开代理去statckoverflow上找，找到了一个比较好的解释：[iterable和iterator的区别？](http://stackoverflow.com/questions/839178/why-is-javas-iterator-not-an-iterable)
+
+看完之后，我的理解是：
+
+> iterable是一个**产生迭代器**的接口；tierator是一个**使用迭代器**的接口。Collection extends Iterable<E> 接口，使得集合里面可以使用迭代器遍历（其实是foreach使用iterable接口）。而每个容器的遍历方式又不同，比如ArrayList是下标遍历，而LinkedList是链式遍历，所以具体的实现交由类自己来处理。每个类只需要实现一个匿名内部类返回一个迭代器就好了，foreach大概使用方法就是查看这个集合有没有实现iterable接口，然后调用iterator来实现遍历的功能，只不过这是内建的而已。
+
+如果你想让自己的类拥有foreach()方法，就需要实现Iterable<E>接口。我简单写了一个例子：
 
 {% highlight java linenos %}
 package Chapter11;
@@ -660,3 +653,37 @@ public class TestForeach {
 	}
 }
 {% endhighlight java %}
+
+Tips：
+
+> foreach语句可以作用于数组或其他任何Iterable，但是这并不意味着**数组肯定是一个Iterable，而任何自动包装也不会自动发生**。例子如下：
+
+{% highlight java linenos %}
+import java.util.Arrays;
+
+public class ArrayIsNotIterable {
+	static <T> void test(Iterable<T> ib) {
+		for(T t : ib){
+			System.out.print(t + " ");
+		}
+		System.out.println();
+	}
+	
+	public static void main(String[] args) {
+		test(Arrays.asList(1, 2, 3));
+		String[] s = {"A", "B", "C"};
+		
+		//不能编译
+		//test(s);
+		
+		test(Arrays.asList(s));
+	}
+}/*output:
+1 2 3
+A B C
+*/
+{% endhighlight java %}
+
+我们可以看到，虽然s是一个数组，但是它没有Iterable的实现，你必须显示将它转换为一个List，而List实现了Iterable接口，所以就可以使用foreach语法了。
+
+然后我们可能在实现自己的容器时需要不同的迭代器，比如正向、反向的，那么只需要使用foreach的时候指定就好了，默认是正向的iterator。假如你实现了一个reverseIterator迭代器，就可以这样使用：`for(T t : it.reverseIterator())`就可以喽。
