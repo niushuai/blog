@@ -9,9 +9,9 @@ categories: ClassLoader
 
 最近一段时间在学习JVM，类加载器算是比较关键的一个知识点。于是决定把最近学习的东西总结梳理一下。
 
-本文结构为：
+本文主要讨论以下四个方面：
 
-1. 类加载器由来：介绍类加载器如何产生的
+1. 类加载器由来：介绍类加载器产生的历史背景
 2. 类加载器基本概念：重点剖析java.lang.ClassLoader的loadClass()方法
 3. Tomcat类加载器：tomcat如何组织下游应用程序和上层JVM（tomcat也是一个java应用程序）
 4. 开发自己的类加载器：做一个demo
@@ -29,7 +29,7 @@ categories: ClassLoader
 
 ###一、类加载器由来
 
-类加载器从 JDK 1.0 就出现了，最初是为了满足 Java Applet 的需要而开发出来的。很奇葩的是现在applet被淘汰了，但类加载器却在类层次划分、OSGi、热部署、代码加密等领域大放异彩，成为了Java的一大王牌，可谓失之东隅，收之桑榆。
+类加载器从 JDK 1.0 就出现了，最初是为了满足 Java Applet 的需要而开发出来的。很奇葩的是现在 Java Applet 被淘汰了，但类加载器却在类层次划分、OSGi、热部署、代码加密等领域大放异彩，成为了Java的一大王牌，可谓失之东隅，收之桑榆。
 
 因为Java的广告就是一次编写到处运行，所以Sun将Java语言和JVM当成两个产品来开发。而JVM对应的《Java虚拟机规范》就是为了实现**多输入，统一处理**的目的：
 
@@ -145,45 +145,55 @@ Tips:
 
 接下来我们就自己动手写一个简单的类加载器。
 
+{% highlight java linenos %}
+ public class FileSystemClassLoader extends ClassLoader { 
 
+    private String rootDir; 
 
+    public FileSystemClassLoader(String rootDir) { 
+        this.rootDir = rootDir; 
+    } 
 
+    /**
+    * 对用户类加载器而言，一般重写findClass方法即可。loadClass不要重写，因为可能会破坏双亲
+    * 委派模型，造成系统核心类库加载错误
+    */
+    protected Class<?> findClass(String name) throws ClassNotFoundException { 
+        byte[] classData = getClassData(name); 
+        if (classData == null) { 
+            throw new ClassNotFoundException(); 
+        } 
+        else { 
+            return defineClass(name, classData, 0, classData.length); 
+        } 
+    } 
 
+    //这里用户可以自定义.class文件的来源（比如从网络下载后需要解密才能被JVM加载）
+    private byte[] getClassData(String className) { 
+        String path = classNameToPath(className); 
+        try { 
+            InputStream ins = new FileInputStream(path); 
+            ByteArrayOutputStream baos = new ByteArrayOutputStream(); 
+            int bufferSize = 4096; 
+            byte[] buffer = new byte[bufferSize]; 
+            int bytesNumRead = 0; 
+            while ((bytesNumRead = ins.read(buffer)) != -1) { 
+                baos.write(buffer, 0, bytesNumRead); 
+            } 
+            return baos.toByteArray(); 
+        } catch (IOException e) { 
+            e.printStackTrace(); 
+        } 
+        return null; 
+    } 
 
+    private String classNameToPath(String className) { 
+        return rootDir + File.separatorChar 
+                + className.replace('.', File.separatorChar) + ".class"; 
+    } 
+ }
+{% endhighlight java %}
 
+上面只是一个简单的例子，但是核心已经说明白了：
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+> 重写findClass()方法，只要保证JVM要加载的.class文件符合Java虚拟机规范的规定，那么无论.class文件是怎样的来的，对JVM全都是透明的。而这就为用户提供了极大的灵活性。
