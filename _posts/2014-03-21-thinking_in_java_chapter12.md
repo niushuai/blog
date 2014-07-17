@@ -60,7 +60,7 @@ Tips:
 
 下面我们可以写个小程序玩一下：
 
-```
+{% highlight java linenos %}
 package Chapter12;
 
 public class NeverCaught {
@@ -81,13 +81,13 @@ Exception in thread "main" java.lang.RuntimeException: from f()
 	at Chapter12.NeverCaught.main(NeverCaught.java:11)
 
 */
-```
+{% endhighlight java %}
 
 我们发现，**它是在main函数中被捕获的（in thread main）**。说明f()扔了没人管，于是到达g()，g()也不管，于是到达main()，main一看，我去，我也不会处理这玩意啊。于是到达Java虚拟机，Java虚拟机一看是 RuntimeException 或者是它的子类，就会果断调用`printStackTrace()`了。
 
 再看这个例子：
 
-```
+{% highlight java linenos %}
 package Chapter12;
 
 import java.io.IOException;
@@ -114,7 +114,7 @@ java.io.IOException: from f()
 	at Chapter12.NeverCaught.main(NeverCaught.java:17)
 
 */
-```
+{% endhighlight java %}
 
 而这里的异常是**从f()函数抛出**的。因为IOException不是RuntimeException类型。所以在f()中，必须显式的将抛出语句放在try...catch...中或者是在函数声明中显式声明会抛出哪种异常。
 
@@ -130,7 +130,7 @@ java.io.IOException: from f()
 
 在Java中，使用Exception的方法很简单：
 
-```
+{% highlight java linenos %}
 try {
 	//业务逻辑
 } catch(SmallException e) {
@@ -142,7 +142,7 @@ try {
 } finally {
 	//扫尾工作
 }
-```
+{% endhighlight java %}
 
 上面就是平常使用的`try{...}catch{...}finally{...}`模型。看起来没什么大不了的呀，因为我在看《TIJ》之前就是这么用的。但是看完之后发现：
 
@@ -177,7 +177,7 @@ try...catch...机制已经算是比较完整了，但是有时候也会有点麻
 
 看下面的例子：
 
-```
+{% highlight java linenos %}
 package Chapter12;
 
 class NSException extends Exception {
@@ -221,11 +221,11 @@ Chapter12.NSException
 file :C close
 file :C# close
 */
-```
+{% endhighlight java %}
 
 然后再看下用了finally之后的情况：
 
-```
+{% highlight java linenos %}
 package Chapter12;
 
 class NSException extends Exception {
@@ -271,7 +271,7 @@ file :C++ close
 file :C close
 file :C# close
 */
-```
+{% endhighlight java %}
 
 从上面2个例子可以清晰的看到，第一种情况下C++没有被关闭，而第二种情况，无论你在try...catch...中干了什么，我finally都能完成最后的清理工作。
 
@@ -279,7 +279,7 @@ file :C# close
 
 这个缺憾我感觉可以避免呀，因为这里所说的缺憾是指把finally放在catch的前面。这样，当抛出异常之后，我直接执行finally了，而finally是默认作为最后步骤执行的，所以执行完finally之后就不会继续执行下面的东西了。下面是个例子：
 
-```
+{% highlight java linenos %}
 package Chapter12;
 
 class VeryImportantException extends Exception {
@@ -319,7 +319,7 @@ public class LostMessage {
 /** output:
 A trivial exception
 */
-```
+{% endhighlight java %}
 
 这个例子中，我们会发现先抛出了VeryImportantException，然后dispose()又抛出了HoHumException，结果catch的时候只能catch最后那个，原来的给弄丢了。当然，解决方法就是catch的异常一定要从小到大。
 
@@ -327,7 +327,7 @@ A trivial exception
 
 另外一种是在finally中使用return语句，这样就会进入所谓的silence模式，运行程序的时候，即使抛出了异常，也不会产生任何输出。下面是个例子：
 
-```
+{% highlight java linenos %}
 package Chapter12;
 
 public class ExceptionSilencer {
@@ -343,7 +343,7 @@ public class ExceptionSilencer {
 /** output: 
 hello
 */
-```
+{% endhighlight java %}
 
 我们会发现异常没有输出。。。。
 
