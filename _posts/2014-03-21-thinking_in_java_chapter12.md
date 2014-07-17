@@ -369,5 +369,11 @@ C++从CLU哪里带来了一种思想：异常说明。这样，就可以用编�
 
 > [Java 异常实例演示]()
 
+###五、参考资料
 
+在看《TIJ》的过程中，有时候会陷入对细节的纠结中。这样当以后回忆异常这一主题时，会发现没有一个知识主线，细节非常琐碎就很容易遗忘。所以按照大牛的建议，先从整体上把握，然后再具体填坑。这次我先看了几篇脉络式的文章，然后再深入到细节中：
 
+* [Java 异常处理及其应用](http://www.ibm.com/developerworks/cn/java/j-lo-exception)
+* [如何进行Java异常处理设计](http://blog.csdn.net/yanquan345/article/details/19633623)
+* [一篇不错的讲解Java异常的文章](http://www.blogjava.net/freeman1984/archive/2013/07/26/148850.html)
+* [JAVA异常处理相关面试题](http://blog.csdn.net/zhaoqianjava/article/details/6854732)
