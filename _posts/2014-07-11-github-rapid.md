@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 解决github加载过慢
-categories: 吐槽
-tags: 吐槽
+categories: 常用工具
+tags: github
 ---
 
 昨天去github下载一个vim插件，结果发现页面加载速度过慢，而且页面样式都是错乱的，图片也都加载失败。于是用chrome自带的开发工具看了一下network，发现有2条css和2个js 404了，估计又是github的DNS被功夫网污染了。
