@@ -7,7 +7,7 @@ tags: Java编程思想
 
 ###本章主题
 
-本章将讨论Java是**如何让我们在运行时识别对象和类的信息**的。那么，为什么需要对对象的类型进行识别呢？我们先举个例子：
+本章将讨论Java是**如何让我们在运行时识别对象和类的信息**的。那么，为什么需要对对象的类型进行识别呢？我们举一个非常常见的例子：
 
 {% highlight java linenos %}
 package Chapter14;
@@ -41,9 +41,11 @@ class Square extends Shape {
 
 public class Shapes {
 		public static void main(String[] args) {
+			//注意这里，放入List的时候进行了什么操作？
 			List<Shape> shapes = Arrays.asList(new Circle(), new Square(), new Triangle());
 					for(Shape shape : shapes) {
-							shape.draw();
+						//拿出来的时候又进行了什么操作？
+						shape.draw();
 					}
 		}
 }
@@ -54,50 +56,41 @@ Trangle.draw()
 */
 {% endhighlight java %}
 
-在这个例子中，shapes的List中存放的是Shape类型，这样当用Circle、Square、Triangle初始化时会进行向上转型，同时丢失了各自的具体类型。所以，对于List而言，它们仅仅是Shape类型。而当从List取出元素时，**List这种容器实际上它把所有的事物都当作Object持有——会自动将结果转型回Shape。这就是RTTI最基本的使用。因为在Java中，所有的类型转换都是在运行时进行正确性检查的。**
+在这个例子中，shapes的List中存放的是Shape类型，这样当用Circle、Square、Triangle初始化时会进行向上转型，同时他们也丢失了各自的具体类型。对于List而言，它仅仅是Shape类型。而当从List取出元素时，**List（实际上它把所有对象都当作Object持有）会自动将结果转型回Shape。这就是RTTI最基本的使用。因为在Java中，所有的类型转换都是在运行时进行正确性检查的。**但同时，RTTI类型转换的并不彻底，Object被转型为Shape，而不是转型为原来的Circle、Square、Triangle。这是因为目前只知道List中存放的是Shape类型。
 
-但是问题随之而来，现在有这样一个需求：我需要对Shape的子类进行旋转，但是我们知道Circle旋转是没有意义的，所以要跳过Circle。这怎样实现的？下面我们就来说说类型信息的实现：
+* 在编译时，将由容器和Java泛型来确保正确性
+* 在运行时，由类型转换操作来确保
+
+接下来就是多态的事情（本质就是JVM的invokevirtual字节码），Shape对象实际执行什么样的代码，是由引用指向的具体对象决定的。通常我们这样做是“面向接口编程”的做法，这样代码更容易扩展。
+
+但是现在又又了另一个需求：我需要对Shape的子类进行旋转，但是我们知道Circle旋转是没有意义的，所以要跳过Circle。这怎样实现的？下面我们就来说说类型信息的实现：
 
 1. RTTI：也就是Run Time Type Identify机制，运行时类型识别（编译时）
 2. 反射：它允许我们在运行时发现和使用类的信息（运行时）
 
+下面我们就来学习一下RTTI和反射吧：）
 
-###2. Class对象
+什么，你想问他们之间的区别？很简单，去stackoverflow一搜就知道了，但是最好是看过书之后自己总结。
 
-这是本章的重点，也是Java的一个难点。要理解RTTI在Java中的工作原理，首先必须知道类型信息在运行时是如何表示的。这项工作是由称为**Class对象**的特殊对象来完成的，它包含了与类有关的信息。**事实上，Class对象就是用来创建类的所有的“常规对象”的。**
+###一、RTTI核心——Class对象
 
-Java使用Class对象来执行RTTI，即使你正在执行的是类型转型这样的操作。Class类还拥有大量的使用RTTI的其它方式。
+####1. 什么是Class对象？
 
-那么，在Java创建对象时是如何工作的？我们在前面的章节中多次讲到初始化问题，比如：
+这是本章的重点，也是Java的一个难点。
 
-* [初始化问题1]()
-* [初始化问题2]()
+要理解RTTI在Java中的工作原理，首先必须知道类型信息在运行时是如何表示的。这项工作是由称为**Class对象**的特殊对象来完成的，它包含了与类有关的信息。**事实上，Class对象就是用来创建类的所有的“常规对象”的。**Java使用Class对象来执行RTTI，即使你正在执行的是类型转型这样的操作。Class类还拥有大量的使用RTTI的其它方式。
 
-对于Class对象来说是这样的：
+结合《深入理解Java虚拟机》，class对象现在应该很清楚了。说白了，class对象中是常规对象的模板，它里面肯定有一个指向方法区的指针，而方法区存放着这个类的相关信息（比如父类是谁，是不是接口，静态变量有哪些等等）。然后通过AClass.getClass()就可以得到这个Class对象（所有对象应该仅保留一份）。所以，**Java使用Class对象来执行RTTI**。
 
-> 当类第一次被使用时，类加载器首先检查这个类的Class对象是否已经被加载。如果尚未加载，默认的类加载器就会根据类名查找.class文件。而且在这个字节码被加载时，它们会接受验证，确保没有受到破坏，并且不包含不良代码。一旦这个类的Class对象被载入内存，它就会被用来创建这个类的所有对象（可以说Class对象是这个类所有对象的模板）。
+总结一下，获得一个类的Class对象有两种方法：
 
-Tips:
+1. 如果没有一个该类对象的引用，就使用Class.forName()
+2. 如果存在一个该类的对象，就是用AClass.getClass()
+3. 如果存在一个该类的对象，也可以使用AClass.class(类字面值常量，编译时检查，log4j就用到了)
 
-有一个很有趣的现象，当使用.class来创建对Class对象的引用时，不会自动地初始化该Class对象。而Class.forClass("xx")则会立即初始化该Class对象。
+有一个很有趣的现象，当使用.class来创建对Class对象的引用时，不会自动地初始化该Class对象。而Class.forClass("xx")则会立即初始化该Class对象。举一个例子吧：
 
-###3. 类字面常量
-
-当写完一个类，并编译之后（在Eclipse中是自动编译的，你可以使用navigator视图在bin下面查看生成对应的xx.class），会产生对应的class文件。而调用xx.class有两种方法：
-
-1. ```Class.forName("xx");```
-2. ```xx.class```
-
-这就是下面的讲到的类字面常量。
-
-
-无数次碰到**类字面常量**，无数次擦肩而过。一直不知道这个到底是啥玩意，只是大概记得是类的反射东东，原来是**类字面常量：用于生成对Class对象的引用，它替代了Class.forName("xx")这样的用法，因为它在编译的时候会受到检查（不用放在try...catch中），所以简单、安全、高效。**
-
-然后有一个标准字段TYPE，TYPE字段是一个引用，它指向对应的基本数据类型的Class对象，比如boolean.class等价于boolean.TYPE。
-
-这个例子太经典了，必须仔细研究啊(和上面的Tips结合起来看)
-
-```
+{% highlight java linenos %}
 package Chapter14;
 
 import java.util.*;
@@ -144,15 +137,16 @@ public class ClassInitialization {
 		//发现没有初始化，因为没有用到！
 		Class initable = Initable.class;
 		System.out.println("After creating Initable ref");
-		//下面调用static数据，Initable才被初始化
+		//staticFinal因为是编译期确定，如果只访问这个，也不会触发类的初始化。可以注释下面那个运行期确定的变量，则不会初始化
 		System.out.println(Initable.staticFinal);
+		//下面调用非编译期确定的static数据，Initable才被初始化
 		System.out.println(Initable.staticFinal2);
 		
 		//调用Initable2的static数据，被加载并且初始化
 		System.out.println(Initable2.staticNonFinal);
 		try {
 			//forName立即加载，不管使用不使用
-			Class initable3 = Class.forName("Initable3");
+			Class initable3 = Class.forName("Chapter14.Initable3");
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -160,8 +154,7 @@ public class ClassInitialization {
 		System.out.println("After creating Initable3 ref");
 		System.out.println(Initable3.staticNonFinal);
 	}
-}
-/* output:
+}/*output:
 After creating Initable ref
 47
 Initializing Initable
@@ -172,21 +165,49 @@ Initializing Initable3
 After creating Initable3 ref
 74
 */
-```
+{% endhighlight java %}
 
-###4. 类型转换前先做检查
+####2. 泛化的Class引用
 
-到这里，RTTI的形式已经有了这几种：
+因为每个类都是Class类的对象，所以一个class引用可以随便指向所有类的class对象，这就很容易犯错。比如下面的例子：
 
-1. 传统的类型转换：用Circle、Triangle、Square装入ArrayList<Shape>时，3个形状向上转型为Shape；取出时，List会自动将Object转换为Shape。然后调用方法时，会实现多态功能。
+{% highlight java linenos %}
+public class GenericReference {
+	public static void main(String[] args) {
+		Class intClass = int.class;
+		Class<Integer> genericClass = Integer.class;
+		
+		intClass = double.class;
+		//下面代码将编译出错
+		//genericClass = double.class;
+	}
+}
+{% endhighlight java %}
+
+我们看到，intClass被指向了Double的Class，而且没有报错。但是如果使用泛型，指定Class引用的类型，就可以保证在编译时发现问题。但是如果指定具体类型的话，就违反了“面向接口编程”的初衷，所以这里可以采用Java的通配符“?”，比如`class<?> intClass = int.class;intClass = double.class;`。
+
+Tips：
+
+> 如果在使用非具体class的场景中，尽量使用`class<?> classRef `,而不是`class classRef `,因为前者可以明确指出我使用的就是非具体类型的Class引用。
+
+嗯，如果`class <?> classRef`范围太大，`class<Integer> intClass`又过于具体，那么可以考虑使用`class<? extends Number> numberClassRef `这样的用法，大家看一眼应该就懂了，类似的还有`class<? super Number> numberSuperClassRef `。
+
+###三、类型转换前先做检查
+
+讲到这里，我们已知的RTTI的形式有以下几种：
+
+1. 传统的类型转换：用Circle、Triangle、Square装入ArrayList<Shape>时，3个形状向上转型为Shape；取出时，List会自动将Object转换为Shape
 2. Class对象：通过查询Class对象，我们可以知道很多额外的信息（比如类的名字、完整的包名、超类、是否为接口等等）
-3. instanceof：这个好像见过，比如在第一部分提出的那个问题，我们就可以使用```(if shape instanceof Circle)```来判断是否为Circle。
+	* 在C++中，经典的类型转换并不适用RTTI，它只是简单的告诉编译器你把转型后的类型当做一个新的类型，使用的时候再检查用法对不对。而在Java中，会使用RTTI检查类型转换操作，被称为”类型安全的向下转型“。为什么只是向下转型呢？因为向上转型必定是安全的，但是向下转型时我不知道你是否转对了，比如Circle肯定是一个Shape，但是Shape则不一定是Circle，也可能是Triangle。所以，**不适用显式的类型转换，编译器是不允许你进行向下转型的**
+3. instanceof：这个好像见过，比如在第一部分提出的那个问题，我们就可以使用`(if shape instanceof Circle)`来判断是否为Circle。
 
-###5. instanceof与Class的等价性
+Tips：
 
-在查询类型信息时，以instanceof的形式（即以instanceof的形式或者isInstance()的形式，它们产生相同的结果）与直接比较Class对象有一个很重要的区别。Don not BB, show me the Code:
+> instanceof是静态的，动态的使用Clss类中的isInstance方法，比如`if(someClassRef.getClass().isInstance(Number))`
 
-```
+有一个问题，既然Class对象和instanceof都可以判断类型信息，那么它们之间是神马关系呢？原来在查询类型信息时，以instanceof的形式（即以instanceof的形式或者isInstance()的形式，它们产生相同的结果）与直接比较Class对象有一个很重要的区别。我们用代码来说明问题：
+
+{% highlight java linenos %}
 package Chapter14;
 
 class Base {}
@@ -231,20 +252,22 @@ x.getClass() == Derived.class true
 x.getClass().equals(Base.class) false
 x.getClass().equals(Derived.calss) true
 */
-```
+{% endhighlight java %}
 
-从结果我们可以看出，在相同的类中，instanceof和isInstance的结果是完全相同的。但是Base和Derived的结果却不同：
+从结果我们可以看出，在相同的类中，instanceof和isInstance的结果是一样的，equals和==的结果也是一样的。但是他们的用法却不同：
 
-1. instanceof和isInstance保持了**类型的概念**，它指的是“你是这个类吗？或者你是这个类的派生类吗？”
-2. 用==或者equals比较实际的Class对象，就没有考虑继承的概念，因为Class对于不同的类都是唯一的（这个从编译后生成的Class对象就可以知道）。所以它**或者是这个确切的Class对象，或者不是，没有继承和其它情况**
+1. instanceof和isInstance保持了**类型的概念**，它指的是“你是这个类或者这个类的派生类吗？”
+2. 用==或者equals比较实际的Class对象（本质上equals调用的还是==），没有考虑继承的概念，因为Class对象对于不同的类都是唯一的（应该是每个类保持一个Class对象）。所以它**或者是这个确切的Class对象，或者不是。没有继承和其它情况的概念**
 
-###6. 反射
+###四、反射
 
-终于到反射了！好激动，一定要把反射搞清楚，然后就可以把热加载技术搞定了。。。。。目标就是搞定Spring的热加载，让ABTest可以热加载！
+先思考一个问题，为什么在已经有了RTTI的基础上，又引出了反射呢？
 
-咳咳，书上说“重要的是，要认识到反射机制并没有什么神奇之处。”那就简单总结一下书上的原因：
+> 我们知道，如果不知道某个对象的确切类型，使用RTTI的三种方式可以告诉你。但是，这有个前提：**这个类型在编译时必须已知，这样RTTI才能通过JVM加载的Class对象获得这个类对象的类型信息**。也就是说，在编译时，编译器必须知道所有要使用RTTI来处理的类。但是，因为Java具有动态加载的特性，我们可以从网络上下载一些字节码加载进JVM代表一个类，那么这时候就没有经过编译，RTTI就没有用武之处了。而这就是反射出现的理由。
 
-> 当通过反射与一个未知类型的对象打交道时，JVM只是简单地检查这个对象，看它属于哪个特定的类（就像RTTI一样）。在用它做其他事情之前必须先加载那个类的Class对象。因此，那个类的.class文件对于JVM来说必须是可获取的：要么在本地机器上，要么可以通过网络获得。所以RTTI和反射之间的真正的区别只在于，对RTTI来说，编译器在编译时打开和检查的.class文件。（换句话说，我们可以用“普通”方式调用对象的所有方法。）而对于反射机制来说，.class文件在编译时是不可获取的，所以是在运行时打开和检查.class文件。
+所以，RTTI和反射的真正区别是：
+
+> 当通过反射与一个未知类型的对象打交道时，JVM只是简单地检查这个对象，看它属于哪个特定的类（就像RTTI一样）。在用它做其他事情之前必须先加载那个类的Class对象。因此，那个类的.class文件对于JVM来说必须是可获取的：要么在本地机器上，要么可以通过网络获得。**所以RTTI和反射之间的真正的区别只在于，对RTTI来说，编译器在编译时打开和检查的.class文件。（换句话说，我们可以用“普通”方式调用对象的所有方法。）而对于反射机制来说，.class文件在编译时是不可获取的，所以是在运行时打开和检查.class文件**。
 
 ###7. 反射提供方法查找基类的方法列表
 
