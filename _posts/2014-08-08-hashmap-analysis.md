@@ -49,8 +49,356 @@ Java HotSpot(TM) 64-Bit Server VM (build 24.45-b08, mixed mode)
 >
 > This class is a member of the Java Collections Framework.
 
-上面就是 HashMap 的文档，重要的地方我用黑体字注明并进行了简短的说明。卧槽，上面弄完就累了- -下面要 show code 了。。。
+上面就是 HashMap 的文档，重要的地方我用黑体字注明并进行了简短的说明。下面就从代码开始剖析了。
 
 ###三、源码剖析
 
-首先我们看这个类
+####1. 类的声明
+
+首先我们看这个类都继承、实现了哪些东西：
+
+{% highlight java linenos %}
+public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneable, Serializable
+{% endhighlight java %}
+
+我们可以看到它实现了 Map 接口，继承了 AbstactMap 类。同时也实现了 Cloneable 和序列化接口。我们知道 HashMap 本质就是 Map 接口的实现，为什么又继承了 AbstactMap 呢？因为大部分的 AbstractXX 都是实现了一部分的 XX 接口，只留下一部分重要的方法让我们实现。所以当个人需要实现 Map，但是又不想实现全部方法，就可以去继承 AbstractMap 类了。
+
+####2. 类的成员属性
+
+还是直接先上源码：
+
+{% highlight java linenos %}
+	/**
+     * 默认 HashMap 容量为16。必须是2的幂
+     */
+    static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
+
+    /**
+     * 最大容量
+     */
+    static final int MAXIMUM_CAPACITY = 1 << 30;
+
+    /**
+     * 默认装载因子，当前元素个数/总容量超过这个值就会进行 rehash
+     */
+    static final float DEFAULT_LOAD_FACTOR = 0.75f;
+
+    /**
+     * 在 table 没有扩张之前，就用这个初始化
+     */
+    static final Entry<?,?>[] EMPTY_TABLE = {};
+
+    /**
+     * HashMap 中的关键地方就是这个 table 了。容量必须是2的幂
+     */
+    transient Entry<K,V>[] table = (Entry<K,V>[]) EMPTY_TABLE;
+
+    /**
+     * 键值对的个数
+     */
+    transient int size;
+
+    /**
+     达到这个阈值就要进行 rehash 了，默认初始化的阈值是16 * 0.75 = 12
+    int threshold;
+
+    /**
+     * 实际装载因子，如果没有指定，就使用默认装载因子0.75
+     *
+     * @serial
+     */
+    final float loadFactor;
+
+    /**
+     * HashMap 结构改变的次数，用于 fail-fast 机制
+     */
+    transient int modCount;
+
+    /**
+     * 默认的 threshold
+     */
+    static final int ALTERNATIVE_HASHING_THRESHOLD_DEFAULT = Integer.MAX_VALUE;
+
+    /**
+     * 虚拟机各自实现中，也会有对应的 threshold 设置
+     */
+    private static class Holder {
+
+        /**
+         * Table capacity above which to switch to use alternative hashing.
+         */
+        static final int ALTERNATIVE_HASHING_THRESHOLD;
+
+        static {
+            String altThreshold = java.security.AccessController.doPrivileged(
+                new sun.security.action.GetPropertyAction(
+                    "jdk.map.althashing.threshold")); //读取 Sun 定义的 threshold 的值
+
+            int threshold;
+            try {
+                threshold = (null != altThreshold) //修改了threshold 的值
+                        ? Integer.parseInt(altThreshold)
+                        : ALTERNATIVE_HASHING_THRESHOLD_DEFAULT;
+
+                // disable alternative hashing if -1
+                if (threshold == -1) {
+                    threshold = Integer.MAX_VALUE;
+                }
+
+                if (threshold < 0) {
+                    throw new IllegalArgumentException("value must be positive integer.");
+                }
+            } catch(IllegalArgumentException failed) {
+                throw new Error("Illegal value for 'jdk.map.althashing.threshold'", failed);
+            }
+
+            ALTERNATIVE_HASHING_THRESHOLD = threshold;
+        }
+    }
+
+    /**
+     * hash 种子
+     */
+    transient int hashSeed = 0;
+{% endhighlight java %}
+
+从源码中我们可以看到，HashMap 的关键之处就在于数组和链表，table 是一个 Entry 数组，每一个数组元素保存一个 Entry 节点，而 Entry 节点内部又连接着同样 key 的下一个 Entry 节点，就构成了链表。**而如果有了科学的 hashSeed 保证碰撞的几率非常小，就可以近似的认为只有数组，没有链表，那么查找 key 的时候就是 O（1）复杂度了**。下面我们来看一下 Entry 的源码：
+
+{% highlight java linenos %}
+//实现了 Map 的 Entry 接口，有没有想到 C++中的 Pair 类型？是的，它就是一个 key-value 的最小单位
+static class Entry<K,V> implements Map.Entry<K,V> {
+        final K key;
+        V value;
+        Entry<K,V> next; //链表就靠他了
+        int hash;
+
+        /**
+         * Creates new entry.
+         */
+        Entry(int h, K k, V v, Entry<K,V> n) {
+            value = v;
+            next = n;
+            key = k;
+            hash = h;
+        }
+
+        public final K getKey() {
+            return key;
+        }
+
+        public final V getValue() {
+            return value;
+        }
+
+        public final V setValue(V newValue) {
+            V oldValue = value;
+            value = newValue;
+            return oldValue;
+        }
+
+        public final boolean equals(Object o) {
+            if (!(o instanceof Map.Entry))
+                return false;
+            Map.Entry e = (Map.Entry)o;
+            Object k1 = getKey();
+            Object k2 = e.getKey();
+            if (k1 == k2 || (k1 != null && k1.equals(k2))) {
+                Object v1 = getValue();
+                Object v2 = e.getValue();
+                if (v1 == v2 || (v1 != null && v1.equals(v2)))
+                    return true;
+            }
+            return false;
+        }
+
+        public final int hashCode() { //key 和 value 的 hashcode，然后再求异或
+            return Objects.hashCode(getKey()) ^ Objects.hashCode(getValue());
+        }
+
+        public final String toString() {
+            return getKey() + "=" + getValue();
+        }
+
+        /**
+         * This method is invoked whenever the value in an entry is
+         * overwritten by an invocation of put(k,v) for a key k that's already
+         * in the HashMap.
+         */
+        void recordAccess(HashMap<K,V> m) {
+        }
+
+        /**
+         * This method is invoked whenever the entry is
+         * removed from the table.
+         */
+        void recordRemoval(HashMap<K,V> m) {
+        }
+    }
+{% endhighlight java %}
+
+####3. 构造函数
+
+既然看完了 HashMap 的构造，下面我们就来看看如何初始化一个 HashMap，也就是构造函数。一共有4种：
+
+{% highlight java linenos %}
+	//1. 指定初始化容量和装载因子
+	public HashMap(int initialCapacity, float loadFactor) {
+        if (initialCapacity < 0)
+            throw new IllegalArgumentException("Illegal initial capacity: " +
+                                               initialCapacity);
+        if (initialCapacity > MAXIMUM_CAPACITY)
+            initialCapacity = MAXIMUM_CAPACITY;
+        if (loadFactor <= 0 || Float.isNaN(loadFactor))
+            throw new IllegalArgumentException("Illegal load factor: " +
+                                               loadFactor);
+
+        this.loadFactor = loadFactor;
+        threshold = initialCapacity;
+        init(); //init()是一个空方法，在以后版本会添加具体实现
+    }
+
+    //2. 只指定初始化容量，装载因子使用默认值
+    public HashMap(int initialCapacity) {
+        this(initialCapacity, DEFAULT_LOAD_FACTOR);
+    }
+
+    //3. 初始化容量和装载因子使用默认值（16和0.75）
+    public HashMap() {
+        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
+    }
+
+    //4. 用一个 Map 来初始化，会先判断容量是否需要扩张，然后把元素复制一遍
+    public HashMap(Map<? extends K, ? extends V> m) {
+        this(Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1,
+                      DEFAULT_INITIAL_CAPACITY), DEFAULT_LOAD_FACTOR);
+        inflateTable(threshold);
+
+        putAllForCreate(m);
+    }
+{% endhighlight java %}
+
+上面就是4种构造方法，一般情况下用的最多的是第一种和第四种。第一种没什么说的，我们先看下第四种的扩张函数`inflateTable(threshold)`:
+
+{% highlight java linenos %}
+	/**
+	* 1. 找到最小的大于等于容量的2的倍数
+	* 2. 确定 threshold，容量*装载因子，如果大于最大容量1<<30，就选择+1作为阈值
+	* 3. 初始化底层的 table 索引数组
+	* 4. 选择最合适的 hash 种子，使碰撞的几率最低
+	*/
+	private void inflateTable(int toSize) {
+        // Find a power of 2 >= toSize
+        int capacity = roundUpToPowerOf2(toSize);
+
+        threshold = (int) Math.min(capacity * loadFactor, MAXIMUM_CAPACITY + 1);
+        table = new Entry[capacity];
+        initHashSeedAsNeeded(capacity); 
+    }
+{% endhighlight java %}
+
+####4. put()方法——核心之一
+
+在使用 HashMap 时，最常用的肯定就是 get/set 操作了。当然，要先说 put，因为选择如何放入，才能决定 get 怎样进行。下面是 put()方法的源码：
+
+{% highlight java linenos %}
+	/**
+     * 1. 初始化的时候 table 是一个空数组，于是要根据 threshold 进行初始化。结合上面的`inflateTable()`源码，
+     * 	  我们知道默认情况下容量是16（threshold 是12）
+     * 2. key 为 null 的时候，也可以进行 put 操作。而 HashTable 是不能处理 key/value 为 null 的情况
+     * 3. 计算 hash 值
+     * 4. i 就是在 table 中找到对应的位置，本质就是 HashMap 的索引了
+     * 5. 在链表中插入元素
+     */
+	public V put(K key, V value) {
+        if (table == EMPTY_TABLE) {
+            inflateTable(threshold);
+        }
+        if (key == null)
+            return putForNullKey(value);
+        int hash = hash(key);
+        int i = indexFor(hash, table.length);
+        for (Entry<K,V> e = table[i]; e != null; e = e.next) {
+            Object k;
+            if (e.hash == hash && ((k = e.key) == key || key.equals(k))) {
+                V oldValue = e.value;
+                e.value = value;
+                e.recordAccess(this);
+                return oldValue;
+            }
+        }
+
+        modCount++;
+        addEntry(hash, key, value, i);
+        return null;
+    }
+{% endhighlight java %}
+
+可以看到，`put()`的返回值是 V，就是当key 存在的时候，put 会返回 oldValue。而 `put()`涉及到的函数主要有：
+
+* `putForNullKey()`
+* `hash()`
+* `indexFor()`
+* `addEntry()`
+
+下面我们先看一下 putForNullKey() 函数的源码，很简单的。因为 null 也可以作为 key 的。**一个特别的地方在于 null 的 key 是占据 table 的第一个位置。所以直接在 table[0]的链表中进行操作。**
+
+{% highlight java linenos %}
+    private V putForNullKey(V value) {
+        for (Entry<K,V> e = table[0]; e != null; e = e.next) {
+            if (e.key == null) {
+                V oldValue = e.value;
+                e.value = value;
+                e.recordAccess(this);
+                return oldValue;
+            }
+        }
+        modCount++;
+        addEntry(0, null, value, 0);
+        return null;
+    }
+{% endhighlight java %}
+
+然后是 `hash()`的源码，首先 h 是 hash 种子，根据这个值得到 key 在 table 中的索引位置（hash 种子要尽可能保证不出现碰撞）。其中涉及到了 unsigned right shift 技巧，可以参考我前面写过的文章：[Java右移操作](http://github.thinkingbar.com/right-shift/)
+
+{% highlight java linenos %}
+    final int hash(Object k) {
+        int h = hashSeed;
+        if (0 != h && k instanceof String) {
+            return sun.misc.Hashing.stringHash32((String) k);
+        }
+
+        h ^= k.hashCode();
+
+        // This function ensures that hashCodes that differ only by
+        // constant multiples at each bit position have a bounded
+        // number of collisions (approximately 8 at default load factor).
+        h ^= (h >>> 20) ^ (h >>> 12);
+        return h ^ (h >>> 7) ^ (h >>> 4);
+    }
+{% endhighlight java %}
+
+####5. get()方法——核心之二
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% highlight java linenos %}
+{% endhighlight java %}
+
+
+
+
+
+
+
+
+
