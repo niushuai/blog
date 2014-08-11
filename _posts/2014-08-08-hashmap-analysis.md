@@ -632,7 +632,7 @@ static class Entry<K,V> implements Map.Entry<K,V> {
 
 下面是 HashMap 内部实现的迭代器，在看《Thinking In Java》第十章内部类的时候，就提到过了容器的迭代类都是内部类，外部定义了一个迭代器的接口。每个容器在内部实现这个接口，那么使用容器的时候就有了统一的接口。HashMap 一共实现了下列几个迭代器：
 
-* HashIterator
+* HashIterator（仅仅为迭代器模板，使用抽象类实现）
 * ValueIterator
 * KeyIterator
 * EntryIterator
@@ -641,9 +641,11 @@ static class Entry<K,V> implements Map.Entry<K,V> {
 
 {% highlight java linenos %}
 	/**
-	* 我们会发现里面都有一个 expectedModCount 字段，保证了 fail-fast 机制
-	*
-	* 另外剩下的3个迭代器都继承了 HashIterator 类，复用了其中的 NextEntry() 函数	
+	* 我们会 HashMap 将迭代器进行了抽象，之后定义了 HashIterator 迭代器，
+	* 但是注意它是一个抽象类。（实现 Iterator 接口需要实现 hashNext(),next(),remove()方法）
+	* 而 HashIterator 是一个抽象类，没有实现 next()，而是由实际工作的迭代器完成
+	* 
+	* HashIterator 里面有一个 expectedModCount 字段，保证了 fail-fast 机制
 	*/
     private abstract class HashIterator<E> implements Iterator<E> {
         Entry<K,V> next;        // next entry to return
@@ -722,11 +724,4 @@ static class Entry<K,V> implements Map.Entry<K,V> {
     }
 {% endhighlight java %}
 
-
-
-
-
-
-
-
-
+感觉 HashMap 设计的迭代器很巧妙，如果是我，应该是单独实现3种。但 HashMap 却抽象了迭代器模型，将 next()的实现统一成 nextEntry()，之后实际迭代器只需要调用这个函数就可以返回正确的值。
