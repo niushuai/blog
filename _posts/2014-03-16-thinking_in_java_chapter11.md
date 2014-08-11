@@ -606,7 +606,7 @@ public class NonCollectionSequence extends IntSequence {
 
 看完之后，我的理解是：
 
-> iterable是一个**产生迭代器**的接口；tierator是一个**使用迭代器**的接口。Collection extends Iterable<E> 接口，使得集合里面可以使用迭代器遍历（其实是foreach使用iterable接口）。而每个容器的遍历方式又不同，比如ArrayList是下标遍历，而LinkedList是链式遍历，所以具体的实现交由类自己来处理。每个类只需要实现一个匿名内部类返回一个迭代器就好了，foreach大概使用方法就是查看这个集合有没有实现iterable接口，然后调用iterator来实现遍历的功能，只不过这是内建的而已。
+> iterable是一个**产生迭代器**的接口；iterator是一个**使用迭代器**的接口。Collection extends Iterable<E> 接口，使得集合里面可以使用迭代器遍历（其实是foreach使用iterable接口）。而每个容器的遍历方式又不同，比如ArrayList是下标遍历，而LinkedList是链式遍历，所以具体的实现交由类自己来处理。每个类只需要实现一个匿名内部类返回一个迭代器就好了，foreach大概使用方法就是查看这个集合有没有实现iterable接口，然后调用iterator来实现遍历的功能，只不过这是内建的而已。
 
 如果你想让自己的类拥有foreach()方法，就需要实现Iterable<E>接口。我简单写了一个例子：
 

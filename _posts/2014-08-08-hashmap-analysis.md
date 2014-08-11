@@ -317,6 +317,8 @@ static class Entry<K,V> implements Map.Entry<K,V> {
             return putForNullKey(value);
         int hash = hash(key);
         int i = indexFor(hash, table.length);
+
+        //如果已经有了这个 key，就进行更新操作。返回旧 value
         for (Entry<K,V> e = table[i]; e != null; e = e.next) {
             Object k;
             if (e.hash == hash && ((k = e.key) == key || key.equals(k))) {
@@ -327,6 +329,7 @@ static class Entry<K,V> implements Map.Entry<K,V> {
             }
         }
 
+        //如果不存在这个 key，就改变了结构。添加一个 Entry
         modCount++;
         addEntry(hash, key, value, i);
         return null;
@@ -372,26 +375,351 @@ static class Entry<K,V> implements Map.Entry<K,V> {
         // This function ensures that hashCodes that differ only by
         // constant multiples at each bit position have a bounded
         // number of collisions (approximately 8 at default load factor).
+        //下面这种方法能使得链表的长度上界为8，那么get()操作都在9次以下
         h ^= (h >>> 20) ^ (h >>> 12);
         return h ^ (h >>> 7) ^ (h >>> 4);
     }
 {% endhighlight java %}
 
-####5. get()方法——核心之二
-
-
-
-
-
-
-
-
-
-
-
-
+然后接着看`indexFor()`函数的源码：
 
 {% highlight java linenos %}
+    static int indexFor(int h, int length) {
+        //一句话，length 是数组最大值+1，不多解释了。真个函数功能就是寻找在 table 中的位置
+        return h & (length-1);
+    }
+{% endhighlight java %}
+
+最后一个是`addEntry()`，从名字就可以看出来。就是往 Entry 数组中添加一个 key-value 元素呗：
+
+{% highlight java linenos %}
+	//当元素个数达到阈值或者有冲突，就 resize 扩容 了。
+    void addEntry(int hash, K key, V value, int bucketIndex) {
+        if ((size >= threshold) && (null != table[bucketIndex])) {
+            resize(2 * table.length);
+            hash = (null != key) ? hash(key) : 0;
+            bucketIndex = indexFor(hash, table.length);
+        }
+        
+        //实际添加元素，源码在下面
+        createEntry(hash, key, value, bucketIndex);
+    }
+
+    void createEntry(int hash, K key, V value, int bucketIndex) {
+        Entry<K,V> e = table[bucketIndex];
+        //结合 Entry 的源码，会发现是在链表头部添加新元素
+        table[bucketIndex] = new Entry<>(hash, key, value, e);
+        size++;
+    }
+{% endhighlight java %}
+
+**`resize()`函数是一个非常关键的函数，因为它会引起底层数据结构的大洗牌。**所以，我们要单独分析一下：
+
+{% highlight java linenos %}
+    void resize(int newCapacity) {
+        Entry[] oldTable = table;
+        int oldCapacity = oldTable.length;
+
+        //如果已达最大容量，就直接返回。不再扩容。MAX 是1<<30，阈值设为最大值
+        if (oldCapacity == MAXIMUM_CAPACITY) {
+            threshold = Integer.MAX_VALUE;
+            return;
+        }
+
+        Entry[] newTable = new Entry[newCapacity];
+        transfer(newTable, initHashSeedAsNeeded(newCapacity));
+        table = newTable;
+        threshold = (int)Math.min(newCapacity * loadFactor, MAXIMUM_CAPACITY + 1);
+    }
+{% endhighlight java %}
+
+首先是声明了一个 temp Entry 数组 oldTable，这样新旧引用都指向了相同的数组内存地址。但是为什么要多此一举呢？后面代码用到 oldTable 的地方仅仅求了一下长度，没做任何其他操作，完全可以用 table 来计算呀。这点很是奇怪，而且很多地方都是先声明一个新引用，对新引用进行操作，而不是在原因用上进行。有机会搞清楚这个设计的原因。
+
+下面就是整个函数的流程：
+
+1. 首先申请了一个新数组 newTable
+2. 对新数组进行 transfer 操作
+3. 将 table 指向扩容后的新数组
+
+重点肯定是第2步了，上代码：
+
+{% highlight java linenos %}
+	//
+    void transfer(Entry[] newTable, boolean rehash) {
+        int newCapacity = newTable.length;
+        for (Entry<K,V> e : table) {
+            while(null != e) {
+                Entry<K,V> next = e.next;
+                if (rehash) {
+                    e.hash = null == e.key ? 0 : hash(e.key);
+                }
+                int i = indexFor(e.hash, newCapacity);
+
+                //这里是文档里说不能保持元素顺序的原因。因为 transfer 过程将元素逆序插入到
+                //newTable 中
+                e.next = newTable[i];
+                newTable[i] = e;
+                e = next;
+            }
+        }
+    }
+{% endhighlight java %}
+
+其实到这里，`put()`就已经讲完了，但是有一个比较`putAll()`有时候会用到，我们也来看一下：
+
+{% highlight java linenos %}
+    public void putAll(Map< ? extends K, ? extends V> m) {
+        int numKeysToBeAdded = m.size();
+        if (numKeysToBeAdded == 0)
+            return;
+
+        if (table == EMPTY_TABLE) {
+            inflateTable((int) Math.max(numKeysToBeAdded * loadFactor, threshold));
+        }
+
+        /*
+         * Expand the map if the map if the number of mappings to be added
+         * is greater than or equal to threshold.  This is conservative; the
+         * obvious condition is (m.size() + size) >= threshold, but this
+         * condition could result in a map with twice the appropriate capacity,
+         * if the keys to be added overlap with the keys already in this map.
+         * By using the conservative calculation, we subject ourself
+         * to at most one extra resize.
+         * 
+         * 上面解释的非常清楚了，采取了保守扩容。因为存在 key 相同的情况只需要覆盖，不需要重新申请新空间
+         */
+        if (numKeysToBeAdded > threshold) {
+            int targetCapacity = (int)(numKeysToBeAdded / loadFactor + 1);
+            if (targetCapacity > MAXIMUM_CAPACITY)
+                targetCapacity = MAXIMUM_CAPACITY;
+            int newCapacity = table.length;
+            while (newCapacity < targetCapacity)
+                newCapacity <<= 1;
+            if (newCapacity > table.length)
+                resize(newCapacity);
+        }
+
+        for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
+            put(e.getKey(), e.getValue());
+    }
+{% endhighlight java %}
+
+####5. get()方法——核心之二
+
+下面是二个核心——`get()`方法，我们来看一下源码：
+
+{% highlight java linenos %}
+	//简单的不行吧？因为put()已经搞定了所有事情，我只需要判断 key 是不是 null 即可
+	//如果是 null 就 getForNullKey()；否则就是 getEntry()。具体过程就是先在数组找，
+	//然后再在链表找就 ok 了
+    public V get(Object key) {
+        if (key == null)
+            return getForNullKey();
+        Entry<K,V> entry = getEntry(key);
+
+        return null == entry ? null : entry.getValue();
+    }
+{% endhighlight java %}
+
+其中有两个附加的 `containsKey()` 和 `containsValue()`函数，要注意它们的复杂度：
+
+{% highlight java linenos %}
+ 	public boolean containsKey(Object key) {
+        return getEntry(key) != null;
+    }
+
+    /**
+     * Returns the entry associated with the specified key in the
+     * HashMap.  Returns null if the HashMap contains no mapping
+     * for the key.
+     */
+    final Entry<K,V> getEntry(Object key) {
+        if (size == 0) {
+            return null;
+        }
+
+        //这个是 O（链表长度K，一般 <= 8）
+        int hash = (key == null) ? 0 : hash(key);
+        for (Entry<K,V> e = table[indexFor(hash, table.length)];
+             e != null;
+             e = e.next) {
+            Object k;
+            if (e.hash == hash &&
+                ((k = e.key) == key || (key != null && key.equals(k))))
+                return e;
+        }
+        return null;
+    }
+
+    //这个可是 O（N*N）的，谨慎使用!!!
+    public boolean containsValue(Object value) {
+        if (value == null)
+            return containsNullValue();
+
+        Entry[] tab = table;
+        for (int i = 0; i < tab.length ; i++)
+            for (Entry e = tab[i] ; e != null ; e = e.next)
+                if (value.equals(e.value))
+                    return true;
+        return false;
+    }
+{% endhighlight java %}
+
+####6. 删除元素
+
+对于删除，很简单。就是先 get 到 index，然后从链表中删除这个节点即可。源码如下：
+
+{% highlight java linenos %}
+    public V remove(Object key) {
+        Entry<K,V> e = removeEntryForKey(key);
+        return (e == null ? null : e.value);
+    }
+
+    /**
+     * Removes and returns the entry associated with the specified key
+     * in the HashMap.  Returns null if the HashMap contains no mapping
+     * for this key.
+     */
+    final Entry<K,V> removeEntryForKey(Object key) {
+        if (size == 0) {
+            return null;
+        }
+        int hash = (key == null) ? 0 : hash(key);
+        int i = indexFor(hash, table.length);
+        Entry<K,V> prev = table[i];
+        Entry<K,V> e = prev;
+
+        //找到那个节点，如果要删除的是第一个节点，就需要把 table[i] 指向第二个元素；否则直接删除
+        while (e != null) {
+            Entry<K,V> next = e.next;
+            Object k;
+            if (e.hash == hash &&
+                ((k = e.key) == key || (key != null && key.equals(k)))) {
+                modCount++;
+                size--;
+                if (prev == e)
+                    table[i] = next;
+                else
+                    prev.next = next;
+                e.recordRemoval(this);
+                return e;
+            }
+            prev = e;
+            e = next;
+        }
+
+        return e;
+    }
+{% endhighlight java %}
+
+如果想删除整个 HashMap，就可以使用`clear()`函数，源码很简单，就是调用 Arrays 的 `fill()`方法：
+
+{% highlight java linenos %}
+    public void clear() {
+        modCount++;
+        Arrays.fill(table, null);
+        size = 0;
+    }
+
+    //这个是 Arrays 类的静态方法
+    public static void fill(Object[] a, Object val) {
+        for (int i = 0, len = a.length; i < len; i++)
+            a[i] = val;
+    }
+{% endhighlight java %}
+
+####7. 迭代器
+
+下面是 HashMap 内部实现的迭代器，在看《Thinking In Java》第十章内部类的时候，就提到过了容器的迭代类都是内部类，外部定义了一个迭代器的接口。每个容器在内部实现这个接口，那么使用容器的时候就有了统一的接口。HashMap 一共实现了下列几个迭代器：
+
+* HashIterator
+* ValueIterator
+* KeyIterator
+* EntryIterator
+
+下面就是它们的源码：
+
+{% highlight java linenos %}
+	/**
+	* 我们会发现里面都有一个 expectedModCount 字段，保证了 fail-fast 机制
+	*
+	* 另外剩下的3个迭代器都继承了 HashIterator 类，复用了其中的 NextEntry() 函数	
+	*/
+    private abstract class HashIterator<E> implements Iterator<E> {
+        Entry<K,V> next;        // next entry to return
+        int expectedModCount;   // For fast-fail
+        int index;              // current slot
+        Entry<K,V> current;     // current entry
+
+        HashIterator() {
+            expectedModCount = modCount;
+            if (size > 0) { // advance to first entry
+                Entry[] t = table;
+                while (index < t.length && (next = t[index++]) == null)
+                    ;
+            }
+        }
+
+        public final boolean hasNext() {
+            return next != null;
+        }
+
+        final Entry<K,V> nextEntry() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            Entry<K,V> e = next;
+            if (e == null)
+                throw new NoSuchElementException();
+
+            if ((next = e.next) == null) {
+                Entry[] t = table;
+                while (index < t.length && (next = t[index++]) == null)
+                    ;
+            }
+            current = e;
+            return e;
+        }
+
+        public void remove() {
+            if (current == null)
+                throw new IllegalStateException();
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            Object k = current.key;
+            current = null;
+            HashMap.this.removeEntryForKey(k);
+            expectedModCount = modCount;
+        }
+    }
+
+    private final class ValueIterator extends HashIterator<V> {
+        public V next() {
+            return nextEntry().value;
+        }
+    }
+
+    private final class KeyIterator extends HashIterator<K> {
+        public K next() {
+            return nextEntry().getKey();
+        }
+    }
+
+    private final class EntryIterator extends HashIterator<Map.Entry<K,V>> {
+        public Map.Entry<K,V> next() {
+            return nextEntry();
+        }
+    }
+
+    // Subclass overrides these to alter behavior of views' iterator() method
+    Iterator<K> newKeyIterator()   {
+        return new KeyIterator();
+    }
+    Iterator<V> newValueIterator()   {
+        return new ValueIterator();
+    }
+    Iterator<Map.Entry<K,V>> newEntryIterator()   {
+        return new EntryIterator();
+    }
 {% endhighlight java %}
 
 
