@@ -7,7 +7,7 @@ tags: OpenSSL
 
 ###一、前言
 
-[../image/heartbleed.png]
+![img](../image/heartbleed.png)
 
 前阵子爆出的 OpenSSL HeartBleed Bug 可谓是业界的一颗大炸弹，看了新闻才知道全球大概2/3的网站都被波及到，因为 Apache 和 Nginx 使用了 OpenSSL。
 
