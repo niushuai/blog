@@ -238,6 +238,10 @@ while(null != e) {
 
 通过上面的讲解，我们就弄明白了 HashMap 死锁的原因，其实在很久以前这个 Bug 就被提交给了 Sun，但是 Sun 认为这不是一个 Bug，因为文档中明确说了 HashMap 不是线程安全的。要并发就使用 ConcurrentHashMap。
 
+因为 HashMap 为了性能考虑，没有使用锁机制。所以就是非线程安全的，而 ConcurrentHashMap 使用了锁机制，所以是线程安全的。当然，要知其然知其所以然。最好是去看一下 ConcurrentHashMap 是如何实现锁机制的（其实是分段锁，不然所有的 key 在锁的时候都无法访问）。就像侯捷在《STL 源码剖析》中说的：
+
+> 源码面前，了无秘密。
+
 对我们的启示在前面的文章[踩坑记](http://github.thinkingbar.com/fix-bug/)中就提到过：
 
 > 使用新类、新函数时，一定一定要过一遍文档
