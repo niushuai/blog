@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Safari 切换 goagent
+title: Safari 使用 GoAgent
 categories: 知识
 tags: 翻墙
 ---
@@ -9,7 +9,7 @@ tags: 翻墙
 
 虽然 safari 还凑合，但是因为插件少，有时候需要 google 的时候，翻墙又不像 chrome 一条龙那么方便，只需要使用 goagent + switchysharp 即可完成自动切换，而给 safari 设置代理之后，妈蛋全部流量都走代理，墙内的东西还跑国外旅游一圈才能传回来，简直不能忍，所以 safari 我一直没用过。
 
-现在为了温度，我 google 了一下，发现 safari 的插件太少，不能完成自动代理的功能，没办法，只好按照网上建议写了个 AppleScript 完成自动切换，不用的时候傻瓜式关闭。。。。希望赶紧出个好插件啊！！！！
+现在为了温度，我 google 了一下，发现 safari 的插件太少，不能完成自动代理的功能，没办法，只好在网上找了个 AppleScript 完成自动切换，不用的时候傻瓜式关闭。。。。希望赶紧出个好插件啊！！！！
 
 使用方法很简单：
 
