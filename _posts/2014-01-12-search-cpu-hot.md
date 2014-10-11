@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 寻找最耗 Cpu 的Java 程序
+title: 寻找最耗 Cpu 的 Java 程序
 categories: Java
 tags: jstack
 ---

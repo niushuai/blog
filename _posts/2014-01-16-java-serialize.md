@@ -1,6 +1,6 @@
 ---
 layout: post
-title: JAVA序列化的坑
+title: Java 序列化的坑
 categories: Java
 tags: 序列化
 ---
