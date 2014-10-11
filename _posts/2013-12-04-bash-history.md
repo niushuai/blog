@@ -1,8 +1,8 @@
 ---
 layout: post
-title: bash 环境初探
+title: Bash 环境初探
 categories: linux
-tags: bash 环境
+tags: Bash
 ---
 
 在日常使用linux的时候，我们常常通过两种方式来使用shell：
