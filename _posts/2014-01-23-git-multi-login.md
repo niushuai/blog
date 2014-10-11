@@ -18,6 +18,7 @@ tags: git
 
 * HTTPS read-only and read/write - https:// : https：// clone对所有的URL都是有效的，不管是公共的还是私人的repo。它们更加聪明，因为它们能根据你的权限来决定你是否拥有这个repo的操作权。尤其是对于那些限制ssh keys登录的用户来说，https可以在防火墙和代理下使用。但是当你在push或者pull的时候，需要频繁的输入密码。这点当然可以避免，下面的教程会指导我们的。
 * SSH read/write - git@github.com : 这是一种通过SSH和github交互的方式。如果你想使用这种方式，你必须要在本机生成密钥，然后把公钥放到github账户中才行。
+
 所以，教程在这里：
 
 * [HTTPS教程](https://help.github.com/articles/set-up-git#password-caching)
