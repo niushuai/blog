@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Java异常实例演示
+title: Java 异常实例演示
 categories: Java
 tags: Java编程思想
 ---

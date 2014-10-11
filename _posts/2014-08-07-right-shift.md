@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Java右移操作
+title: Java 右移操作
 categiroes: Java
 tags: 移位
 ---

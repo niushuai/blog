@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 解决github加载过慢
+title: 解决 github 加载过慢
 categories: 常用工具
 tags: github
 ---

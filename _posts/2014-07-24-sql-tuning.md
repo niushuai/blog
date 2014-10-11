@@ -1,8 +1,8 @@
 ---
 layout: post
-title: mysql单引号引起的性能问题
+title: Mysql 单引号引起的性能问题
 categories: 知识
-tags: sql
+tags: Mysql
 ---
 
 最近数据库的性能出现了一些问题，于是就查了一下原因。下面就来说说。

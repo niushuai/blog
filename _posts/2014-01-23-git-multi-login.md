@@ -1,6 +1,6 @@
 ---
 layout: post
-title: git多帐号登录
+title: Git 多帐号登录
 categories: 知识
 tags: git
 ---

@@ -1,6 +1,6 @@
 ---
 layout: post
-title: linux历史初窥
+title: Linux 历史初窥
 categories: linux
 tags: linux 历史
 ---

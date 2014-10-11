@@ -1,6 +1,6 @@
 ---
 layout: post
-title: grep的一个小trick
+title: grep 的一个小 trick
 categories: linux
 tags: grep
 ---

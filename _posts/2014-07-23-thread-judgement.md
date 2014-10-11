@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 如何判断Java线程并发的安全性
+title: 如何判断 Java 线程并发的安全性
 categories: Java
 tags: 线程安全
 ---

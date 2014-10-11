@@ -1,6 +1,6 @@
 ---
 layout: post
-title: VIM乱码原因及解决方法
+title: Vim 乱码原因及解决方法
 categories: linux
 tags: vim
 ---

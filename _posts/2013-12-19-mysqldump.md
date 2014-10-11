@@ -1,8 +1,8 @@
 ---
 layout: post
-title: mysql数据库导入导出
+title: Mysql 数据库导入导出
 categories: 知识
-tags: mysql导入导出
+tags: mysqldump
 ---
 
 ###导出数据库
