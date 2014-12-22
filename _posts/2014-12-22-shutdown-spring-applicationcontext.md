@@ -5,15 +5,14 @@ categories: Java
 tags: Spring
 ---
 
-最近在升级项目中的一些组件，但是遇到了一个问题。大概是这样的：
+最近在升级项目中的一些组件，但是遇到了一个问题:
 
-> 原来这些代码是以 class 文件部署到机器上的，是单独的 class 文件。我升级之后需要用到一些 IOC 和 AOP，就引入了 Spring 。但是在运行时很诡异的发现程序运行 Main 方法之后就 hang 了，没有关闭。
+> 原来这些代码是以 class 文件 形式部署到机器上的，然后通过 shell 脚本调用执行。我升级之后需要用到一些 IOC 和 AOP 的特性，就引入了 Spring。但是在运行时很诡异的发现程序运行 Main 方法之后就 hang 了，没有关闭。
 
-我当时的解决方法是强制调用了 `System.exit(0);`来关闭。但是写完后感觉应该有更好的方式来解决这个问题。就 google 了一下，在 stackoverflow 看到了这个问题的解答，其实是 Spring 文档中已经说明的。我贴一下备忘吧。
+我当时的解决方法是强制调用了 `System.exit(0);`来关闭。但是写完后感觉 这种方式太粗暴了，应该有更好的方法来解决这个问题。就 google 了一下，在 stackoverflow 看到了这个问题的解答，其实 Spring 文档中对这点已经给出了优雅的解决方式，只是以前没碰到过而已。
 
-stackoverflow 链接：[How to close a spring ApplicationContext?](http://stackoverflow.com/questions/14423980/how-to-close-a-spring-applicationcontext)
-
-Spring 文档关闭这点的说明：[Shutting down the Spring IoC container gracefully in non-web applications](http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-shutdown)
+* stackoverflow：[How to close a spring ApplicationContext?](http://stackoverflow.com/questions/14423980/how-to-close-a-spring-applicationcontext)
+* Spring 文档：[Shutting down the Spring IoC container gracefully in non-web applications](http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-shutdown)
 
 > This section applies only to **non-web applications**. Spring's web-based ApplicationContext implementations already have code in place to shut down the Spring IoC container gracefully when the relevant web application is shut down.
 
