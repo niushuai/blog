@@ -39,3 +39,10 @@ public final class Boot {
   }
 }
 {% endhighlight java %}
+
+
+---
+
+然后还有一个小问题，是`java.io.tmpdir` 的问题，这个是系统变量，在不同的操作系统有不同的默认值，这个知道就好了。下面给两个链接：
+* [java.io.tmpdir Example](http://examples.javacodegeeks.com/core-java/io/java-io-tmpdir-example/)
+* [java.io.tmpdir在哪个文件](http://woshiyu4039.iteye.com/blog/966161)
