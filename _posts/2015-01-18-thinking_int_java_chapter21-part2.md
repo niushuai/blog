@@ -102,7 +102,7 @@ public class EvenChecker implements Runnable {
 首先定义一下临界资源和临界区：
 
 * 临界资源：共享资源一般是以对象形式存在的内存片段，也可以是文件、输入/输出端口，或者是打印机之类的东西
-* 临界区：有时只希望**防止多个线程同时访问方法内部的内部代码而不是整个方法**，通过这种方式分离出来的代码段被称为临界区(critical section)，它也使用 synchronized 关键字建立。这里，synchronized 被用来指定**某个对象，此对象的锁被用来对花括号内的代码进行同步控制**。
+* 临界区：有时，你只是希望**防止多个线程同时访问方法内部的内部代码而不是整个方法**，通过这种方式分离出来的代码段被称为临界区(critical section)，它也使用 synchronized 关键字建立。这里，synchronized 被用来指定**某个对象，此对象的锁被用来对花括号内的代码进行同步控制**。
 
 方法有两个：
 
@@ -258,9 +258,9 @@ tryLock(2, TimeUnit.SECONDS): false
 
 {% highlight java linenos %}
 while(true) {
-	1. 首先使用`boolean captured = lock.tryLock()`，如果是 true 的话就走正常的逻辑
-	2. 如果 false 的话，使用`captured = lock.tryLock(2, TimeUnit.SECONDS)`获取2秒，如果成功就走正常的逻辑
-	3. 如果还是不能获取，我就干点其他的事情。
+	1. 首先使用boolean captured = lock.tryLock()，如果是 true 的话就走正常的逻辑
+	2. 如果 false 的话，使用captured = lock.tryLock(2, TimeUnit.SECONDS)尝试获取锁，如果2秒内不断轮询并且获得了锁，就走正常的逻辑
+	3. 如果超过2s还是不能获取，我就干点其他的事情。
 } 
 {% endhighlight java %}
 
@@ -276,15 +276,352 @@ while(true) {
 * Java SE5引入了 AtomicInteger、AtomicLong、AtomicReference 等原子类(应该强调的是，**Atomic 类被设计用来构建 java.util.concurrent 中的类，因此只有在特殊情况下才在自己的代码中使用它们，即便使用了也不能认为万无一失。通常依赖于锁会更安全**)。它们提供下面形式的跟新操作：
 	> `boolean compareAndSet(expectedValue, updateValue);`
 
+####4. 临界区
 
+上面说过临界区的概念，简单举个例子：
 
+{% highlight java linenos %}
+synchronized(syncObject) {
+	//This code can be accessd
+	//by only one task at a time
+}
+{% endhighlight java %}
 
+这也被称为*同步控制块*，在进入这段代码前，必须获得 syncObject 对象的锁，如果其他线程已经得到这个锁，那么就得等到锁释放以后，才能进入临界区。那么，问题来了：
 
+> 为什么不是对整个方法进行同步，而是选择部分代码呢？这样有什么好处呢？
 
+其实答案很简单，大概想一下就知道了。如果对方法使用 synchronized，那么这个对象只能被一个线程独占，而且这个方法可能只有1/10涉及到并发问题，在执行其他9/10的时候完全没有危险，但是其他线程就是没法并发执行，极大的限制了程序的性能。为了解决这点问题，就有了临界区。我们通过一个程序来看看临界区的优势：
 
+{% highlight java linenos %}
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * 定义一个坐标，重点在于 x 和 y 都有自加1操作.如果 x != y，会抛出一个自定义的运行时异常
+ * @author niushuai
+ *
+ */
+class Pair {
+	private int x, y;
 
+	public Pair(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
 
+	public Pair() {
+		this(0, 0);
+	}
+
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	public void incrementX() {
+		x++;
+	}
+
+	public void incrementY() {
+		y++;
+	}
+
+	public String toString() {
+		return "x: " + x + ", y: " + y;
+	}
+
+	/**
+	 * 如果 x != y 则抛出异常
+	 * @author niushuai
+	 *
+	 */
+	public class PairValuesNotEqualException extends RuntimeException {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7103813289682393079L;
+
+		public PairValuesNotEqualException() {
+			super("Pair values not equal: " + Pair.this);
+		}
+	}
+
+	public void checkState() {
+		if (x != y) {
+			System.err.println("x != y");
+			throw new PairValuesNotEqualException();
+		}
+	}
+}
+
+/**
+ * 对 Pair 进行管理的模板方法，如何对非线程安全的 Pair 进行自增？
+ * 是同步整个方法？还是同步临界区？——子类实现
+ */
+abstract class PairManager {
+	//check x != y 的次数
+	AtomicInteger checkCounter = new AtomicInteger(0);
+	protected Pair p = new Pair();
+	//synchronizedList 为线程安全，无论在同步块内还是同步块外都是线程安全的
+	private List<Pair> storage = Collections
+			.synchronizedList(new ArrayList<Pair>());
+
+	public synchronized Pair getPair() {
+		return new Pair(p.getX(), p.getY());
+	}
+
+	protected void store(Pair p) {
+		storage.add(p);
+		try {
+			TimeUnit.MILLISECONDS.sleep(50);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// 如何增长？synchronized 修饰方法 还是 synchronized 修饰临界区？
+	public abstract void increment();
+}
+
+/**
+ * synchronized 修饰整个方法
+ * @author niushuai
+ *
+ */
+class PairManager1 extends PairManager {
+	public synchronized void increment() {
+		p.incrementX();
+		p.incrementY();
+		store(getPair());
+	}
+}
+
+/**
+ * synchronized 修饰临界区
+ * @author niushuai
+ *
+ */
+class PairManager2 extends PairManager {
+	public void increment() {
+		Pair temp;
+		synchronized (this) {
+			p.incrementX();
+			p.incrementY();
+			temp = getPair();
+		}
+		store(temp);
+	}
+}
+
+/** 
+ * 任务类1，可以使用不同的 PairManager 对 Pair 进行自增操作
+ * @author niushuai
+ *
+ */
+class PairManipulator implements Runnable {
+	private PairManager pm;
+
+	public PairManipulator(PairManager pm) {
+		this.pm = pm;
+	}
+
+	@Override
+	public void run() {
+		while (true) {
+			pm.increment();
+		}
+	}
+
+	public String toString() {
+		return "Pair: " + pm.getPair() + " checkCounter = "
+				+ pm.checkCounter.get();
+	}
+}
+
+/** 
+ * 任务类2，不断的去检测 Pair 中的 x == y 状态
+ * @author niushuai
+ *
+ */
+class PairChecker implements Runnable {
+	private PairManager pm;
+
+	public PairChecker(PairManager pm) {
+		this.pm = pm;
+	}
+
+	@Override
+	public void run() {
+		while (true) {
+			pm.checkCounter.incrementAndGet();
+			pm.getPair().checkState();
+		}
+	}
+}
+
+public class CriticalSection {
+	static void testApproaches(PairManager pman1, PairManager pman2) {
+		ExecutorService exec = Executors.newCachedThreadPool();
+		PairManipulator pm1 = new PairManipulator(pman1);
+		PairManipulator pm2 = new PairManipulator(pman2);
+		PairChecker pcheck1 = new PairChecker(pman1);
+		PairChecker pcheck2 = new PairChecker(pman2);
+
+		exec.execute(pm1);
+		exec.execute(pm2);
+		exec.execute(pcheck1);
+		exec.execute(pcheck2);
+		try {
+			TimeUnit.MILLISECONDS.sleep(500);
+		} catch (InterruptedException e) {
+			System.out.println("Sleep interrupted");
+		}
+		System.out.println("pm1: " + pm1 + "\npm2: " + pm2);
+		System.exit(0);
+	}
+
+	public static void main(String[] args) {
+		PairManager pman1 = new PairManager1();
+		PairManager pman2 = new PairManager2();
+
+		testApproaches(pman1, pman2);
+	}
+}/*output:
+pm1: Pair: x: 165, y: 165 checkCounter = 6
+pm2: Pair: x: 166, y: 166 checkCounter = 370681186
+*/
+{% endhighlight java %}
+
+这段代码略长一点点，但是很简单。总结来说就是两个线程跑自增操作，区别是一个用的同步整个方法，一个是同步临界区，然后又又两个线程去检查x 和 y 是否相等。那么，区别在哪里呢？
+
+> 区别在于速度。如果同步整个方法，那么一个线程在该方法内部就独占这个方法的资源，无论这个方法中是否有线程安全的部分，而且实际上，非线程安全的代码往往远小于线程安全的代码。这样的话，这个线程在运行线程安全的代码时，其他代码也无法进入这个方法；而锁临界区就比较好一点（不是数量级的差别！），因为我只在非线程安全的地方加锁，那么在这个方法的其他地方就会有多个线程并发执行，这里的优点很容易想象，我就不多啰嗦了。
+
+####5. 更进一步
+
+上面把同步基本说完了，但是还有一个比较好玩的是：可以在其他对象上同步。什么意思呢？
+
+> synchronized 块必须给定一个在其上进行同步的对象，并且最合理的方式是，使用其方法正在被调用的对象：`synchronized(this)`，这也是上面 PairManager2的做法，在这种方式中，如果获得了 synchronized 块上的锁，那么该对象其他的 synchronized 方法和临界区就不能被调用了。因此，如果在 this 上同步，临界区的效果就会直接缩小在同步的范围内部。而有时，**必须在另一个对象上同步，**但是这样做的话，就必须确保所有相关的任务都是在同一个对象上同步。下面有一个小例子：
+
+{% highlight java linenos %}
+class DualSynch {
+	private Object syncObject = new Object();
+	public synchronized void f() {
+		for(int i = 0; i < 5; i++) {
+			System.out.println("f()");
+			Thread.yield();
+		}
+	}
+	
+	public void g() {
+		synchronized(syncObject) {
+			for(int i = 0; i < 5; i++) {
+				System.out.println("g()");
+				Thread.yield();
+			}
+		}
+	}
+}
+
+public class SyncObject {
+	public static void main(String[] args) {
+		final DualSynch ds = new DualSynch();
+		new Thread() {
+			public void run() {
+				ds.f();
+			}
+		}.start();
+		ds.g();
+	}
+}/*output:
+f()
+g()
+f()
+f()
+g()
+f()
+g()
+f()
+g()
+g()
+*/
+{% endhighlight java %}
+
+这个例子中，通过 Thread 创建了一个线程，这个线程会持续输出5次 f()才会停止，因为它是方法级别的，就是 this 级别的。那么其他 synchronized 方法或者 synchronized(this)临界区都无法同时运行。但是上面输出是同时的。因为我们用了另一个对象锁进行同步。这样就达到了同时运行的目的。但是也有一点需要注意：
+
+> 所有和某个对象锁有关的任务，都必须使用同一个对象锁。不要两个和 A 锁有关的任务，一个使用 A 加锁，一个使用 B 加锁，那么肯定会出问题。
+
+####6. 线程本地存储
+
+从名字就能知道意思了，每个线程的本地都存储。这是另一种对共享资源安全使用的方法，它为每个线程都分配一个变量，根除了线程对共享变量的竞争。但是因为每个线程，所以这个变量在不同线程之间是“透明的”、“无法感知的”，这就意味着各个线程的这个变量不能有联系，它只和当前的线程相关联。
+
+用一个例子来说明吧：
+
+{% highlight java linenos %}
+import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+class Task implements Runnable {
+	@Override
+	public void run() {
+		while (!Thread.currentThread().isInterrupted()) {
+			ThreadLocalTest.increment();
+			System.out.println(this);
+		}
+	}
+
+	public String toString() {
+		return "thread is: " + Thread.currentThread() + ", value is: " + ThreadLocalTest.get();
+	}
+}
+
+public class ThreadLocalTest {
+	private static ThreadLocal<Integer> value = new ThreadLocal<Integer>() {
+		private Random random = new Random(47);
+
+		protected synchronized Integer initialValue() {
+			return random.nextInt(10000);
+		}
+	};
+
+	public static void increment() {
+		value.set(value.get() + 1);
+	}
+
+	public static int get() {
+		return value.get();
+	}
+
+	public static void main(String[] args) throws InterruptedException {
+		ExecutorService exec = Executors.newCachedThreadPool();
+		for (int i = 0; i < 3; i++) {
+			exec.execute(new Task());
+		}
+		TimeUnit.SECONDS.sleep(3);
+		exec.shutdownNow();
+	}
+}
+{% endhighlight java %}
+
+输出我就不贴了，运行一下就会发现。每个线程都会维护一个 value，而且相互不会影响。
+
+但是仔细观察这个程序也许会发现一个问题：
+
+> 为什么 ThreadLocal 是 static 的？既然是跟线程有关的，那么为啥要声明为静态变量？静态的意思是所有对象公用一个，而 ThreadLocal 刚刚才说是线程本地，每个线程各自都有单独的一份。这是为什么呢?
+
+首先看文档，然后去 stackoverflow 搜索。经过这些步骤，我个人试着总结一下：
+
+> 因为 ThreadLocal 是线程本地存储的，所以线程之间不会相互影响。那么最适合的情况就是 web request，每个 request 都有一个 userid，多线程的情况下，每个线程独占一个 userid，且线程间不可见。
 
 
 
