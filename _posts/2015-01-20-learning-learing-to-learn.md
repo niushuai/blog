@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 李笑来演讲——《Learning leanring to learn》
+title: 笑来老师演讲——《Learning leanring to learn》
 categories: 读书
 tags: 李笑来
 ---
