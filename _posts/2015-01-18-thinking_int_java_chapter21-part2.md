@@ -622,7 +622,7 @@ public class ThreadLocalTest {
 
 首先看文档，然后去 stackoverflow 搜索。经过这些步骤，我个人试着总结一下：
 
-> 因为 ThreadLocal 是线程本地存储的，所以线程之间不会相互影响。那么最适合的情况就是 web request，每个 request 都有一个 userid，多线程的情况下，每个线程独占一个 userid，且线程间不可见。那么，为啥又是 static 的呢？这个也容易，反证法来说。如果没有 static，那么就是对象级别的，多线程情况下还是共享，所以还得加锁。而使用 static 之后，所有
+> 因为 ThreadLocal 是线程本地存储的，所以线程之间不会相互影响。那么最适合的情况就是 web request，每个 request 都有一个 userid，多线程的情况下，每个线程独占一个 userid，且线程间不可见。那么，为啥又是 static 的呢？这个也容易，反证法来说。如果没有 static，那么就是对象级别的，多线程情况下所有实例共享，所以还得加锁。而使用 static 之后，所有变量都使用的是
 
 
 
