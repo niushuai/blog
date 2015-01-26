@@ -14,17 +14,17 @@
 @import url(http://fonts.googleapis.com/css?family=Cuprum);
 */
 body{font-size:14px;word-spacing:1px;
-	margin-left:auto;
+        margin-left:auto;
 margin-right:auto;
-	font-family:"Galdeano","Hiragino Sans GB","Microsoft YaHei",Trebuchet,"Trebuchet MS",Tahoma,"Lucida Grande","Lucida Sans Unicode",Verdana,sans-serif;color:#2C3E50;}
+        font-family:"Galdeano","Hiragino Sans GB","Microsoft YaHei",Trebuchet,"Trebuchet MS",Tahoma,"Lucida Grande","Lucida Sans Unicode",Verdana,sans-serif;color:#2C3E50;}
 *{border:none;outline:none;}
 a{color:#dd0000;text-decoration:none;}
 a:hover{color:#333333;text-decoration:underline;}
 hr{margin:.7em 0;border-top:1px dashed #d0d0d0;border-bottom:1px dashed #f9f9f9;}
 p{padding:.5em 0;margin:.5em 0;}
 li{padding: .2em 2em;}
-ol{list-style-position:inside;border: rgb(226, 222, 222);border-style: solid;border-radius: 10px;padding: .3em 0;}
-ul{list-style-position:inside;border: rgb(226, 222, 222);border-style: solid;border-radius: 10px;padding: .3em 0;}
+ol{list-style-position:inside;border: rgb(226, 222, 222);border-style: solid;border-width:2px;border-radius: 10px;padding: .3em 0;}
+ul{list-style-position:inside;border: rgb(226, 222, 222);border-style: solid;border-width:2px;border-radius: 10px;padding: .3em 0;}
 li ol{border-style:none;}
 li ul{border-style:none;}
 ol ul, ul ol, ul ul, ol ol {margin-left:1em;}
@@ -42,7 +42,7 @@ td, th { padding:5px 10px; border:1px solid #886; background:#efefef; }
 #tag_cloud a:hover{color:#333333 !important;text-decoration:none;}
 .listing-item,.listing-seperator{list-style-type:none;}
 .listing-item a{
-	padding:.2em 1em;
+        padding:.2em 1em;
 
 }
 
@@ -139,4 +139,3 @@ background: #ff0000;
 color: white;
 background: #83BF73;
 }
-
