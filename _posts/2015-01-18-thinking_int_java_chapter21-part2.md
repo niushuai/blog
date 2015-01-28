@@ -561,78 +561,7 @@ g()
 
 ####6. 线程本地存储
 
-从名字就能知道意思了，每个线程的本地都存储。这是另一种对共享资源安全使用的方法，它为每个线程都分配一个变量，根除了线程对共享变量的竞争。但是因为每个线程，所以这个变量在不同线程之间是“透明的”、“无法感知的”，这就意味着各个线程的这个变量不能有联系，它只和当前的线程相关联。
-
-用一个例子来说明吧：
-
-{% highlight java linenos %}
-import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-class Task implements Runnable {
-	@Override
-	public void run() {
-		while (!Thread.currentThread().isInterrupted()) {
-			ThreadLocalTest.increment();
-			System.out.println(this);
-			System.out.println(this);
-		}
-	}
-
-	public String toString() {
-		return "thread is: " + Thread.currentThread() + ", value is: " + ThreadLocalTest.get();
-	}
-}
-
-public class ThreadLocalTest {
-	private static ThreadLocal<Integer> value = new ThreadLocal<Integer>() {
-		private Random random = new Random(47);
-
-		protected synchronized Integer initialValue() {
-			return random.nextInt(10000);
-		}
-	};
-
-	public static void increment() {
-		value.set(value.get() + 1);
-	}
-
-	public static int get() {
-		return value.get();
-	}
-
-	public static void main(String[] args) throws InterruptedException {
-		ExecutorService exec = Executors.newCachedThreadPool();
-		for (int i = 0; i < 3; i++) {
-			exec.execute(new Task());
-		}
-		TimeUnit.SECONDS.sleep(3);
-		exec.shutdownNow();
-	}
-}
-{% endhighlight java %}
-
-输出我就不贴了，运行一下就会发现。每个线程都会维护一个 value，而且相互不会影响。
-
-但是仔细观察这个程序也许会发现一个问题：
-
-> 为什么 ThreadLocal 是 static 的？既然是跟线程有关的，那么为啥要声明为静态变量？静态的意思是所有对象公用一个，而 ThreadLocal 刚刚才说是线程本地，每个线程各自都有单独的一份。这是为什么呢?
-
-首先看文档，然后去 stackoverflow 搜索。经过这些步骤，我个人试着总结一下：
-
-> 因为 ThreadLocal 是线程本地存储的，所以线程之间不会相互影响。那么最适合的情况就是 web request，每个 request 都有一个 userid，多线程的情况下，每个线程独占一个 userid，且线程间不可见。那么，为啥又是 static 的呢？这个也容易，反证法来说。如果没有 static，那么就是对象级别的，多线程情况下所有实例共享，所以还得加锁。而使用 static 之后，所有变量都使用的是
-
-
-
-
-
-
-
-
-
-
+虽然在《Java 编程思想》中仅仅占用了1页的篇幅，但是感觉很有用处。果然挖出了不少东西，于是单独写一篇文章分析 ThreadLocal 吧，详情请见[理解 ThreadLocal](../threadlocal)
 
 
 
