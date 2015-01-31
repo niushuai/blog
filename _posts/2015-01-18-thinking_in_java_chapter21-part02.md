@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Java编程思想 - 第二十一章、并发
+title: Java编程思想 - 第二十一章、并发（二）
 categories: Java
 tags: Java编程思想
 ---
@@ -562,14 +562,3 @@ g()
 ####6. 线程本地存储
 
 虽然在《Java 编程思想》中仅仅占用了1页的篇幅，但是感觉很有用处。果然挖出了不少东西，于是单独写一篇文章分析 ThreadLocal 吧，详情请见[理解 ThreadLocal](../threadlocal)
-
-
-
-
-
-
-
-
-
-
-
