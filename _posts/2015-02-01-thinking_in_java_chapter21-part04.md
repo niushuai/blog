@@ -154,11 +154,6 @@ public class WaxOMatic {
 
 ####2. 使用显式的 Lock 和 Condition 对象实现上面的程序
 
-
-
-
-
-
 {% highlight java linenos %}
 {% endhighlight java %}
 
@@ -341,6 +336,237 @@ Waiter interrupted
 
 ####6. 生产者-消费者与队列
 
+上面是生产者消费者模型的最基本实现——厨师做完一道菜后通知服务员取菜，服务员取菜之后通知厨师做菜。这样的做法太低效，因为每次交互都需要握手。在更高效的程序中，可以使用**同步队列**来解决任务协作问题，**同步队列在任何时刻都只允许一个任务插入或移除元素**。在 java.util.concurrent.BlockingQueue 接口中提供了这种队列，这个接口有大量的标准实现。通常可以使用 LinkedBlockingQueue，它是一个无界队列，还可以使用 ArrayBlockingQueue，它又固定的大小，因此可以在它被阻塞之前向其中放置有限数量的元素。
+
+并且，使用同步队列可以简化上面繁琐的握手方式。如果消费者任务试图从队列中获取元素，而该队列为空，那么这些队列还可以挂起消费者任务，当有更多的元素可用时，又会恢复消费者任务。阻塞队列可以解决非常大量的问题，而方式与 wait()和 notifyAll()相比，则简单可靠的多。
+
+下面我们写一个简单的程序说明一下 BlockingQueue 的使用方法，以及它带来的便利。
+
+{% highlight java linenos %}
+package concurrency;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.SynchronousQueue;
+
+class LiftOffRunner implements Runnable {
+    private BlockingQueue<LiftOff> rockets;
+
+    public LiftOffRunner(BlockingQueue<LiftOff> rockets) {
+        this.rockets = rockets;
+    }
+
+    //生产者
+    public void add(LiftOff lo) {
+        try {
+            rockets.put(lo);
+        } catch(InterruptedException e) {
+            System.out.println("Interrupted during put()");
+        }
+    }
+    
+    //消费者——注意后面的程序先启动了消费者。
+    public void run() {
+        try {
+            while(!Thread.interrupted()) {
+                LiftOff rocket = rockets.take();
+                rocket.run();
+            }
+        } catch(InterruptedException e) {
+            System.out.println("waking from take()");
+        }
+        System.out.println("Exiting LiftOffRunner");
+    }
+}
+
+public class TestBlockingQueues {
+    /**
+     * 其实getkey()仅仅是为了隔开 BlockingQueue 的不同实现类。
+     */
+    static void getkey() {
+        try {
+            new BufferedReader(new InputStreamReader(System.in)).readLine();
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    static void getkey(String message) {
+        System.out.println(message);
+        getkey();
+    }
+    
+    /**
+     * 每次测试一种 BlockingQueue 的实现。其中先调用t.start()是为了启动消费者。
+     * 因为没有启动生产者，所以 BlockingQueue 会自动挂起。然后使用 for 循环生产 rockets 的元素。
+     * 
+     * 所以不仅实例了 BlockingQueue 作为一个 Queue 的使用，也演示了当生产者或者消费者阻塞时，BlockingQueue
+     * 会自动帮我们处理，使我们可以专注于业务逻辑。
+     */
+    static void test(String msg, BlockingQueue<LiftOff> queue) {
+        System.out.println(msg);
+        LiftOffRunner runner = new LiftOffRunner(queue);
+        Thread t = new Thread(runner);
+        t.start();
+        for(int i = 0; i < 5; i++) {
+            runner.add(new LiftOff(5));
+        }
+        getkey("Press 'Enter' (" + msg + ")");
+        t.interrupt();
+        System.out.println("Finished " + msg + " test");
+    }
+    
+    public static void main(String[] args) {
+        test("LinkedBlockingQueue", new LinkedBlockingDeque<LiftOff>());
+        test("ArrayBlockingQueue", new ArrayBlockingQueue<LiftOff>(3));
+        test("SynchronousQueue", new SynchronousQueue<LiftOff>());
+    }
+}
+{% endhighlight java %}
+
+程序的输出需要 System.in，所以自己去运行。运行之后，你的任务是再写一个程序。将厨师、服务员的例子改写成使用 BlockingQueue 的。我也来一发：
+
+{% highlight java linenos %}
+package concurrency;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+
+/**
+ * 这个例子的一个收获是：
+ * 
+ * 想要抛出异常必须得有载体。比如：
+ * 
+ * while(!Thread.interrupted()) {
+ * }
+ * 
+ * 是不会抛出异常的。
+ * 
+ * 只有当里面有 sleep()/wait()/join()在运行（让线程处于阻塞状态），然后才能从阻塞状态退出，
+ * 并抛出一个 InterruptedException。
+ * 
+ */
+
+class NewMeal {
+    private final int orderNum;
+
+    public NewMeal(int orderNum) {
+        this.orderNum = orderNum;
+    }
+
+    public String toString() {
+        return "Meal " + orderNum;
+    }
+}
+
+class NewWaiter implements Runnable {
+    private RestaurantWithBlockingQueue restaurant;
+
+    public NewWaiter(RestaurantWithBlockingQueue restaurant) {
+        this.restaurant = restaurant;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (!Thread.interrupted()) {
+                while (!restaurant.meal.isEmpty()) {
+                    NewMeal meal = restaurant.meal.take();
+                    System.out.println("Waiter got " + meal);
+                }
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Interrupted waiter");
+        }
+    }
+}
+
+class NewChef implements Runnable {
+    private RestaurantWithBlockingQueue restaurant;
+
+    public NewChef(RestaurantWithBlockingQueue restaurant) {
+        this.restaurant = restaurant;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (!Thread.interrupted()) {
+                for (int i = 1; i <= 11; i++) {
+
+                    if (i == 11) {
+                        restaurant.exec.shutdownNow();
+                        continue;
+                    }
+
+                    System.out.println("做菜...");
+                    restaurant.meal.add(new NewMeal(i));
+                    TimeUnit.MILLISECONDS.sleep(100);
+                }
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Interrupted chef");
+        }
+    }
+}
+
+public class RestaurantWithBlockingQueue {
+    LinkedBlockingQueue<NewMeal> meal = new LinkedBlockingQueue<NewMeal>();
+    ExecutorService exec = Executors.newCachedThreadPool();
+    NewWaiter waiter = new NewWaiter(this);
+    NewChef chef = new NewChef(this);
+
+    public RestaurantWithBlockingQueue() {
+        exec.execute(waiter);
+        exec.execute(chef);
+
+    }
+
+    public static void main(String[] args) {
+//        while(!Thread.interrupted()) {
+//            System.out.println("ehl");
+//        }
+        new RestaurantWithBlockingQueue();
+    }
+}/*output:
+做菜...
+Waiter got Meal 1
+做菜...
+Waiter got Meal 2
+做菜...
+Waiter got Meal 3
+做菜...
+Waiter got Meal 4
+做菜...
+Waiter got Meal 5
+做菜...
+Waiter got Meal 6
+做菜...
+Waiter got Meal 7
+做菜...
+Waiter got Meal 8
+做菜...
+Waiter got Meal 9
+做菜...
+Waiter got Meal 10
+*/
+{% endhighlight java %}
+
+通过这个程序得出的结论是：
+
+* 如果线程没有被阻塞，调用 interrupt()将不起作用；若线程处于阻塞状态，就将得到异常（该线程必须事先预备好处理此状况），接着退出阻塞状态。 
+* 线程 A 在执行 sleep(),wait(),join()时,线程 B 调用 A 的 interrupt 方法,A会 catch 一个 InterruptedException异常.但这其实是在 sleep,wait,join 这些方法内部不断检查中断状态的值后抛出的 InterruptedException。 
+* 如果线程 A 正在执行一些指定的操作时，如赋值、for、while等,线程本身是不会去检查中断状态标志的,所以线程 A 自身不会抛出 InterruptedException 而是一直执行自己的操作。
+* 当线程 A 终于执行到 wait(),sleep(),join()时,这些方法本身会抛出 InterruptedException
+* 若没有调用 sleep(),wait(),join()这些方法,或是没有在线程里自己检查中断状态并抛出 InterruptedException 的话,那么上游是无法感知这个异常的（还记得异常不能跨线程传递吗？） 
+
 ####7. 任务间使用管道进行输入/输出
 
 
@@ -349,8 +575,7 @@ Waiter interrupted
 
 
 
-{% highlight java linenos %}
-{% endhighlight java %}
+
 
 {% highlight java linenos %}
 {% endhighlight java %}
