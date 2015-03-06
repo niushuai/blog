@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Mysql 单引号引起的性能问题
-categories: 知识
+categories: 计算机知识
 tags: Mysql
 ---
 

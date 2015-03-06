@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 解决 github 加载过慢
-categories: 常用工具
+categories: 计算机知识
 tags: github
 ---
 

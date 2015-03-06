@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 浅谈 Java 加载器
-tags: Java
-categories: ClassLoader
+categories: Java
+tags: classLoader
 ---
 
 ###前言

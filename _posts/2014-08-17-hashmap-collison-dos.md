@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Hash Collision 攻击
-categories: Hash
+categories: 计算机知识
 tag: Hash
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: TCPCopy 使用简介
-categories: 知识
+categories: 计算机知识
 tags: TCPCopy
 ---
 

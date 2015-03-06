@@ -1,7 +1,7 @@
 ---
 layout: post
 title: OpenSSL HeartBleed Bug 分析
-categories: 知识
+categories: 计算机知识
 tags: OpenSSL
 ---
 

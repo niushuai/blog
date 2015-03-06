@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Git 多帐号登录
-categories: 知识
+categories: 计算机知识
 tags: git
 ---
 

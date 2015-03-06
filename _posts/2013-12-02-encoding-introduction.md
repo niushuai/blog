@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 编码闲谈
-categories: 知识
+categories: 计算机知识
 tags: 编码
 ---
 

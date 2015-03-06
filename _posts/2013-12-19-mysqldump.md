@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Mysql 数据库导入导出
-categories: 知识
+categories: 计算机知识
 tags: mysqldump
 ---
 

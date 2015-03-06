@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Safari 使用 GoAgent
-categories: 知识
+categories: 计算机知识
 tags: 翻墙
 ---
 

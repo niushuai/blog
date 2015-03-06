@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 《打造Facebook》——观后感
-categories: 读书笔记
+categories: 读书
 tags: facebook
 ---
 
