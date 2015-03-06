@@ -1,7 +1,7 @@
 ---
 layout: post
 title: coolshell 谜题通关
-categories: 吐槽
+categories: 计算机知识
 tags: coolshell
 ---
 

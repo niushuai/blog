@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Hello World
-categories: 吐槽
+categories: 当然我在扯淡
 tags: 开博客啦
 ---
 

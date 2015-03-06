@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 面试
-categories: 吐槽
+categories: 当然我在扯淡
 tags: 面试
 ---
 
