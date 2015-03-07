@@ -22,7 +22,7 @@ tags: Java编程思想
 2. notify()和 notifyAll()的区别（个人感觉这一节讲的很迷糊，可以自己去 stackoverflow 或者其他地方查资料）
 3. 用厨师做菜、服务员上菜演示生产者消费者模型，其实还包括一个用 Lock 和 Condition 实现的凃蜡、喷漆程序，可以和第一小节再对比一下
 4. 使用同步队列的方式改变第三小节的生产者消费者模型，用一个队列解耦生产者和消费者
-5. 使用管道来进行输入/输出，本质上是生产者消费者模型的变体，所以这是生产者消费者模型的另一个解决方案
+5. 使用管道来进行输入/输出，本质上是生产者消费者模型的变体，**不过它是存在于引入 BlockingQueue 之前的 Java 版本，所以能用 BlockingQueue 的地方就可以忘掉管道了**
 
 大概了解本节内容之后，就可以进行有的放矢的学习了：）
 
@@ -152,13 +152,7 @@ public class WaxOMatic {
 
 > 尽管乍一想有点奇怪，但是我们来分析一下。锁存在于**所有对象的对象头**中，所以任何同步控制的地方都用到了锁，而用到锁的地方当然也可以进行线程协作。如果把这3个方法实现在 Thread 中，那么使用线程协作的范围就会缩小到继承了 Thread 或者实现了 Runnable 接口的类的对象中，而不是所有对象。实际上，也**只能在同步控制块中调用 wait()、notify()、notifyAll()，因为它们都和锁关联，而 sleep()因为不用操作锁，所以可以在非同步控制方法中调用**，如果在非同步控制方法中调用了这3个方法，程序能够通过编译，不过在运行的时候，将得到 IllegalMonitorStateException 异常，并伴随着一些含糊的信息，比如“当前线程不是拥有者”。消息的意思是，调用 wait()、notify()、notifyAll()的任务在调用这些方法前必须“拥有”（获取）对象的锁。
 
-####2. 使用显式的 Lock 和 Condition 对象实现上面的程序
-
-{% highlight java linenos %}
-{% endhighlight java %}
-
-
-####3. 虽然使用了 notifyAll(),但是信号一定能被 wait()收到吗？——错失的信号
+####2. 虽然使用了 notifyAll(),但是信号一定能被 wait()收到吗？——错失的信号
 
 当线程使用 wait()/notify()或者 wait()/notifyAll()时，均可能发生错失信号的问题。想想这是什么原因呢？比如下面这段代码你能看出问题吗？
 
@@ -194,7 +188,7 @@ T2:
 {% endhighlight java %}
 
 
-####4. notify() VS notifyAll()
+####3. notify() VS notifyAll()
 
 如果仔细观察上面的程序，会发现我们一会用 notifyAll()一会用 notify(),那么它们各自的使用场景是什么？
 
@@ -202,7 +196,7 @@ T2:
 
 实际上，notify()和 notifyAll()的区别还是非常值得研究的，stackoverflow 上也有这个问题的讨论：[Java: notify() vs. notifyAll() all over again](http://stackoverflow.com/questions/37026/java-notify-vs-notifyall-all-over-again#)
 
-####5. 生产者与消费者
+####4. 生产者与消费者
 
 {% highlight java linenos %}
 package concurrency;
@@ -334,7 +328,7 @@ Waiter interrupted
 
 这个程序的输出会发现，最后一道菜已经做了，但是没有上。写完迷糊了好久才想起来，synchronized 不可被中断，但是 wait()可以被中断啊（同时中断状态被清除，抛出一个 InterruptedException）！！！！
 
-####6. 生产者-消费者与队列
+####5. 生产者-消费者与队列
 
 上面是生产者消费者模型的最基本实现——厨师做完一道菜后通知服务员取菜，服务员取菜之后通知厨师做菜。这样的做法太低效，因为每次交互都需要握手。在更高效的程序中，可以使用**同步队列**来解决任务协作问题，**同步队列在任何时刻都只允许一个任务插入或移除元素**。在 java.util.concurrent.BlockingQueue 接口中提供了这种队列，这个接口有大量的标准实现。通常可以使用 LinkedBlockingQueue，它是一个无界队列，还可以使用 ArrayBlockingQueue，它又固定的大小，因此可以在它被阻塞之前向其中放置有限数量的元素。
 
@@ -567,44 +561,269 @@ Waiter got Meal 10
 * 当线程 A 终于执行到 wait(),sleep(),join()时,这些方法本身会抛出 InterruptedException
 * 若没有调用 sleep(),wait(),join()这些方法,或是没有在线程里自己检查中断状态并抛出 InterruptedException 的话,那么上游是无法感知这个异常的（还记得异常不能跨线程传递吗？） 
 
-####7. 任务间使用管道进行输入/输出
-
-
-
-
-
-
-
-
+然后书上还有一个使用 BlockingQueue 的例子，非常简单。本质来说，BlockingQueue 可以当成是一个任务队列，它会自动的搞定同步操作，所以在处理生产者消费者模型时，可以作为首选。当然，使用具体哪种 BlockingQueue 就需要自己选择了。
 
 {% highlight java linenos %}
+package concurrency;
+
+import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+class Toast {
+    public enum Status {
+        DRY, BUTTERED, JAMMED
+    };
+
+    private Status status = Status.DRY;
+    private final int id;
+
+    public Toast(int id) {
+        this.id = id;
+    }
+
+    public void butter() {
+        status = Status.BUTTERED;
+    }
+
+    public void jam() {
+        status = Status.JAMMED;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String toString() {
+        return "Toast " + id + ": " + status;
+    }
+
+}
+
+/**
+ * ToastQueue 充当别名的作用。就好像 typedef
+ *
+ */
+class ToastQueue extends LinkedBlockingQueue<Toast> {
+    
+}
+
+//制造吐司
+class Toaster implements Runnable {
+    
+    private ToastQueue toastQueue;
+    private int count = 0;
+    private Random rand = new Random(47);
+    public Toaster(ToastQueue toastQueue) {
+        this.toastQueue = toastQueue;
+    }
+    
+    @Override
+    public void run() {
+        try {
+            while(!Thread.interrupted()) {
+                TimeUnit.MILLISECONDS.sleep(100 + rand.nextInt(500));
+                Toast toast = new Toast(count++);
+                System.out.println(toast);
+                toastQueue.add(toast);
+            }
+        } catch(InterruptedException e) {
+            System.out.println("制造吐司 is interrupted!");
+        }
+        System.out.println("Toaster off");
+    }
+}
+
+//抹黄油
+class Butterer implements Runnable {
+    
+    private ToastQueue dryQueue, butteredQueue;
+    public Butterer(ToastQueue dryQueue, ToastQueue butteredQueue) {
+        this.dryQueue = dryQueue;
+        this.butteredQueue = butteredQueue;
+    }
+    
+    @Override
+    public void run() {
+        try {
+            while(!Thread.interrupted()) {
+                Toast toast = dryQueue.take();
+                toast.butter();
+                System.out.println(toast);
+                butteredQueue.put(toast);
+            }
+        } catch(InterruptedException e) {
+            System.out.println("抹黄油 is interrupted!");
+        }
+        System.out.println("Butterer off");
+    }
+}
+
+//抹果酱
+class Jammer implements Runnable {
+    
+    private ToastQueue butteredQueue, finishedQueue;
+    public Jammer(ToastQueue butteredQueue, ToastQueue finishedQueue) {
+        this.butteredQueue = butteredQueue;
+        this.finishedQueue = finishedQueue;
+    }
+    
+    @Override
+    public void run() {
+        try {
+            while(!Thread.interrupted()) {
+                Toast toast = butteredQueue.take();
+                toast.jam();
+                System.out.println(toast);
+                finishedQueue.put(toast);
+            }
+        } catch(InterruptedException e) {
+            System.out.println("抹果酱 is interrupted!");
+        }
+        System.out.println("Jammer off");
+    }
+}
+
+//吃吃吃
+class Eater implements Runnable {
+    
+    private ToastQueue finishedQueue;
+    private int count = 0;
+    public Eater(ToastQueue finishedQueue) {
+        this.finishedQueue = finishedQueue;
+    }
+    
+    @Override
+    public void run() {
+        try {
+            while(!Thread.interrupted()) {
+                Toast toast = finishedQueue.take();
+                //检查吐司是否按照 order 送来，而且所有都是经过黄油、果酱加工
+                if(toast.getId() != count++ || toast.getStatus() != Toast.Status.JAMMED) {
+                    System.err.println("Error: " + toast);
+                    System.exit(1);
+                } else {
+                    System.out.println("真好吃啊！！！");
+                }
+                
+            }
+        } catch(InterruptedException e) {
+            System.out.println("吃吃吃 is interrupted!");
+        }
+        System.out.println("Eater off");
+    }
+}
+
+public class ToastMatic {
+    public static void main(String[] args) throws Exception {
+        ToastQueue dryQueue = new ToastQueue(),
+                butteredQueue = new ToastQueue(),
+                finishedQueue = new ToastQueue();
+        ExecutorService exec = Executors.newCachedThreadPool();
+        exec.execute(new Toaster(dryQueue));
+        exec.execute(new Butterer(dryQueue, butteredQueue));
+        exec.execute(new Jammer(butteredQueue, finishedQueue));
+        exec.execute(new Eater(finishedQueue));
+        
+        TimeUnit.SECONDS.sleep(5);
+        exec.shutdownNow();
+    }
+}
 {% endhighlight java %}
 
+这个程序虽然简单，但是有几个亮点值得关注：
 
+* Toast 是一个使用 enum 的优秀示例
+* 程序中没有显式的 Lock 或者 synchronized 关键字，就显得很简洁。同步全部由同步队列隐式管理了——每个 Toast 在任何时刻都只由一个任务在操作。
+* 因为队列自动进行阻塞、挂起、恢复，就使得程非常简洁，而且省略了 wait()/notifyAll()在类与类之间的耦合，因为每个类都只和它自己的 BlockingQueue 进行通信
 
+####6. 任务间使用管道进行输入/输出
 
+首先需要声明：
 
+> 这个模型可以看成是生产者-消费者问题的变体，这里的管道就是一个封装好的解决方案。管道基本上是一个阻塞队列，**存在于多个引入 BlockingQueue 之前的 Java 版本中**。意思很明显，有了 BlockingQueue 之后还是用 BlockingQueue 吧。目测公司的 jdk 都是1.6+吧，所以这个小节基本就是有个印象就好，重点还是掌握 BlockingQueue。
 
+下面这个程序虽然简单，但是最好自己多调试。看看 PipedReader 和 PipedWriter 能不能中断，是 IOException 还是 InterruptedException（其实是java.io.InterruptedIOException）。
 
+{% highlight java linenos %}
+package concurrency;
 
+import java.io.IOException;
+import java.io.PipedReader;
+import java.io.PipedWriter;
+import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * PipedWriter.write()和 PipedReader.read() 都可以中断，这是和普通 IO 之间最重要的区别了。
+ */
+class Sender implements Runnable {
+    private Random rand = new Random(47);
+    private PipedWriter out = new PipedWriter();
 
+    public PipedWriter getPipedWriter() {
+        return out;
+    }
 
+    @Override
+    public void run() {
+        try {
+            //while (true) {
+                for(Integer i = 0; i < 10000000; i++) {
+                    out.write(i);
+                    //TimeUnit.MILLISECONDS.sleep(rand.nextInt(500));
+                }
+            //}
+        } catch (IOException e) {
+            System.out.println(e + " Sender write exception");
+        }
+//        } catch (InterruptedException e) {
+//            System.out.println(e + " Sender sleep interrupted");
+//        }
+    }
+}
 
+class Receiver implements Runnable {
+    private PipedReader in;
 
+    //必须和一个 PipedWriter 相关联
+    public Receiver(Sender sender) throws IOException {
+        in = new PipedReader(sender.getPipedWriter());
+    }
 
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                //调用 P ipedReader.read()，如果管道没有数据会自动阻塞
+                System.out.print("Read: " + (char) in.read() + ", ");
+            }
+        } catch (IOException e) {
+            System.out.println(e + " Receiver read exception");
+        }
+    }
+}
 
+public class PipedIO {
+    public static void main(String[] args) throws Exception {
+        Sender sender = new Sender();
+        Receiver receiver = new Receiver(sender);
+        ExecutorService exec = Executors.newCachedThreadPool();
+        exec.execute(sender);
+        exec.execute(receiver);
 
+        TimeUnit.SECONDS.sleep(1);
+        exec.shutdownNow();
+    }
+}
+{% endhighlight java %}
 
-
-
-
-
-
-
-
-
-
-
-
-
+开头就说了，现在 PipedWriter 和 PipedReader 已经被 BlockingQueue 取代，所以了解即可。记住一点，PipedWriter 和 PipedReader 是可以被中断的。
