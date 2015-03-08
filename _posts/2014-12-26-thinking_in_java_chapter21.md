@@ -91,7 +91,7 @@ tags: Java编程思想
 * [21.3 共享受限资源](../thinking_in_java_chapter21-part02)
 * [21.4 终结任务](../thinking_in_java_chapter21-part03)
 * [21.5 线程之间的协作](../thinking_in_java_chapter21-part04)
-* [21.6 死锁]()
+* [21.6 死锁](../thinking_in_java_chapter21-part05)
 * [21.7 新类库中的构件]()
 * [21.8 仿真]()
 * [21.9 性能调优]()
