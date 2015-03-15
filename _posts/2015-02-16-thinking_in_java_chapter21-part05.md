@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Java编程思想 - 第二十一章、死锁（五）
+title: Java编程思想 - 第二十一章、并发（五）
 categories: Java
 tags: Java编程思想
 ---

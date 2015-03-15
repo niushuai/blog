@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Java编程思想 - 第二十一章、新类库中的构件（六）
+title: Java编程思想 - 第二十一章、并发（六）
 categories: Java
 tags: Java编程思想
 ---
