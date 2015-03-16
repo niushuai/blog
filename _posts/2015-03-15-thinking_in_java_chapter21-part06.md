@@ -44,7 +44,7 @@ Java SE5的 **`java.util.concurrent`** 包中引入了大量设计用来解决�
 
 ####1. CountDownLatch
 
-其实看文档已经足够了。。。。所以先来看一下文档：
+文档也太详细了吧：
 
 > A synchronization aid that allows one or more threads to wait until a set of operations being performed in other threads completes.
 > 
@@ -54,6 +54,53 @@ Java SE5的 **`java.util.concurrent`** 包中引入了大量设计用来解决�
 > 
 > A useful property of a CountDownLatch is that it doesn't require that threads calling countDown wait for the count to reach zero before proceeding, it simply prevents any thread from proceeding past an `await` until all threads could pass.
 
+竟然还有例子！！！那必须贴出来学习了啊：
+
+{% highlight java linenos %}
+Here is a pair of classes in which a group of worker threads use two countdown latches:
+
+1. The first is a start signal that prevents any worker from proceeding until the driver is ready for them to proceed;
+2. The second is a completion signal that allows the driver to wait until all workers have completed.
+ 
+class Driver { // ...
+   void main() throws InterruptedException {
+     CountDownLatch startSignal = new CountDownLatch(1);
+     CountDownLatch doneSignal = new CountDownLatch(N);
+
+     for (int i = 0; i < N; ++i) // create and start threads
+       new Thread(new Worker(startSignal, doneSignal)).start();
+
+     doSomethingElse();            // don't let run yet
+     startSignal.countDown();      // let all threads proceed
+     doSomethingElse();
+     doneSignal.await();           // wait for all to finish
+   }
+ }
+
+ class Worker implements Runnable {
+   private final CountDownLatch startSignal;
+   private final CountDownLatch doneSignal;
+   Worker(CountDownLatch startSignal, CountDownLatch doneSignal) {
+      this.startSignal = startSignal;
+      this.doneSignal = doneSignal;
+   }
+   public void run() {
+      try {
+        startSignal.await();
+        doWork();
+        doneSignal.countDown();
+      } catch (InterruptedException ex) {} // return;
+   }
+
+   void doWork() { ... }
+ }
+{% endhighlight java %}
+
+总结一下就是：
+
+> 仔细看过文档后，应该能知道 CountDownLatch 的用法。就好像一个班级集体做一件事，当分配给所有的任务都完成时，才能举手汇报。而每个任务调用一次`countDown()`就会将任务数目减一。当 count 为0（或者被打断）的时候，就会立即返回，那么调用 `await()`的任务就可以继续进行了（没完成前肯定自动阻塞了嘛）。然后和 CyclicBarrier 的区别是count 是否可以被重置（怎么实现？so easy, final 修饰一下即可啦）。
+
+####2. CyclicBarrier
 
 
 
@@ -68,6 +115,19 @@ Java SE5的 **`java.util.concurrent`** 包中引入了大量设计用来解决�
 
 
 
+
+
+{% highlight java linenos %}
+{% endhighlight java %}
+
+{% highlight java linenos %}
+{% endhighlight java %}
+
+{% highlight java linenos %}
+{% endhighlight java %}
+
+{% highlight java linenos %}
+{% endhighlight java %}
 
 
 

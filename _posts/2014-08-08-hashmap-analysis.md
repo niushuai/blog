@@ -381,6 +381,10 @@ static class Entry<K,V> implements Map.Entry<K,V> {
     }
 {% endhighlight java %}
 
+PS:
+
+> 经评论网友指正，上面说法有误。不是使得链表的长度上界为8，get()在9次以下。作用详见 stackoverflow 的讨论：[Understanding strange Java hash function](http://stackoverflow.com/questions/9335169/understanding-strange-java-hash-function))
+
 然后接着看`indexFor()`函数的源码：
 
 {% highlight java linenos %}
