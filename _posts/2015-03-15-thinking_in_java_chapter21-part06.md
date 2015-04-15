@@ -17,7 +17,7 @@ Java SE5的 **`java.util.concurrent`** 包中引入了大量设计用来解决�
 
 ###一、前言
 
-下面是21.7小节的目录：
+下面是21.7小节的目录。嗯，发现一共是7个构件，现在从**文档**出发，逐个浏览一下（Mac 下有 Dash 这样的神器真是幸福啊，hiahiahiahia~）
 
 * 21.7 新类库中的构件
     * 21.7.1 CountDownLatch
@@ -28,7 +28,7 @@ Java SE5的 **`java.util.concurrent`** 包中引入了大量设计用来解决�
     * 21.7.6 Semaphore
     * 21.7.7 Exchanger
 
-嗯，发现一共是7个构件，现在从**文档**出发，逐个浏览一下（Mac 下有 Dash 这样的神器真是幸福啊，hiahiahiahia~）
+下面我们先简单的“望文生义”一下，然后再逐个击破：）
 
 * CountDownLatch：名字直译为——倒计时锁。官方文档的描述是 A synchronization aid that allows one or more threads to wait until a set of operations being performed in other threads completes.[一个线程同步辅助工具，可以让一个或多个线程等待直到其它线程的任务全部完成才会被唤醒。]
 * CyclicBarrier：和上面那个功能相似，只是上面的倒计时数值不能被重置，只能递减到0停止；而 CyclicBarrier 可以在倒计时数减为0之后重用（还是原来的值）
@@ -100,7 +100,7 @@ class Driver { // ...
 
 ####2. CyclicBarrier
 
-直译为循环栅栏，通过它可以让一组线程全部到达某个状态后再同时执行。循环的意思是当所有等待线程都被释放（也就是继续执行）以后，CyclicBarrier 可以被重用。
+直译为循环栅栏，通过它可以让**一组线程全部到达某个状态后再同时执行，也就是说假如有5个线程协作完成一个任务，那么只有当每个线程都完成了各自的任务（都到达终点），才能继续运行（开始领奖）**。循环的意思是当所有等待线程都被释放（也就是所有线程完成各自的任务，整个程序开始继续执行）以后，CyclicBarrier 可以被重用。而上面的 CountDownLatch 只能用一次。
 
 这个的文档也非常详细：
 
@@ -119,56 +119,9 @@ class Driver { // ...
 > 
 > Memory consistency effects: Actions in a thread prior to calling await() happen-before actions that are part of the barrier action, which in turn happen-before actions following a successful return from the corresponding await() in other threads.
 
-下面是文档中的演示代码：
+举一个例子，现在有一个比赛：
 
-{% highlight java linenos %}
-Sample usage: Here is an example of using a barrier in a parallel decomposition（分解） design:
-
-Here, each worker thread processes a row of the matrix then waits at the barrier until all rows have been processed. When all rows are processed the supplied Runnable barrier action is executed and merges the rows. If the merger determines that a solution has been found then done() will return true and each worker will terminate【为什么要用 while 啊，难道不是 barrier 调用 await 阻塞了吗。。】.
-
- class Solver {
-   final int N;
-   final float[][] data;
-   final CyclicBarrier barrier;
-
-   class Worker implements Runnable {
-     int myRow;
-     Worker(int row) { myRow = row; }
-     public void run() {
-       while (!done()) {
-         processRow(myRow);
-
-         try {
-           barrier.await();
-         } catch (InterruptedException ex) {
-           return;
-         } catch (BrokenBarrierException ex) {
-           return;
-         }
-       }
-     }
-   }
-
-   public Solver(float[][] matrix) {
-     data = matrix;
-     N = matrix.length;
-     barrier = new CyclicBarrier(N,
-                                 new Runnable() {
-                                   public void run() {
-                                     mergeRows(...);
-                                   }
-                                 });
-     for (int i = 0; i < N; ++i)
-       new Thread(new Worker(i)).start();
-
-     waitUntilDone();
-   }
- }
-{% endhighlight java %}
-
-个人感觉这个例子不太明显，可能是因为是伪代码的缘故吧？还是可运行的程序更直观。。。
-
-举一个例子，现在有一个比赛：每组 5 个人，要把 A 处的球运输到10米外的 B 处，每个人可以拿2个。等10个球全部被运输到 B 处后，就可以举手示意任务完成。下面是这个例子的代码：
+> 每组 5 个人，要把 A 处的球运输到10米外的 B 处，每个人可以拿2个。等10个球全部被运输到 B 处后，这个组就算是完成了任务。那么，只要5个人有一个没有完成，就不能算是完成任务。符合上面 CyclicBarrier 的应用场景。下面是这个例子的代码：
 
 {% highlight java linenos %}
 package concurrency;
@@ -226,13 +179,12 @@ public class CyclicBarrierGame {
         /* 下面是为了验证 CyclicBarrier 能够重用
          try {
             TimeUnit.SECONDS.sleep(5);
+            for(int i = 0; i < 5; i++) {
+            	exec.execute(new Player(cyclicBarrier));
+        	}
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }
-        
-        for(int i = 0; i < 5; i++) {
-            exec.execute(new Player(cyclicBarrier));
         }
         */
         
@@ -374,9 +326,6 @@ public class Exam {
 
 {% highlight java linenos %}
 {% endhighlight java %}
-
-
-
 
 
 
