@@ -175,10 +175,17 @@ public class OrnametalGarden {
 那么，用代码来完成就用到了 Thread 类的 interrupt 相关函数：
 
 * interrupted()
-* interrupt
+* interrupt()
 * isInterrupted()
 
-但是，我们注意到，新的 concurrent 类库似乎在避免对 Thread 对象的直接操作，转而尽量通过 Executor 来执行所有操作。简单来说：
+我们注意到，新的 concurrent 类库似乎在避免对 Thread 对象的直接操作，转而尽量通过 Executor 来执行所有操作。但是，本质来说，只是 concurrent 的 Executor 帮我们调用了这3个函数，所以还是要学习一下，直接去看文档即可。我简单总结一下这3个方法吧【自己看完文档、总结后再来看我的总结，不然直接看我的总结你还是立马就忘】：
+
+* interrupt()——中断一个线程。如果当前线程处于阻塞中（比如调用了 wait()、sleep()、join()等）那么线程中断状态会被清除，并且抛出一个`InterruptedException`。对于可中断的 I/O 操作也会清除中断状态，抛出一个 ClosedByInterruptedException（还记得前面说过，I/O 是不能中断的吗？注意这里针对的是可中断的 I/O 操作，所以就是后来又提到的 NIO，NIO 可以被中断）。这个是为了替换 Thread.stop()，虽然 stop 已经废弃，但是我们也应该了解 stop 被废弃是因为它中断线程太暴力，like a assault rifle（像一把来福枪的袭击）.这就会导致非原子操作会被直接干掉，很容易出问题。
+* interrupted()——是一个 static 方法。（被吐槽无数次了，因为命名不规范，导致有很多人用错。）检查线程的中断状态(Thread.status)，但是**会清除线程的中断状态**，如果你连续调用2次，就会
+* isInterrupted()——仅仅检查线程的中断状态，不会清除线程的中断状态
+* 在文档中有个 `alive`的词让我很困惑：A thread interruption ignored because a thread was not alive at the time of the interrupt will be reflected by this method returning false.在 stackoverflow 上找到了答案：[When is a Java thread alive?](http://stackoverflow.com/questions/17293304/when-is-a-java-thread-alive)。意思是线程正在运行 run()方法 is still ongoing.
+
+那么，我们再来看 Executor 是如何帮助我们的：
 
 * 调用 shutdownNow()将发送一个 interrupt()调用给它启动的所有线程
 * 如果只想中断特定的任务，就要使用 submit()方法而不是 execute()来启动任务，前面说过 Runnable 的 run 是 void 的，而 Callable 的 run 会返回一个 Future<?>。也就是说通过 submit（）调用会持有任务的上下文。因为这里仅仅是为了调用 cancel()而不会调用 get()，所以可以用来中断任务。做法就是讲 true 传递给 cancel()
