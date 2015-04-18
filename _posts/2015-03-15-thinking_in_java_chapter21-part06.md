@@ -377,12 +377,392 @@ public class ScheduledThreadPoolExecutorTest {
 
 ####6. Semaphore
 
+Semaphore 是一个计数信号量，平常的锁（来自 concurrent.locks 或者内建的 synchronized)再任何时刻都只能允许一个任务访问一项资源，但是 Semaphore 允许 N 个任务同时访问这个资源。你还可以将信号量看做是在向外分发使用资源的“许可证”，尽管实际上没有使用任何许可证对象。
 
+总结来说，一般的锁是保证一个资源只能被一个任务访问；Semaphore 是保证一堆资源可以同时有多个任务访问。举个例子，现在有一个厕所，5个坑位，如果使用 synchronized 的话，同步厕所就只能让1个人进入，浪费了4个坑位；稍微往前一步是使用 BlockingQueue（如果你用 synchronized 来同步5个坑位就很复杂多了），再往前一步，concurrent 提供了 Semaphore ，它通过 acquire()和 release()来保证资源的分发使用。
+
+下面我们通过实现一个资源池来说明，具体的场景完全在例子中注释：）
 
 {% highlight java linenos %}
+package concurrency;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
+// 抽象成一个资源池
+class Pool<T> {
+    private int size;
+    private List<T> items = new ArrayList<T>();
+    private volatile boolean[] checkedOut;
+    private Semaphore available;
+
+    // 要放入资源池的资源数目，如果请求线程数目大于资源池资源数目，就需要阻塞等待
+    public Pool(Class<T> classObject, int size) {
+        this.size = size;
+        checkedOut = new boolean[size];
+        /**
+         * 第二个参数的含义:<br>
+         * 
+         * true: 代表的是公平竞争<br>
+         * 没有第二个参数或者false：代表随机选中等待许可证的线程
+         */
+        available = new Semaphore(size, true);
+        // Load pool with objects that can be checked out:
+        for (int i = 0; i < size; i++) {
+            try {
+                // Assumes a default constructor:
+                items.add(classObject.newInstance());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public T checkOut() throws InterruptedException {
+        available.acquire();
+        return getItem();
+    }
+
+    public void checkIn(T x) {
+        if (releaseItem(x))
+            available.release();
+    }
+
+    private synchronized T getItem() {
+        for (int i = 0; i < size; i++)
+            if (!checkedOut[i]) {
+                checkedOut[i] = true;
+                return items.get(i);
+            }
+        return null;
+    }
+
+    // 回收资源
+    private synchronized boolean releaseItem(T item) {
+        int index = items.indexOf(item);
+        // not in the list
+        if (index == -1)
+            return false;
+        if (checkedOut[index]) {
+            checkedOut[index] = false;
+            return true;
+        }
+        return false; // wasn't checked out
+    }
+
+}
+
+class Fat {
+    private volatile double d; // 阻止指令优化
+    private static int counter = 0;
+    private final int id = counter++;
+
+    public Fat() {
+        // Expensive, interruptible operation
+        for (int i = 1; i < 10000; i++) {
+            d += (Math.PI + Math.E) / (double) i;
+        }
+    }
+
+    public void operation() {
+        System.out.println(this);
+    }
+
+    public String toString() {
+        return "Fat id: " + id;
+    }
+
+}
+
+class CheckoutTask<T> implements Runnable {
+    private static int counter = 0;
+    private final int id = counter++;
+    private Pool<T> pool;
+
+    public CheckoutTask(Pool<T> pool) {
+        this.pool = pool;
+    }
+
+    @Override
+    public void run() {
+        try {
+            T item = pool.checkOut();
+            System.out.println(this + "checked out " + item);
+            TimeUnit.SECONDS.sleep(1);
+            System.out.println(this + "checked in " + item);
+            pool.checkIn(item);
+        } catch (InterruptedException e) {
+            // 终止
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "checkoutTask " + id + " ";
+    }
+}
+
+public class SemaphoreDemo {
+    final static int SIZE = 25;
+
+    public static void main(String[] args) throws Exception {
+        // 创建一个 Fat 的资源池，大小为25
+        final Pool<Fat> pool = new Pool<Fat>(Fat.class, SIZE);
+
+        // 启动25个线程开始玩，从25个资源池 checkout
+        ExecutorService exec = Executors.newCachedThreadPool();
+        for (int i = 0; i < SIZE; i++) {
+            exec.execute(new CheckoutTask<Fat>(pool));
+        }
+        System.out.println("All CheckoutTasks created");
+
+        // 然后用主线程把所有的 Fat 全灌到 list 中了，资源池为空
+        List<Fat> list = new ArrayList<Fat>();
+        for (int i = 0; i < SIZE; i++) {
+            Fat fat = pool.checkOut();
+            System.out.println(i + ": main() thread checked out ");
+            fat.operation();
+            list.add(fat);
+        }
+
+        // 还记得 Future 会阻塞吗？因为主线程把25个资源全 checkout 了，所以再 checkOut 肯定阻塞了
+        Future<?> blocked = exec.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Semaphore prevents additional checkout,
+                    // so call is blocked:
+                    pool.checkOut();
+                } catch (InterruptedException e) {
+                    System.out.println("checkOut() Interrupted");
+                }
+            }
+        });
+        // 因为 Semaphore 是阻塞的，所以10s 还拿不到的情况下，就取消 blocked 线程的工作
+        TimeUnit.SECONDS.sleep(10);
+        blocked.cancel(true); // Break out of blocked call
+        System.out.println("\n\n\nChecking in objects in " + list);
+        for (Fat f : list) {
+            pool.checkIn(f);
+        }
+        for (Fat f : list) {
+            pool.checkIn(f); // Second checkIn ignored
+        }
+        exec.shutdown();
+    }
+
+}/*output:
+checkoutTask 1 checked out Fat id: 1
+checkoutTask 4 checked out Fat id: 4
+checkoutTask 3 checked out Fat id: 3
+checkoutTask 5 checked out Fat id: 5
+checkoutTask 2 checked out Fat id: 2
+checkoutTask 6 checked out Fat id: 6
+checkoutTask 0 checked out Fat id: 0
+checkoutTask 7 checked out Fat id: 7
+checkoutTask 8 checked out Fat id: 8
+checkoutTask 9 checked out Fat id: 9
+checkoutTask 10 checked out Fat id: 10
+checkoutTask 11 checked out Fat id: 11
+checkoutTask 12 checked out Fat id: 12
+checkoutTask 13 checked out Fat id: 13
+checkoutTask 14 checked out Fat id: 14
+checkoutTask 15 checked out Fat id: 15
+checkoutTask 16 checked out Fat id: 16
+checkoutTask 17 checked out Fat id: 17
+checkoutTask 18 checked out Fat id: 18
+checkoutTask 19 checked out Fat id: 19
+checkoutTask 20 checked out Fat id: 20
+checkoutTask 21 checked out Fat id: 21
+checkoutTask 22 checked out Fat id: 22
+checkoutTask 23 checked out Fat id: 23
+All CheckoutTasks created
+checkoutTask 24 checked out Fat id: 24
+checkoutTask 4 checked in Fat id: 4
+checkoutTask 2 checked in Fat id: 2
+checkoutTask 0 checked in Fat id: 0
+checkoutTask 3 checked in Fat id: 3
+checkoutTask 7 checked in Fat id: 7
+checkoutTask 9 checked in Fat id: 9
+checkoutTask 5 checked in Fat id: 5
+checkoutTask 11 checked in Fat id: 11
+checkoutTask 12 checked in Fat id: 12
+checkoutTask 13 checked in Fat id: 13
+checkoutTask 14 checked in Fat id: 14
+checkoutTask 15 checked in Fat id: 15
+checkoutTask 1 checked in Fat id: 1
+checkoutTask 17 checked in Fat id: 17
+checkoutTask 16 checked in Fat id: 16
+checkoutTask 10 checked in Fat id: 10
+checkoutTask 8 checked in Fat id: 8
+0: main() thread checked out 
+Fat id: 0
+1: main() thread checked out 
+Fat id: 1
+2: main() thread checked out 
+Fat id: 2
+3: main() thread checked out 
+Fat id: 3
+4: main() thread checked out 
+Fat id: 4
+5: main() thread checked out 
+Fat id: 5
+6: main() thread checked out 
+Fat id: 7
+7: main() thread checked out 
+Fat id: 8
+8: main() thread checked out 
+Fat id: 9
+9: main() thread checked out 
+Fat id: 10
+10: main() thread checked out 
+Fat id: 11
+11: main() thread checked out 
+Fat id: 12
+12: main() thread checked out 
+Fat id: 13
+13: main() thread checked out 
+Fat id: 14
+14: main() thread checked out 
+Fat id: 15
+15: main() thread checked out 
+Fat id: 16
+16: main() thread checked out 
+Fat id: 17
+checkoutTask 6 checked in Fat id: 6
+checkoutTask 18 checked in Fat id: 18
+checkoutTask 20 checked in Fat id: 20
+checkoutTask 21 checked in Fat id: 21
+checkoutTask 22 checked in Fat id: 22
+checkoutTask 23 checked in Fat id: 23
+checkoutTask 24 checked in Fat id: 24
+17: main() thread checked out 
+Fat id: 6
+18: main() thread checked out 
+Fat id: 18
+19: main() thread checked out 
+Fat id: 20
+20: main() thread checked out 
+Fat id: 21
+checkoutTask 19 checked in Fat id: 19
+21: main() thread checked out 
+Fat id: 22
+22: main() thread checked out 
+Fat id: 19
+23: main() thread checked out 
+Fat id: 23
+24: main() thread checked out 
+Fat id: 24
+checkOut() Interrupted
+
+
+
+Checking in objects in [Fat id: 0, Fat id: 1, Fat id: 2, Fat id: 3, Fat id: 4, Fat id: 5, Fat id: 7, Fat id: 8, Fat id: 9, Fat id: 10, Fat id: 11, Fat id: 12, Fat id: 13, Fat id: 14, Fat id: 15, Fat i
+d: 16, Fat id: 17, Fat id: 6, Fat id: 18, Fat id: 20, Fat id: 21, Fat id: 22, Fat id: 19, Fat id: 23, Fat id: 24]
+*/
 {% endhighlight java %}
 
+####7. Exchanger
 
+终于来到21.7小节的最后一个构件了！！！！
+
+这个构件很简单，是为了让**两个任务交换对象，当两个任务进入 Exchanger 提供的“栅栏”时，他们各自拥有一个对象，当它们离开时，都拥有了之前由对方拥有的对象**。为什么要有这么个东西呢？考虑下面的场景：
+
+> 一个任务在创建对象，这些对象的生产/销毁代价都非常高。上面 Semaphore 的例子还算靠谱，因为我用完了资源并没有销毁，直接还给资源池了，然后立马可以被复用。但是如果两个线程需要知晓对方的工作状态信息，就可以用 Exchanger 交换各自的工作状态。
+
+更具体的使用场景还没有仔细想，大概搜了下都是缓存交换（一个读，一个写），比如这个：[java.util.concurrent.Exchanger应用范例与原理浅析](http://lixuanbin.iteye.com/blog/2166772)。我只是简单写了个 demo 备忘，用到的时候知道有这个东西，其他的再看文档吧：
+
+{% highlight java linenos %}
+package concurrency;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.Exchanger;
+
+public class ExchangerTest {
+
+    public static void main(String[] args) {
+        Exchanger<List<Integer>> exchanger = new Exchanger<>();
+        new Consumer(exchanger).start();
+        new Producer(exchanger).start();
+    }
+
+}
+
+class Producer extends Thread {
+    List<Integer> list = new ArrayList<>();
+    Exchanger<List<Integer>> exchanger = null;
+
+    public Producer(Exchanger<List<Integer>> exchanger) {
+        super();
+        this.exchanger = exchanger;
+    }
+
+    @Override
+    public void run() {
+        System.out.println("this is Producer");
+        Random rand = new Random();
+        for (int i = 0; i < 1; i++) {
+            list.clear();
+            list.add(rand.nextInt(10000));
+            list.add(rand.nextInt(10000));
+            list.add(rand.nextInt(10000));
+            list.add(rand.nextInt(10000));
+            list.add(rand.nextInt(10000));
+            try {
+                System.out.println("producer exchanger...");
+                list = exchanger.exchange(list);
+                System.out.println("Producer is done");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+class Consumer extends Thread {
+    List<Integer> list = new ArrayList<>();
+    Exchanger<List<Integer>> exchanger = null;
+
+    public Consumer(Exchanger<List<Integer>> exchanger) {
+        super();
+        this.exchanger = exchanger;
+    }
+
+    @Override
+    public void run() {
+        System.out.println("this is Consumer");
+        for (int i = 0; i < 1; i++) {
+            try {
+                System.out.println("consumer blocking...");
+                list = exchanger.exchange(list);
+                System.out.println("consumer is done");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.print(list.get(0) + ", ");
+            System.out.print(list.get(1) + ", ");
+            System.out.print(list.get(2) + ", ");
+            System.out.print(list.get(3) + ", ");
+            System.out.println(list.get(4) + ", ");
+        }
+    }
+}/*output:
+this is Consumer
+consumer blocking...
+this is Producer
+producer exchanger...
+Producer is done
+consumer is done
+7481, 9360, 6010, 4630, 4338, 
+*/
+{% endhighlight java %}
 
 
 
