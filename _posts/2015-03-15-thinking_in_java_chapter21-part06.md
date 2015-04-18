@@ -203,131 +203,184 @@ Thread[pool-1-thread-4,5,main] 完成任务！等待队友 ing...
 */
 {% endhighlight java %}
 
-####3. 
+####3. DelayQueue
+
+DelayQueue 就是一个无界队列，是用 PriorityQueue 实现的 BlockingQueue，如果要使用 DelayQueue，其中的元素必须实现 Delayed 接口，Delayed 接口有2个方法需要重写：compareTo()和 getDelay()方法。因为使用的是优先队列，所以需要确定元素之间的优先级，那么重写 compareTo()就很明显了，又为了满足 DelayQueue 的特性（每次队头是延期到期时间最长的元素），那么就需要知道元素的到期时间，而这个时间就是通过 getDelay()获取的。
+
+* 延迟到期时间最长：这个刚看的时候还挺迷糊的，现在知道了。就是到期之后保存时间最长的元素。比如2个元素，在10:00:00这个时间点都到期了，但是 A 元素到期后保存时间为2分钟，B 元素到期后保存时间为1分钟，那么优先级最高的肯定是 A 元素了（本质来说，这个 order 是通过小顶堆维护的，所以获取延迟到期时间最长元素的时间复杂度为 O(lgN)）。
+
+写了一个例子，但是因为输出有点问题，就看了一下 DelayQueue 的源码，发现里面的实现是委托给 PriorityQueue 的，于是写了篇文章跟了下 PriorityQueue 的基本操作（ 也是 DelayQueue 的基本操作），结合文档和源码和我给的例子，应该就非常 easy 了：[PriorityQueue 源码剖析](../priorityqueue)
+
+####4. PriorityBlockingQueue
+
+哈哈，前面刚看完 PriorityQueue 的源码，这里就遇到了 PriorityBlockingQueue，其实 PriorityBlockingQueue就是用 PriorityQueue 实现的 BlockingQueue，所以没啥可说的。写了个例子低空掠过：
 
 {% highlight java linenos %}
 package concurrency;
 
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.PriorityBlockingQueue;
 
-/**
- * 考试状态，只有老师能调用 beginExam。
- * 学生在答卷之前，必须调用 waitForExam，也就是老师说考试开始之后才能答题
- */
-class Flag {
-    private boolean flag = false;
-
-    public synchronized void beginExam() throws InterruptedException {
-        System.out.println("考试开始...");
-        flag = true;
-        notifyAll();
-    }
-
-    public synchronized void waitForExam() throws InterruptedException {
-        while (!flag) {
-            wait();
-        }
-    }
-}
-
-/**
- * 答题时间由随机数生成，控制在 30-180ms 以内。但是考试时间为120，未完成答题的另作处理
- */
-class Student implements Runnable, Delayed {
+class Leader implements Comparable {
     private String name;
-    // 该考生的答题时间
-    private Random rand = new Random(47);
-    private CountDownLatch countDownLatch;
-    private Flag flag;
+    private int degree;
 
-    public Student(Flag flag, CountDownLatch countDownLatch, String name) {
+    public Leader(String name, int degree) {
         this.name = name;
-        this.flag = flag;
-        this.countDownLatch = countDownLatch;
+        this.degree = degree;
     }
 
     @Override
-    public void run() {
-        try {
-            flag.waitForExam();
-            TimeUnit.MILLISECONDS.sleep(30 + rand.nextInt(150));
-            System.out.println(name + " 交卷...");
-            countDownLatch.countDown();
-        } catch (InterruptedException e) {
-            System.out.println(name + " 答题中断...");
-        }
+    public int compareTo(Object o) {
+        Leader leader = (Leader) o;
+        return leader.degree - this.degree;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    @Override
-    public int compareTo(Delayed delayed) {
-        // TODO Auto-generated method stub
-        return 0;
+    public int getDegree() {
+        return degree;
     }
 
-    @Override
-    public long getDelay(TimeUnit timeUnit) {
-        // TODO Auto-generated method stub
-        return 0;
+    public void setDegree(int degree) {
+        this.degree = degree;
     }
+
 }
 
-class Teacher implements Runnable {
-    private CountDownLatch countDownLatch;
-    private Flag flag;
+public class WhoGoFirst {
 
-    public Teacher(Flag flag, CountDownLatch countDownLatch) {
-        this.flag = flag;
-        this.countDownLatch = countDownLatch;
+    // 通过随机数给领导分级别
+    private static PriorityBlockingQueue<Leader> leaders = new PriorityBlockingQueue<Leader>();
+
+    public static void watchFilm(Leader leader) {
+        leaders.add(leader);
     }
 
-    @Override
-    public void run() {
+    public static void goFirst(PriorityBlockingQueue<Leader> leaders) {
         try {
-            flag.beginExam();
-            countDownLatch.await();
-            
-            System.out.println("考试结束！");
+            while (!leaders.isEmpty()) {
+                Leader leader = leaders.take();
+                System.out.println("级别： " + leader.getDegree() + "的 " + leader.getName() + " 正在撤离...");
+            }
         } catch (InterruptedException e) {
-            System.out.println("考试中断！" + e);
+            e.printStackTrace();
         }
     }
-}
 
-public class Exam {
-    public static void main(String[] args) throws InterruptedException {
-        ExecutorService exec = Executors.newCachedThreadPool();
-        CountDownLatch countDownLatch = new CountDownLatch(5);
-        
-        System.out.println("学生进场...");
-        Flag flag = new Flag();
-        for (int i = 0; i < 5; i++) {
-            exec.execute(new Student(flag, countDownLatch, "student:" + i));
+    public static void main(String[] args) {
+        Random random = new Random();
+        for (int i = 1; i <= 10; i++) {
+            watchFilm(new Leader("leader " + i, random.nextInt(10)));
         }
-        //学生入场后，等待老师进场
-        TimeUnit.SECONDS.sleep(5);
-        
-        System.out.println("老师进场...");
-        exec.execute(new Teacher(flag, countDownLatch));
 
-        exec.shutdown();
+        System.out.println("所有领导已经就坐，开始播放电影：速度与激情7...");
+
+        System.out.println("着火了！！！");
+
+        goFirst(leaders);
+
     }
-}
-
+}/*output:
+所有领导已经就坐，开始播放电影：速度与激情7...
+着火了！！！
+级别： 8的 leader 3 正在撤离...
+级别： 7的 leader 8 正在撤离...
+级别： 6的 leader 4 正在撤离...
+级别： 6的 leader 9 正在撤离...
+级别： 6的 leader 2 正在撤离...
+级别： 5的 leader 5 正在撤离...
+级别： 4的 leader 6 正在撤离...
+级别： 4的 leader 7 正在撤离...
+级别： 2的 leader 10 正在撤离...
+级别： 0的 leader 1 正在撤离...
+*/
 {% endhighlight java %}
+
+####5. ScheduledExcutor
+
+这个小节讲的是定时触发任务，知道 crontab 的应该都不陌生。看完以后我 google 了一下，发现几个类似功能的类，先知道有这几个东西，用到了再具体看文档吧。
+
+* Timer：单线程轮询任务列表，效率较低
+* ScheduledExcutor：并行执行
+* JCrontab：借鉴了 crontab 的语法，其区别在于 command 不再是 unix/linux 的命令，而是一个 Java 类。如果该类带参数，例如`com.ibm.scheduler.JCronTask2#run`，则定期执行 run 方法；如果该类不带参数，则默认执行 main 方法。此外，还可以传参数给 main 方法或者构造函数，例如`com.ibm.scheduler.JCronTask2#run Hello World`表示传两个参数 Hello 和 World 给构造函数
+* Quartz：Spring 就是用的这个执行定时任务的
+
+给个随便搜到的资料：[几种任务调度的 Java 实现方法与比较](https://www.ibm.com/developerworks/cn/java/j-lo-taskschedule/)
+
+对于举例子的 ScheduledThreadPoolExecutor，大概看下源码，本质是使用 DelayWorkQueue 实现的 BlockingQueue。其中 DelayWorkQueue 和 DelayQueue 类似，不过没有复用 DelayQueue 中用到的 PriorityQueue，而是自己捯饬了一个新的小（大）顶堆。看来concurrent 也不是100%完美的代码呀，哈哈哈。
+
+{% highlight java linenos %}
+public class ScheduledThreadPoolExecutorTest {
+    public static void main(String[] args) {
+        ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1);
+        BusinessTask task = new BusinessTask();
+        //1秒后开始执行任务，以后每隔2秒执行一次
+        executorService.scheduleWithFixedDelay(task, 1000, 2000,TimeUnit.MILLISECONDS);
+    }
+
+    private static class BusinessTask implements Runnable{
+        @Override
+        public void run() { 
+            System.out.println("任务开始...");
+            // doBusiness();
+            System.out.println("任务结束...");
+        }
+    }
+}
+{% endhighlight java %}
+
+嗯，这个例子虽然简单，但是我想说几点：
+
+1. ScheduleAtFixedRate 是基于固定时间间隔进行任务调度，ScheduleWithFixedDelay 取决于每次任务执行的时间长短，是基于不固定时间间隔进行任务调度：
+	1. scheduleWithFixedDelay()方法：每次执行时间为上一次任务结束起向后推一个时间间隔，即每次执行时间为：initialDelay, initialDelay+executeTime+delay, initialDelay+2*executeTime+2*delay
+	2. scheduleWithFixedRate()方法：每次执行时间为上一次任务开始起向后推一个时间间隔，即每次执行时间为 :initialDelay, initialDelay+period, initialDelay+2*period, …
+2. 有可能上面的程序执行了一段时间后，会发现不再执行了，去查看日志，可能是doBusiness()方法中抛出了异常。但是为什么doBusiness()抛出异常就会中止定时任务的执行呢？看文档就知道了：
+	> Creates and executes a periodic action that becomes enabled first after the given initial delay, and subsequently with the given delay between the termination of one execution and the commencement of the next. If any execution of the task encounters an exception, subsequent executions are suppressed. Otherwise, the task will only terminate via cancellation or termination of the executor.
+	>
+	> 简单翻译就是：
+	>
+	> 创建并执行一个在给定初始延迟后首次启用的定期操作，随后，在每一次执行终止和下一次执行开始之间都存在给定的延迟。如果任务的任一执行遇到异常，就会取消后续执行。否则，只能通过执行程序的取消或终止方法来终止该任务。
+
+所以上面的例子应该改成下面这样：
+
+{% highlight java linenos %}
+public class ScheduledThreadPoolExecutorTest {
+    public static void main(String[] args) {
+        ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1);
+        BusinessTask task = new BusinessTask();
+        //1秒后开始执行任务，以后每隔2秒执行一次
+        executorService.scheduleWithFixedDelay(task, 1000, 2000,TimeUnit.MILLISECONDS);
+    }
+
+    private static class BusinessTask implements Runnable{
+        @Override
+        public void run() { 
+            //捕获所有的异常，保证定时任务能够继续执行
+            try{
+                System.out.println("任务开始...");
+                // doBusiness();
+                System.out.println("任务结束...");
+            }catch (Throwable e) {
+                // solve the exception problem
+            }
+        }
+    }
+}
+{% endhighlight java %}
+
+####6. Semaphore
+
+
 
 {% highlight java linenos %}
 {% endhighlight java %}
-
-
 
 
 
