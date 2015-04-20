@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 // 去银行办事的顾客
 class Customer {
+    // 该顾客办理业务需要的时间
     private final int serviceTime;
 
     public Customer(int serviceTime) {
@@ -40,7 +41,7 @@ class Customer {
 
     @Override
     public String toString() {
-        return "顾客办理业务需要时间：" + serviceTime;
+        return "[" + serviceTime + "] ";
     }
 }
 
@@ -90,7 +91,7 @@ class CustomerGenerator implements Runnable {
                 // 某位顾客来银行办理业务
                 TimeUnit.MILLISECONDS.sleep(random.nextInt(300));
                 // 在哪个柜台？用多少时间？
-                customerLine.add(new Customer(random.nextInt(1000)));
+                customerLine.put(new Customer(random.nextInt(1000)));
             }
         } catch (InterruptedException e) {
             System.out.println("门坏了，，，，顾客没法来了= =" + e);
@@ -135,9 +136,9 @@ class Teller implements Runnable, Comparable<Teller> {
                 }
             }
         } catch (InterruptedException e) {
-            System.out.println("出纳员：" + this + "有事情了...");
+            System.out.println(this + "被打断，有其他事情需要处理...");
         }
-        System.out.println("出纳员要下班啦~~~");
+        System.out.println("出纳员下班了...");
     }
 
     // 出纳员有事情，自己或者有其他紧急任务
@@ -149,7 +150,7 @@ class Teller implements Runnable, Comparable<Teller> {
     // 出纳员处理任务完毕，回到工作岗位
     public synchronized void comebackWorking() {
         if (isServingCustomerLine == false) {
-            System.out.println("该柜台继续提供服务" + this);
+            System.out.println(this + "负责的柜台继续提供服务...");
             isServingCustomerLine = true;
             notifyAll(); // 和 wait()遥相呼应
         }
@@ -185,33 +186,35 @@ class TellerManager implements Runnable {
         this.customerLine = customerLine;
         this.adjustmentPeriod = adjustmentPeriod;
 
-        // 经理下面最起码带个人呢。。。
+        // 经理下面最起码带个人不是。。。
         Teller teller = new Teller(customerLine);
         exec.execute(teller);
         workingTellers.add(teller);
     }
 
+    // 经理会根据自己的经验安排工作
     public void adjustTellerNumber() {
-        // 队伍很长啊
+        // 如果队伍很长（顾客数目是出纳员数目的2倍多）
         if (customerLine.size() / workingTellers.size() > 2) {
+            // 如果有在做其他事情的出纳员，要事优先原则
             if (tellersDoingOtherThings.size() > 0) {
                 Teller teller = tellersDoingOtherThings.remove();
                 teller.comebackWorking();
                 workingTellers.add(teller);
                 return;
             }
-            // 人不够了，hr 赶紧去招人啊...
+            // 人确实不够了，通知 hr 赶紧去招人...
             Teller teller = new Teller(customerLine);
             exec.execute(teller);
             workingTellers.add(teller);
             return;
         }
 
-        // 队伍很短啊,不能让出纳员闲着...（老板都是这想法吧= =）
+        // 队伍很短,不能让出纳员闲着...（老板都是这想法吧= =）
         if (workingTellers.size() > 1 && customerLine.size() / workingTellers.size() < 2) {
             reassignOneTeller();
         }
-        // 队伍压根没人,留一个看门即可,不能让出纳员闲着...
+        // 队伍压根没人,留一个出纳员工作即可,其他都去干别的活儿，不能让出纳员闲着...
         if (customerLine.size() == 0) {
             while (workingTellers.size() > 1) {
                 reassignOneTeller();
@@ -219,8 +222,10 @@ class TellerManager implements Runnable {
         }
     }
 
+    // 分配出纳员去干别的活儿
     private void reassignOneTeller() {
         Teller teller = workingTellers.poll();
+        // poll() 在队列为空的时候返回 null，不用判断 teller为 null 是因为上面肯定留了一个出纳员在 woerkingTellers
         teller.doSomethingElse();
         tellersDoingOtherThings.offer(teller);
     }
@@ -231,11 +236,12 @@ class TellerManager implements Runnable {
             while (!Thread.interrupted()) {
                 TimeUnit.MILLISECONDS.sleep(adjustmentPeriod);
                 adjustTellerNumber();
-                System.out.print("目前出纳员情况：[");
+                System.out.print("{排队中的顾客：" + customerLine + "}----");
+                System.out.print("{目前工作中的出纳员：[");
                 for (Teller teller : workingTellers) {
                     System.out.print(teller);
                 }
-                System.out.println("]");
+                System.out.println("]}");
             }
         } catch (InterruptedException e) {
             System.out.println("经理工作被打断");
@@ -245,7 +251,7 @@ class TellerManager implements Runnable {
 
     @Override
     public String toString() {
-        return "我是出纳员的经理...";
+        return "我是所有出纳员的经理...";
     }
 }
 
@@ -258,8 +264,9 @@ public class BidSimulation {
         CustomerLine customerLine = new CustomerLine(MAX_SIZE);
         exec.execute(new CustomerGenerator(customerLine));
         exec.execute(new TellerManager(exec, customerLine, ADJUSTMENT_PERIOD));
+        // 结束模拟：带结束时间或者按下 Enter
         if (args.length > 0) {
-            TimeUnit.MILLISECONDS.sleep(new Integer(args[0]));
+            TimeUnit.SECONDS.sleep(new Integer(args[0]));
         } else {
             System.out.println("Press 'Enter' to quit.");
             System.in.read();
