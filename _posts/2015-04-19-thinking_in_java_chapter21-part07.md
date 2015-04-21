@@ -255,7 +255,7 @@ class TellerManager implements Runnable {
     }
 }
 
-public class BidSimulation {
+public class BankTellerSimulation {
     static final int MAX_SIZE = 50;
     static final int ADJUSTMENT_PERIOD = 1000;
 
