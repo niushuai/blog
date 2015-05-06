@@ -21,7 +21,7 @@ tags: Java编程思想
 
 ####2. 乐观加锁
 
-这一点主要讲了乐观锁和悲观锁，但是讲的太少，去网上搜索了一下，效果也不是很好，都是抄的。。。。。我只能大概说下他们的基本意思，具体的话等去问问同事。来源：[乐观锁与悲观锁的区别](http://www.cnblogs.com/Bob-FD/p/3352216.html)
+<!-- 这一点主要讲了乐观锁和悲观锁，但是讲的太少，去网上搜索了一下，效果也不是很好，都是抄的。。。。。我只能大概说下他们的基本意思，具体的话等去问问同事。来源：[乐观锁与悲观锁的区别](http://www.cnblogs.com/Bob-FD/p/3352216.html) -->
 
 先说明为什么需要锁呢？在多用户环境中，在同一时间可能会有多个用户更新相同的记录，这会产生冲突。这就是著名的并发性问题。典型的冲突有：
 
@@ -77,8 +77,9 @@ public class FastSimulation {
                     int newValue = oldValue + GRID[previous][i].get() + GRID[next][i].get();
                     newValue /= 3;
 
-                    // 如果 GRID[element][i]的值已经发生变化（不和 oldValue 相同）， 就返回 false 失败，进行
-                    // 对应的失败操作，这里只是打印一下。
+                    // 乐观锁用法，因为没有任何锁机制。
+                    // 只有当想更新 GRID[element][i]的值，但是其值已经发生变化的情况下（不和 oldValue 相同）， 才进行
+                    // 失败操作，这里只是打印一下。
                     if (!GRID[element][i].compareAndSet(oldValue, newValue)) {
                         System.out.println("Old value changed from " + oldValue + " to " + GRID[element][i]);
                     }
