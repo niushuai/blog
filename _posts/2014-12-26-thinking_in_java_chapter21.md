@@ -94,6 +94,6 @@ tags: Java编程思想
 * [21.6 死锁](../thinking_in_java_chapter21-part05)
 * [21.7 新类库中的构件](../thinking_in_java_chapter21-part06)
 * [21.8 仿真](../thinking_in_java_chapter21-part07)
-* [21.9 性能调优]()
-* [21.10 活动对象]()
+* [21.9 性能调优](../thinking_in_java_chapter21-part08)
+* [21.10 活动对象](../thinking_in_java_chapter21-part09)
 * [21.11 总结]()
