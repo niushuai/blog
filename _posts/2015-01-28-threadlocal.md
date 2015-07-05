@@ -2,7 +2,7 @@
 layout: post
 title: 理解 ThreadLocal
 categories: Java
-tags: Java编程思想
+tags: Java
 ---
 
 ###前言

@@ -2,10 +2,10 @@
 layout: post
 title: Java 异常实例演示
 categories: Java
-tags: Java编程思想
+tags: Java
 ---
 
-这篇文章是对《TIJ》第十二章的补充，主要有两个小例子：
+这篇文章是对《Java 编程思想》第十二章的补充，主要有两个小例子：
 
 1. 一个改错例子
 2. InputFile工具类
