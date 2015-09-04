@@ -89,7 +89,7 @@ public class _01_LinkedStack<T> {
         }
     }
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 ####2. 泛型接口
 
@@ -129,7 +129,7 @@ public class _05_IterableFibonacci extends _04_Fibonacci implements Iterable<Int
         }
     }
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 ####3. 泛型方法
 
@@ -144,7 +144,7 @@ public class _05_IterableFibonacci extends _04_Fibonacci implements Iterable<Int
 Map<String, List<Integer>> map = new HashMap<String, List<Integer>>();
 // 使用 Guava 后
 Map<String, List<Integer>> map = Maps.newHashMap();
-{% endhightlight java %}
+{% endhighlight java %}
 
 其实我们去看一下Guava 的代码就知道怎么做的了：
 
@@ -152,7 +152,7 @@ Map<String, List<Integer>> map = Maps.newHashMap();
 public static <K, V> HashMap<K, V> newHashMap() {
     return new HashMap<K, V>();
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 这里需要注意一点：**类型推断只对赋值操作有效，其他时候并不起作用。**如果你将一个泛型方法调用的结果作为参数，传递给另一个方法，这时编译器并不会执行类型推导。因为编译器认为：调用泛型方法后，其返回值被赋给一个 Object 类型的变量。这时候解决方法是使用显式的类型说明：
 
@@ -206,7 +206,7 @@ public class _08_ExplicitTypeSpecification {
         test1(this.<Integer, String> map());
     }
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 ####4. 擦除的神秘之处
 
@@ -227,7 +227,7 @@ public class _09_ErasedTypeEquivalence {
         // true
     }
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 什么，Integer 和 String 的 List 竟然是相同的？？反正刚开始我觉得肯定是不同的啊，因为```c2.add(new Integer(3))```肯定会报错啊。别急，更崩溃的例子在下面：
 
@@ -272,7 +272,7 @@ public class _10_LostInformation {
 [Q]
 [POSITION, MOMENT]
 */
-{% endhightlight java %}
+{% endhighlight java %}
 
 看到输出了没，其中的 E/K/V/Q/POSITION/MOMENT 都是一个类型参数占位符而已。虽然`Class.getTypeParameters()`的文档说“返回一个 TypeVariable 对象数组，表示有泛型声明所声明的类型参数……“，好像暗示我们能获得参数类型的信息。但是，正如你从输出中看到的，你能够发现的只是用作参数占位符的标识符，没有其他有用的信息。所以，事实是：**在泛型代码内部，无法获得任何有关泛型参数类型的信息。**
 
@@ -309,7 +309,7 @@ int main(void) {
 }/*output:
 HasF:f()
 */
-{% endhightlight cpp %}
+{% endhighlight cpp %}
 
 然后我们把这段代码翻译成 Java：
 
@@ -363,7 +363,7 @@ public class _11_Manipulation<T> {
         manipulator.manipulate();
     }
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 很悲伤的发现，Manipulator<T>是无法通过编译的，因为编译器不知道 f()是什么鬼，它不会在编译期知道实例化参数中只要有 f()就可以了。而第二个版本因为指定了边界，编译器傻乎乎的将 T extends HasF替换为 HasF，而 HasF 本来就有 f()，所以才能调用`obj.f()`。但是这样的话，泛型没有贡献任何好处，我们自己就可以手工执行擦除，创建出没有泛型的类：
 
@@ -377,7 +377,7 @@ class Manipulator3 {
 		obj.f();
 	}
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 这么一看，程序因为少了泛型反而简单了不少。那么，这里又扯出另一个问题：什么时候使用泛型更加合适呢？
 
@@ -393,7 +393,7 @@ class ReturnGenericType<T extends HasF> {
 		return obj;
 	}
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 这时候你要是想手工擦除，就得每个具体类型都写一遍，这样就得不偿失了。
 
@@ -411,7 +411,7 @@ class Foo<T> {
 }
 
 Foo<Cat> f = new Foo<Cat>();
-{% endhightlight java %}
+{% endhighlight java %}
 
 //那么，看起来当你创建 Foo 的实例时，class Foo 中的代码应该知道现在工作于 Cat 之上，而泛型语法也仿佛强烈暗示：在整个类中的各个地方，类型 T 都在被替换。但是事实并非如此，无论何时，当你在编写这个类的代码时，必须提醒自己：“不，它仅仅是一个 Object。”
 
@@ -455,7 +455,7 @@ public class _14_FilledListMaker<T> {
         System.out.println(stringList);
     }
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 下面我们就通过编译代码来看看，编译器在编译期是怎么处理类型参数的（不用细看，下面接着看将_12_SimpleHolder泛型化后的结果）：
 
@@ -514,7 +514,7 @@ public class Chapter15._12_SimpleHolder {
       21: astore_2
       22: return
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 下面是泛型化后的_12_SimpleHolder：
 
@@ -574,6 +574,6 @@ public class Chapter15._15_GenericHolder<T> {
       21: astore_2
       22: return
 }
-{% endhightlight java %}
+{% endhighlight java %}
 
 有没有泛型，产生的字节码竟然是**相同的**。对进入 set()的类型进行检查是不需要的，因为这将由编译器执行。而对从 get()返回的值进行转型仍旧是需要的，但这将由编译器来自动完成。**由于所产生的 get()和 set()字节码相同，所以在泛型中的所有动作都发生在边界处——对传递进来的值进行额外的编译期检查，并插入对传递出去的值的转型。这有助于澄清对擦除的混淆，“边界就是发生动作的地方。”**
