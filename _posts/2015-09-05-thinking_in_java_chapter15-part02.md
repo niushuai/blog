@@ -145,7 +145,15 @@ public class _18_FactoryConstraint {
 
 这本质上还是使用 Class<T>的一种变体，只是加上一层工厂方法，保证在编译期进行类型检查。
 
-####1. 
+####2. 泛型数组
+
+这个小节可以借助1.5版本的 ArrayList 进行说明。因为 ArrayList 是通过数组实现的，而 ArrayList 又支持泛型。所以用它来讲解泛型数组最合适不过了。我们将通过**直接使用 T 类型、使用 Object 类型、类型标签**三种方式来说明泛型数组该如何使用以及最佳编程实践：）
+
+在最上面的代码中，我们看到，不能创建`T[] array = new T[SIZE];`，一般的解决方案是在任何想要创建泛型数组的地方使用 ArrayList：
+
+{% highlight java linenos %}
+
+{% endhighlight java %}
 
 
 
