@@ -164,10 +164,6 @@ public class _18_FactoryConstraint {
 
 
 
-
-
-
-
 {% highlight java linenos %}
 
 {% endhighlight java %}
