@@ -215,9 +215,6 @@ public class _21_GenericArray<T> {
         array = (T[]) new Object[size];
     }
 
-<<<<<<< HEAD
-{% highlight java linenos %}
-=======
     public void put(int index, T item) {
         array[index] = item;
     }
@@ -235,7 +232,6 @@ public class _21_GenericArray<T> {
 
         // 会有一个类型转换异常,因为运行时 gai 已经是 Object[]了，不能转成 Integer
         // Integer[] ia = gai.rep();
->>>>>>> 46f5b0c390c86339f852db6e969cc442f5409a27
 
         Object[] ia = gai.rep();
     }
