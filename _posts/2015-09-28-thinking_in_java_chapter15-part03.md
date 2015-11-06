@@ -32,7 +32,14 @@ public class Test {
 }
 {% endhighlight java %}
 
-写下你的答案，并思考自己是否能想清楚每个表达式正确/错误的原因。如果你能做到，恭喜你对边界还是有一定了解的。
+写下你的答案，并思考自己是否能想清楚每个表达式正确/错误的原因。如果你能有理有据的正确写出答案，恭喜你，你对边界限定的掌握还是很扎实的。当然，如果你和我一样傻傻分不清楚，就老老实实的学习一下吧：（
+
+先公布正确答案：
+
+然后给出原 po 的分析：
+
+* [generics-extends-super](http://onewebsql.com/blog/generics-extends-super)
+* [The Difference between Java Arrays and Generic Lists](http://onewebsql.com/blog/generics-collections)
 
 
 
