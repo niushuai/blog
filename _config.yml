@@ -1,7 +1,7 @@
 markdown: rdiscount
 permalink: /:title/
 url: http://github.thinkingbar.com
-highlighter: true
+highlighter: pygments
 gems: [jekyll-paginate]
 paginate: 100
 paginate_path: "page:num"
