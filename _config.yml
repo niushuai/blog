@@ -1,8 +1,10 @@
 markdown: rdiscount
 permalink: /:title/
 url: http://github.thinkingbar.com
-#highlighter: pygments
-pygments: true
+highlighter: true
+gems: [jekyll-paginate]
+paginate: 100
+paginate_path: "page:num"
 name: 飘过的小牛
 description: 飘过的小牛 | Stop talking, start doing.
 author: niushuai
@@ -11,5 +13,4 @@ duoshuo: niushuai
 weibo: 1891858481
 hub: niushuai
 safe: true
-paginate: 100
 about: "弱菜一枚。"
