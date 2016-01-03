@@ -203,7 +203,7 @@ Tips：
 
 Tips：
 
-> instanceof是静态的，动态的使用Clss类中的isInstance方法，比如`if(someClassRef.getClass().isInstance(Number))`
+> instanceof是静态关键字，我们也可以动态的使用Clss类中的isInstance()方法——比如`if(someClassRef.getClass().isInstance(Number))`
 
 有一个问题，既然Class对象和instanceof都可以判断类型信息，那么它们之间是神马关系呢？原来在查询类型信息时，以instanceof的形式（即以instanceof的形式或者isInstance()的形式，它们产生相同的结果）与直接比较Class对象有一个很重要的区别。我们用代码来说明问题：
 
@@ -271,7 +271,7 @@ x.getClass().equals(Derived.calss) true
 
 下面就是反射的一个典型用法：
 
-```
+{% highlight java linenos %}
 package Chapter14;
 
 import java.lang.reflect.Constructor;
@@ -345,7 +345,8 @@ public final native void notifyAll()
 #public final native void java.lang.Object.notifyAll()
 public ShowMethods()
 */
-```
+{% endhighlight java %}
+
 我们可以发现，这个程序是用来识别以参数传入的类的信息的，所以说这个程序必定在编译时无法知道这个参数，故而RTTI无法起作用，这时候就是靠反射来完成对信息的识别的。所以通过反射，我们可以在程序运行时得到类的相关信息。
 
 而到这里，反射就搞定了，其实就是补充RTTI不能在运行时得到类的信息，就这样。
@@ -362,7 +363,7 @@ public ShowMethods()
 
 首先是普通的代理：
 
-```
+{% highlight java linenos %}
 package Chapter14;
 
 interface Interface {
@@ -413,11 +414,11 @@ SimpleProxy doSomething
 doSomething
 SimpleProxy somethingElse
 somethingElse bonobo
-```
+{% endhighlight java %}
 
 然后我们使用Java给我们提供的动态代理：
 
-```
+{% highlight java linenos %}
 package Chapter14;
 
 import java.lang.reflect.InvocationHandler;
@@ -467,11 +468,11 @@ doSomething
  bonobo
 somethingElse bonobo
 */
-```
+{% endhighlight java %}
 
 也许你会想，如果都用同一个逻辑，那假如我需要代理的某个/某些方法的代理逻辑和其他不同呢？那我们再来看一下这种情况可以怎么处理：
 
-```
+{% highlight java linenos %}
 package Chapter14;
 
 import java.lang.reflect.*;
@@ -533,7 +534,7 @@ Proxy detected the interesting method
 interesting bonobo
 boring3
 */
-```
+{% endhighlight java %}
 
 上面三个例子其实都比较简单，我们来解释一下：
 
