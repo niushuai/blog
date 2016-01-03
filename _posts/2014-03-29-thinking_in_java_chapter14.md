@@ -318,7 +318,7 @@ public class ShowMethods {
 				}
 			}
 		} catch(ClassNotFoundException e) {
-#			System.out.println("No such class: " + e);
+			System.out.println("No such class: " + e);
 		}
 	}
 }
