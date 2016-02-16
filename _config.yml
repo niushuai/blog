@@ -1,4 +1,4 @@
-markdown: rdiscount
+#markdown: rdiscount
 permalink: /:title/
 url: http://github.thinkingbar.com
 highlighter: pygments
