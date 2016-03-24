@@ -5,7 +5,7 @@ categories: 计算机知识
 tags: mysqldump
 ---
 
-###导出数据库
+### 导出数据库
 
 > `mysqldump -u用户名 -p密码 数据库名 --skip-lock-tables -hIP地址 -P端口 > 数据库名_bak.sql`
 
@@ -17,7 +17,7 @@ root登陆:
 
 > `mysql> CREATE DATABASE 数据库名;`
 
-###导入sql脚本
+### 导入sql脚本
 
 {% highlight bash linenos %}
 use 数据库名;

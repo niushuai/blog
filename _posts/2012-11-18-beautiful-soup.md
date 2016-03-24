@@ -5,7 +5,7 @@ categories: python
 tags: python
 ---
 
-###一.Beautiful Soup简介
+### 一.Beautiful Soup简介
 
 Beautiful Soup是python的一个库，最主要的功能是从网页抓取数据(on quick-turnaround screen scraping projects)。
 
@@ -22,7 +22,7 @@ Beautiful Soup是python的一个库，最主要的功能是从网页抓取数据
 * Beautiful Soup自动将输入文档转换为Unicode编码，输出文档转换为utf-8编码。你不需要考虑编码方式，除非文档没有指定一个编码方式，这时，Beautiful Soup就不能自动识别编码方式了。然后，你仅仅需要说明一下原始编码方式就可以了。
 * Beautiful Soup已成为和lxml、html6lib一样出色的python解释器，为用户灵活地提供不同的解析策略或强劲的速度。
 
-###二.Beautiful Soup安装
+### 二.Beautiful Soup安装
 
 先给出地址，但是请先看一下Notice之后再安装。
 
@@ -41,6 +41,6 @@ Notice:
 * windows:需要先配置环境变量，然后进入下载的bs4库目录后——python setup.py install
 * 验证：当然，我们在安装好之后需要检查一下是安装成功：import BeautifulSoup，如果没有出错提示，就说明安装成功了！
 
-###三.BeautifulSoup总结
+### 三.BeautifulSoup总结
 
 综上所述，我们最好使用python2.x+BeautifulSoup3.X版本。虽然不是最新版，但是使用起来非常稳定，并且各种库也都支持。

@@ -5,11 +5,11 @@ categories: Java
 tags: Java编程思想
 ---
 
-###本章概览
+### 本章概览
 
 这章的知识点非常简单，就是枚举特性的使用。如果仔细看一下，可能一下午就能过一遍。所以本章的总结会很简单，重点放在枚举的常用方法和应用场景。嗯，如果真的想了解一下枚举的方方面面，真的一下午就够了的！！！
 
-###一、蛮荒时代
+### 一、蛮荒时代
 
 在 Java1.5之前是没有`enum`关键词的，所以遇到下面的需求，你会怎么办？
 
@@ -80,7 +80,7 @@ public handleResponse(Object responseStatusNum, Response response) {
 
 那么，怎么能更优雅的完成上面的功能呢？下面就进入本章的主题——枚举。
 
-###二、上帝说——要有光
+### 二、上帝说——要有光
 
 我们使用枚举来完成上面的 API：
 
@@ -237,11 +237,11 @@ public class _08_Food {
 */
 {% endhighlight java %}
 
-###枚举的特性
+### 枚举的特性
 
 上面两个小节大致介绍了枚举的好处，总的看来，枚举还是能提高代码的质量的，所以下面我们就再看看它的几个特性吧：）
 
-####1. 枚举最最基本的使用
+#### 1. 枚举最最基本的使用
 
 {% highlight java linenos %}
 /**
@@ -305,7 +305,7 @@ GROUND
 */
 {% endhighlight java %}
 
-####2. enum 实例自解释
+#### 2. enum 实例自解释
 
 一般来说，我们希望每个 enum 实例能够返回对自身的描述，就像前面小节那个宫保鸡丁、鱼香肉丝那样，对自己有个介绍。而不仅仅返回一个"宫保鸡丁"的 enum 实例名字。很幸运，这个功能的实现非常简单，我们可以提供一个构造器，专门负责处理这个额外的信息，然后添加一个方法，返回这个描述信息：
 
@@ -345,14 +345,14 @@ SOUTH: 3 this is south
 */
 {% endhighlight java %}
 
-####3. switch 天然属性
+#### 3. switch 天然属性
 
 在 switch 中使用 enum 是非常方便的。一般来说，switch 中只能使用整数值，而 enum 实例天生就有整数值的次序，并且可以用过 ordinal()方法取得次序。那么，对于 switch 而言：
 
 1. 可以使用 byte/char/short/int/enum 这几种，因为前面几个可以安全向上转型为 int
 2. 不能使用 long/double之类的，因为向下转型是不安全的，当然，更高版本的 jdk 已经支持 String 了，这个很赞！
 
-####4. values()的神秘之处
+#### 4. values()的神秘之处
 
 前面我们使用了 values()方法遍历 enum 实例，我们知道，enum 类都继承自 Enum 类（记得 java 是单继承吧，所以枚举类只能实现接口了），但是看 Enum 源码会发现，就没有 values()这个方法，奇了怪了，我们明明可以用啊。。。难道存在某种“隐藏的”方法？我们用反射搞个程序来看看其中的变化吧：
 
@@ -488,7 +488,7 @@ Exception in thread "main" java.lang.NullPointerException
 */
 {% endhighlight java %}
 
-####5. 使用接口组织枚举
+#### 5. 使用接口组织枚举
 
 前面我们菜谱 Recipe 的程序是使用 interface 组织的，因为**枚举不支持嵌套...sigh**。所以，我们当时只能这么搞：
 
@@ -542,7 +542,7 @@ interface Recipe {
 }
 {% endhighlight java %}
 
-####6. EnumSet 和 EnumMap 的使用
+#### 6. EnumSet 和 EnumMap 的使用
 
 对于 EnumSet，感觉很有意思，会写一个源码分析：[EnumSet 源码剖析](../EnumSet-source)，对于 EnumMap，它要求**map 中的 key 必须来自一个 enum。**和 EnumSet 一样，enum 实例定义时的顺序决定了其在 EnumMap 中的顺序，不是enum 实例的 hashcode（HashMap 的默认排序是根据 key 的 hashcode 升序）这点需要记住。。
 
@@ -598,7 +598,7 @@ public class _11_EnumMaps {
 }
 {% endhighlight java %}
 
-####7. 常量相关的方法
+#### 7. 常量相关的方法
 
 Java 的 enum 有一个非常有趣的特性，允许为 enum 实例编写方法，这样就能使enum 表现不同的行为，要实现常量相关的方法，需要为 enum 定义一个或多个abstract 方法，然后为每个 enum 实例实现该抽象方法。这个用法还是很实用的，超像多态有木有？
 
@@ -674,6 +674,6 @@ public class _13_NotClasses {
 }
 {% endhighlight java %}
 
-####8. 高级主题——多路分发
+#### 8. 高级主题——多路分发
 
 这一小节看了，代码也敲了，但是不太了解使用场景。google 了一下也没找到有价值的资料。在知乎上私信了 R 大，希望能收到个回信吧。。。

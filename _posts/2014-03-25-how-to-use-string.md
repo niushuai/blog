@@ -12,7 +12,7 @@ tags: Java字符串
 * StringBuilder 字符串变量（非线程安全）
 
 
-###一、定义
+### 一、定义
 
 查看API会发现，String、StringBuffer、StringBuilder都实现了 CharSequence接口，虽然它们都与字符串相关，但是其处理机制不同。
 
@@ -21,13 +21,13 @@ tags: Java字符串
 * StringBuilder：与StringBuffer类基本相同，都是可变字符换字符串序列，不同点是StringBuffer是线程安全的，StringBuilder是线程不安全的。
 在性能方面，由于String类的操作是产生新的String对象，而StringBuilder和StringBuffer只是一个字符数组的扩容而已，所以String类的操作要远慢于StringBuffer和StringBuilder。
 
-###二、使用场景
+### 二、使用场景
 
 * 使用String类的场景：在字符串不经常变化的场景中可以使用String类，例如常量的声明、少量的变量运算。
 * 使用StringBuffer类的场景：在频繁进行字符串运算（如拼接、替换、删除等），并且运行在多线程环境中，则可以考虑使用StringBuffer，例如XML解析、HTTP参数解析和封装。
 * 使用StringBuilder类的场景：在频繁进行字符串运算（如拼接、替换、和删除等），并且运行在单线程的环境中，则可以考虑使用StringBuilder，如SQL语句的拼装、JSON封装等。
 
-###三、分析
+### 三、分析
 
 简要的说， String 类型和 StringBuffer 类型的主要性能区别其实在于 String 是不可变的对象, 因此在每次对 String 类型进行改变的时候其实都等同于生成了一个新的 String 对象，然后将指针指向新的 String 对象。所以经常改变内容的字符串最好不要用 String ，因为每次生成对象都会对系统性能产生影响，特别当内存中无引用对象多了以后， JVM 的 GC 就会开始工作，那速度是一定会相当慢的。
 
@@ -53,7 +53,7 @@ String S1 = S2 +S3 + S4;
 
 这时候 JVM 会规规矩矩的按照原来的方式去做。
 
-###四、结论
+### 四、结论
 
 **在大部分情况下 StringBuffer > String**
 

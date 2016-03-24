@@ -5,7 +5,7 @@ categories: Java
 tags: Java编程思想
 ---
 
-###本章主题
+### 本章主题
 
 其实从目录结构我们就知道，这一章是讲JAVA的数据结构的。在日常使用中，这些容器类的使用非常频繁，但是能站在一定高度上认知它们的原理，就会理解的更深。回忆了一下，目前使用最频繁的有HashMap、ArrayList、Queue、Set。
 
@@ -26,11 +26,11 @@ tags: Java编程思想
 1. Collection：独立元素的序列，符合一条或者多条规则（比如Queue是FIFO，Stack是FILO等等，Set不能有重复元素）。**所有单元素容器都implements Collection接口**
 2. Map：一组成对的“键值对”对象，允许使用键来查找值
 
-###1. 一个tips
+### 1. 一个tips
 
 在平常代码中，不能因为接口而使用接口。虽然面向接口编程有一定的好处，但是接口无法调用实现类新增的方法。就好像```List<Apple> appleList = new ArrayList<Apple>();```，虽然我们以后重构可以马上改为```List<Apple> appleList = new LinkedList<Apple>();```，但是LinkedList在List基础上添加了方法，而这是List引用无法调用的。所以，不同的场景下有不同的用法。
 
-###2. 关于容器中添加一组元素
+### 2. 关于容器中添加一组元素
 
 在java.util包中的Arrays和Collections类中有很多使用方法，可以在一个Collection中添加一组元素。
 
@@ -74,7 +74,7 @@ public class AsListInference {
 
 很囧的是，书上的例子和我的结果不对。。我估计是jdk的版本不一致吧，记得有次switch()参数问题就是因为我使用的是jdk1.7才添加的，而线上环境使用的是jdk1.6。
 
-###3. List
+### 3. List
 
 **List承诺可以将元素维护在特定的序列中。**List是一个接口，它implements了Collection接口，并且在它的基础上添加了大量的方法。使得**可以在List的中间插入和移除元素**（看下源码的结构就非常清晰了）。有两种类型的List：
 
@@ -202,7 +202,7 @@ sub: [4, 5]
 */
 {% endhighlight java %}
 
-###4. 迭代器
+### 4. 迭代器
 
 这个也算是非常常用的东西。以前在学内部类的时候碰到一个类似的例子。就是迭代器是一个接口，每个容器在自己的内部实现一个private或者匿名的implements 迭代器接口（或者是extends迭代器接口的接口，比如ListIterator接口）内部类。这样客户端程序员就有了统一协议的迭代器去遍历容器。既保证了通用，也保证了安全。所以，**迭代器是一种设计模式**。
 
@@ -260,7 +260,7 @@ public class SimpleIteration {
 
 我是从这篇文章弄懂的：[遍历聚合对象中的元素——迭代器模式（五）](blog.csdn.net/lovelion/article/details/9992799)
 
-###5. Set
+### 5. Set
 
 Set不保存重复的元素，它的最重要用途是**查询归属性，即某个元素是否存在**。所以，在需要元素唯一性的场合，使用set更佳。
 
@@ -272,7 +272,7 @@ Set不保存重复的元素，它的最重要用途是**查询归属性，即某
 
 知道这些之后，我们就可以选择使用哪种Set了吧：普通使用HashSet即可；结果排序就用TreeSet；既需要查询、又需要保持插入顺序就用LinkedHashSet。
 
-###6. Map
+### 6. Map
 
 这玩意在我们项目中用的是最多的了，几乎所有重要的数据都是存在HashMap中了，速度快是第一要求。虽然Map的用法极其简单，但前不久刚因为HashMap的非线程安全被坑了一次，所以还是好好看一下什么地方容易出错。
 
@@ -307,7 +307,7 @@ public class Exercise17 {
     > Map.keySet()返回它的键的Set，Map.entrySet()返回键值对的Set。而Set是实现了Collection接口，Collection又可以使用foreach语法，所以可以还是用foreach语法遍历Map的key，或者KV对。
 
 
-###7. Queue
+### 7. Queue
 
 这个以前在写算法题的时候经常用，但都是自己实现的（用一个数组和一个”指针”就可以维护了）。现在想象，Queue在项目中用到最多的地方是**多线程的任务交接**。
 {% highlight java linenos %}
@@ -368,7 +368,7 @@ public class UsingCommand {
 }
 {% endhighlight java %}
 
-###8. PriorityQueue
+### 8. PriorityQueue
 
 优先队列的话，以前在算法用到的也挺多。比如用优先队列优化的Dijkstra算法。现在Java在5.0之后直接提供了。于是照着例子使用了一下：
 
@@ -431,7 +431,7 @@ public class PriorityQueueDemo {
 
 因为默认的String、Integer、Character都默认实现了Comparator接口。如果你自己也想按照某种排序方法来存放进队列，那么就要自己实现这个接口。也没啥难的。如果你不实现的话，你就只能往优先队列中插入一个元素（因为不需要比较），但是插入第二个的时候肯定就会抛出异常，因为编译器不知道怎么判断元素之间的优先级。
 
-###9. Collection和Iterator
+### 9. Collection和Iterator
 
 在C++中，容器没有公共的基类；而在Java中，Collection是描述所有序列容器的共性的根接口，因为它要表示其它若干个接口的共性而产生的接口。这样，C++就通过迭代器来表征容器的共性（如果你和我用相同的迭代器，咱俩就是好基友，比如    ```vector<Int>::iterator it```和```vector<bool>::iterator it```就具有共性```vector<T>::iterator```），但是在Java中，因为没有多重继承，所以是通过内部类来完成迭代器的。
 
@@ -596,7 +596,7 @@ public class NonCollectionSequence extends IntSequence {
 这样，我们不需要创建一个临时引用，直接返回一个结果的引用。会减轻垃圾回收的负载。同时，目的性更明确。我们仅仅需要返回一个迭代器即可。
 
 
-###10. Foreach和迭代器
+### 10. Foreach和迭代器
 
 在JAVA SE5提出了foreach()遍历机制，而这里引入了一个值得思考的问题：
 

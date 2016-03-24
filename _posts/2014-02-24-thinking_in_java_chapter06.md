@@ -5,13 +5,13 @@ categories: Java
 tags: Java编程思想
 ---
 
-###本章主题：
+### 本章主题：
 
 本章重点是类的public、protected、private、package的访问权限。权限从大到小为：
 
 > public、protectd(也提供**包访问权限**)、包访问权限（没有关键字修饰）、private
 
-###1. 杂碎的知识点
+### 1. 杂碎的知识点
 
 1. CLASSPATH变量就是让编译器找到**.class文件和jar包**用的。对于.class文件，你指定目录就可以了(一般为bin目录)；而对于jar包，因为是独一无二的，所以我们必须指定完整的路径，比如/data0/lib/rt.jar。
 2. 指定CLASSPATH之后，当编译器遇到库的import之后，就开始在CLASSPATH所指定的目录中查找，然后从全部.class文件中找出对应名称的类的.class文件,之后就可以正常使用了。
@@ -20,7 +20,7 @@ tags: Java编程思想
 	> C在绝大多数情况下是使用此功能来解决跨平台问题的，即程序代码的不同部分是根据不同的平台来编译的。由于JAVA自身可以自动跨越不同的平台，因此这个功能对JAVA而言是没有必要的。但是对于调试而言，使用这个标记还是很方便的。在Java中，可以通过不同的package来完成，调试用package debug，发布用package online。
 5. 看《head first java》没注意import static这个用法，import static就是少打几个字，但是会让程序的可读性降低。比如一个add()方法，你都不知道调用的是哪个包里面的方法。
 
-###2. JAVA权限访问
+### 2. JAVA权限访问
 
 主要有4个权限修饰，范围从大到小排序后：
 
