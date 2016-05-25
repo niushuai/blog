@@ -161,17 +161,19 @@ public class OrnametalGarden {
 * 调用了 sleep()方法使任务进入休眠状态
 * 调用了 wait()使线程挂起，直到线程得到了 notify()或者 notifyAll()消息（或者在 Java SE5中的 java.lang.util.concurrent 类库中等价的 signal()或 signalAll()消息），线程才会进入就绪状态
 * 任务等待某个输入/输出
-* 任务视图在某个对象上调用其他同步控制方法，但是对象锁不可用，因为另一个任务已经获取了这个锁
+* 任务试图在某个对象上调用其他同步控制方法，但是对象锁不可用，因为另一个任务已经获取了这个锁
 
-好了，通过上面的讲解。我们知道，有时希望能中终止处于阻塞状态的任务。什么意思呢？比如公园统计人流量的例子中，run()不是休眠100ms，而是100分钟，但是我现在想立即终止所有的统计任务。这怎么办？因为对处于阻塞状态的任务，你**不能等待其到达代码中可以检查其状态值的某一点，进而决定让它主动终止，那么唯一的做法就是强制这个任务跳出阻塞状态。**
+有时希望能终止处于阻塞状态的任务。什么意思呢？比如公园统计人流量的例子中，run()不是休眠100ms，而是100分钟，但是我现在想立即终止所有的统计任务。这怎么办？因为对处于阻塞状态的任务，你**不能等待其到达代码中可以检查其状态值的某一点，进而决定让它主动终止，那么唯一的做法就是强制这个任务跳出阻塞状态。**
 
 #### 2. 将任务从阻塞状态叫醒：中断机制
 
 这个概念大家都非常理解，同时对它的棘手性也都感同身受：
 
-> 早上10点上班，我8点就醒了，一看时间还早，就赖了一会床，8点半起来了，简单洗漱后享用了一顿美味的早餐。9点20出门上班，到公司9点50。啊，惬意的早餐。第二天早上，正在睡梦中的我被闹钟吵醒，拿起闹钟一看，卧槽！！！！9点半了！！！！！火速起床，脸也不洗了，饭也不吃了，提起裤子就跑。到公司门口才发现，工卡没带！！！oh，糟糕的一天啊~~
+> 早上10点上班，我8点就醒了，一看时间还早，就赖了一会床，8点半起来了，简单洗漱后享用了一顿美味的早餐。9点20出门上班，到公司9点50。啊，惬意的早餐。
+> 
+> 第二天早上，正在睡梦中的我被闹钟吵醒，拿起闹钟一看，卧槽！！！！9点50了！！！！！火速起床，脸也不洗了，饭也不吃了，提起裤子就跑。到公司门口才发现，工卡没带！！！oh，WTF~~
 
-很形象的例子，其实中断机制也同样麻烦。因为在 Runnable.run()方法的中间打断它，可能需要清理资源（工卡）。因为这一点，Java 的中断机制更像是抛出了异常，因此在 Java 线程中的这种类型的异常中断中用到了异常（这会滑向对异常的不恰当使用，因为这意味着你需要用异常来控制正常的代码逻辑）。为了在阻塞中终止任务，返回一个良好的状态，就必须仔细考虑 catch 子句以正确的清理所有事物。
+很形象的例子，其实中断机制也同样麻烦。因为在 Runnable.run()方法的中间打断它，可能需要清理资源（在这里可以类比为携带工卡）。因为这一点，Java 的中断机制更像是抛出了异常，因此在 Java 线程中的这种类型的异常中断中用到了异常（这会滑向对异常的不恰当使用，因为这意味着你需要用异常来控制正常的代码逻辑）。为了在阻塞中终止任务，返回一个良好的状态，就必须仔细考虑 catch 子句以正确的清理所有事物。
 
 那么，用代码来完成就用到了 Thread 类的 interrupt 相关函数：
 
@@ -182,14 +184,14 @@ public class OrnametalGarden {
 我们注意到，新的 concurrent 类库似乎在避免对 Thread 对象的直接操作，转而尽量通过 Executor 来执行所有操作。但是，本质来说，只是 concurrent 的 Executor 帮我们调用了这3个函数，所以还是要学习一下，直接去看文档即可。我简单总结一下这3个方法吧【自己看完文档、总结后再来看我的总结，不然直接看我的总结你还是立马就忘】：
 
 * interrupt()——中断一个线程。如果当前线程处于阻塞中（比如调用了 wait()、sleep()、join()等）那么线程中断状态会被清除，并且抛出一个`InterruptedException`。对于可中断的 I/O 操作也会清除中断状态，抛出一个 ClosedByInterruptedException（还记得前面说过，I/O 是不能中断的吗？注意这里针对的是可中断的 I/O 操作，所以就是后来又提到的 NIO，NIO 可以被中断）。这个是为了替换 Thread.stop()，虽然 stop 已经废弃，但是我们也应该了解 stop 被废弃是因为它中断线程太暴力，like a assault rifle（像一把来福枪的袭击）.这就会导致非原子操作会被直接干掉，很容易出问题。
-* interrupted()——是一个 static 方法。（被吐槽无数次了，因为命名不规范，导致有很多人用错。）检查线程的中断状态(Thread.status)，但是**会清除线程的中断状态**，如果你连续调用2次，就会返回 false（当然，是在第一次和第二次之间没有新的 interrupt 的情况下）
+* interrupted()——是一个 static 方法。（被吐槽无数次了，因为命名不规范，导致有很多人用错）检查线程的中断状态(Thread.status)，但是**调用时会清除线程的中断状态**，如果你连续调用2次，就会返回 false（当然，是在第一次和第二次之间没有新的 interrupt 的情况下）
 * isInterrupted()——仅仅检查线程的中断状态，不会清除线程的中断状态
 * 在文档中有个 `alive`的词让我很困惑：A thread interruption ignored because a thread was not alive at the time of the interrupt will be reflected by this method returning false.在 stackoverflow 上找到了答案：[When is a Java thread alive?](http://stackoverflow.com/questions/17293304/when-is-a-java-thread-alive)。意思是线程正在运行 run()方法 is still ongoing.
 
 那么，我们再来看 Executor 是如何帮助我们的：
 
 * 调用 shutdownNow()将发送一个 interrupt()调用给它启动的所有线程
-* 如果只想中断特定的任务，就要使用 submit()方法而不是 execute()来启动任务，前面说过 Runnable 的 run 是 void 的，而 Callable 的 run 会返回一个 Future<?>。也就是说通过 submit（）调用会持有任务的上下文。因为这里仅仅是为了调用 cancel()而不会调用 get()，所以可以用来中断任务。做法就是讲 true 传递给 cancel()
+* 如果只想中断特定的任务，就要使用 submit()方法而不是 execute()来启动任务，因为 `void Runnable.run()`，而 `Future<?> Callable.run`。也就是说通过 submit（）调用会持有任务的上下文，所以可以用cancel(ture)来中断任务。
 
 下面我们就通过使用 ExecutorService 来试试中断是如何工作的：
 
@@ -270,6 +272,7 @@ public class Interrupting {
 		Future<?> f = exec.submit(r);
 		TimeUnit.MILLISECONDS.sleep(100);
 		System.out.println("Interrupting " + r.getClass().getName());
+		// 中断某一个任务，而不是 Executor 管理的所有线程
 		f.cancel(true);
 		System.out.println("Interrupt sent to " + r.getClass().getName());
 	}
@@ -303,7 +306,7 @@ Abortin with System.exit(0)
 
 * 能够中断对 sleep()的调用（或者任何要求抛出 InterruptedException 的调用）
 * 不能中断正在试图获取 Synchronized 锁的线程
-* 不能中断正在试图执行 I/O 操作的线程
+* 不能中断正在试图执行 I/O 操作的线程（NIO 归为第一类）
 
 #### 3. 先来说 IO 阻塞吧
 
