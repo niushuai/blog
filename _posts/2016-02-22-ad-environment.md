@@ -72,7 +72,7 @@ Ad Exchange是一个互联网广告交易平台，它联系的是广告交易的
 
 ![img](../image/ad-2.png)
 
-五、Ad Exchange的优势
+### 五、Ad Exchange的优势
 
 上面我们介绍了Ad Exchange的由来，并通过一个例子了解了Ad Exchange是如何联系SSP和DSP进行工作的，那么，究竟Ad Exchange有哪些优势呢？
 
