@@ -5,7 +5,7 @@ categories: Java
 tags: Java
 ---
 
-###一、需求
+### 一、需求
 
  以前写C/C++的时候需要手工分配、回收内存，所以对平台相关的变量大小都得心里有谱。但是用了Java以后，依托Java强大的内存管理机制，对对象大小的概念就淡化了。只知道基本类型和引用各自的大小，而不知道对象内存大小由什么决定。最近碰到点内存问题，就有了这个需求。
 
@@ -15,7 +15,7 @@ tags: Java
 2. 编译TestClassSize代码：`javac -cp /a/b/c/classmexer.jar TestClassSize.java`
 3. 运行：`java -javaagent:/a/b/c/classmexer.jar -cp /a/b/c/classmexer.jar TestClassSize`
 
-###二、代码
+### 二、代码
 
 一共有3个测试代码，第一个如下：
 
@@ -79,7 +79,7 @@ Object size: 32
 
 上面3个代码的结果我们已经知道了，下面我们来讲一下原理。
 
-###三、原理
+### 三、原理
 
 每个对象的物理存储可以分为两部分:
 
@@ -103,6 +103,6 @@ Object size: 32
 
 但第二个程序好像不对劲，竟然输出了32字节。这是为什么呢？**因为还有内存对齐的功劳。**
 
-####内存对齐
+#### 内存对齐
 
 **JVM为了malloc与gc方便，指定分配的每个对象都需要是8字节的整数倍**，更详细的可以参考以前写过的一篇文章：[内存对齐原理](http://github.thinkingbar.com/alignment/)

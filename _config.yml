@@ -1,7 +1,8 @@
-markdown: rdiscount
+#markdown: rdiscount
 permalink: /:title/
 url: http://github.thinkingbar.com
-highlighter: pygments
+#highlighter: pygments
+highlighter: rouge
 gems: [jekyll-paginate]
 paginate: 100
 paginate_path: "page:num"
@@ -12,5 +13,5 @@ email: hnns1990@gmail.com
 duoshuo: niushuai
 weibo: 1891858481
 hub: niushuai
-safe: true
+safe: false
 about: "弱菜一枚。"

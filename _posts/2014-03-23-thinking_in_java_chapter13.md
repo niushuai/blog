@@ -5,7 +5,7 @@ categories: Java
 tags: Java编程思想
 ---
 
-###本章主题
+### 本章主题
 
 在Web应用中，字符串算是使用率最高的结构了。我们查看JDK文档会发现，**String对象是不变的**，String类中每一个看起来会修改String对象的方法，实际上都是创建了一个全新的String对象，以包含修改后的字符串内容。而最初的String对象则丝毫未动。
 
@@ -17,7 +17,7 @@ tags: Java编程思想
 
 具体参考原来的一篇博文：[Java字符串之String、StringBuffer、StringBuilder](http://www.thinkingbar.com/2014/02/12/java%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B9%8Bstring%E3%80%81stringbuffer%E3%80%81stringbuilder/)
 
-###1. String对象不可变
+### 1. String对象不可变
 
 这点在实际应用中特别重要：**String对象不可变**，查看JDK文档会发现，String类中每一个改变String对象的操作，实际上都是创建了一个全新的String对象，以包含修改后的字符串内容。而最初的String对象则丝毫不动。举个例子一看便知：
 
@@ -157,7 +157,7 @@ tips:
 
 不要出现```StringBuilder.append(a + ":" + c);```这样的代码，因为这样会让编译器在括号内重新生成一个StringBuilder对象来进行拼接。要确定一个append()中只含有一个字符串。
 
-###2. 无意识的递归
+### 2. 无意识的递归
 
 判断下面程序的输出：
 
@@ -184,7 +184,7 @@ public class InfiniteRecursion {
 
 改进方法很简单，调用父类(Object)的toString()，这样就可以了。但是道理我还没想清楚。
 
-###3. Java格式化输出
+### 3. Java格式化输出
 
 简单说几点就够了：
 
@@ -193,12 +193,12 @@ public class InfiniteRecursion {
 3. java.util.Formatter类
 4. ```String.format("%d %f", x, y);```
 
-###4. 正则表达式
+### 4. 正则表达式
 
 这个其实算是正则表达式在Java中的一种应用吧，其实正则表达式算是一种语法，推荐这个教程：[正则表达式30分钟入门教程](http://deerchao.net/tutorials/regex/regex.htm#grouping)
 
 然后还有一个小游戏：[东北linux - 正则表达式闯关](http://regexlinux.com)
 
-###5. Scanner
+### 5. Scanner
 
 因为在项目中写的Java程序是处于后台的，不会和用户有交互。所以没有用到输入相关的操作，但是在日常的使用中，扫描输入是一个非常常见的功能，比如ACM中JAVA的输入，记得当时是使用Scanner类。现在看到这一点，大概知道怎么用了。就是扫描标准输入流```Scanner scanner = new Scanner(System.in);```，然后取得值的方法和迭代器的next相似，是跳过区域的值。

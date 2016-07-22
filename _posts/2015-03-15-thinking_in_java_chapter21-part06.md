@@ -5,7 +5,7 @@ categories: Java
 tags: Java编程思想
 ---
 
-###21.7 新类库中的构件
+### 21.7 新类库中的构件
 
 Java SE5的 **`java.util.concurrent`** 包中引入了大量设计用来解决并发问题的新类。学习这些“工具类”就可以专注于自己想要实现的功能而不是线程的同步、死锁等一堆令人头疼的细节。这一小节内容非常多，建议的学习方法是：
 
@@ -15,7 +15,7 @@ Java SE5的 **`java.util.concurrent`** 包中引入了大量设计用来解决�
 
 嗯，上面总结了一下学习这个小节的步骤（其实是因为太多了。。。。。我不想全看 T_T），那么我们就把目录摘出来看看吧。
 
-###一、前言
+### 一、前言
 
 下面是21.7小节的目录。嗯，发现一共是7个构件，现在从**文档**出发，逐个浏览一下（Mac 下有 Dash 这样的神器真是幸福啊，hiahiahiahia~）
 
@@ -38,11 +38,11 @@ Java SE5的 **`java.util.concurrent`** 包中引入了大量设计用来解决�
 * Semaphore：正常的锁（concurrent.Lock 或者 synchronized）在任何时刻都只能允许一个任务访问资源，而 **Semaphore （计数信号量）允许 N 个任务同时访问这个资源。**（是不是有池子的感觉嘞？？）
 * Exchanger：两个任务之间交换对象的栅栏。意思是各自拥有对象，离开栅栏时，就拥有对方持有的对象了。典型就是一个任务生产对象，一个任务消费对象。（值得思考，为啥要交换？我直接用一个容器或者 BlockingQueue 完全可以解耦啊，这个到底用在哪里？）
 
-###二、代码来了
+### 二、代码来了
 
 下面给每个构件都写个小例子，然后总结一下它们产生的原因和最佳使用场景。go go go!!
 
-####1. CountDownLatch
+#### 1. CountDownLatch
 
 文档也太详细了吧：
 
@@ -98,7 +98,7 @@ class Driver { // ...
 
 文档已经够清晰了，这里就不多废话了。
 
-####2. CyclicBarrier
+#### 2. CyclicBarrier
 
 直译为循环栅栏，通过它可以让**一组线程全部到达某个状态后再同时执行，也就是说假如有5个线程协作完成一个任务，那么只有当每个线程都完成了各自的任务（都到达终点），才能继续运行（开始领奖）**。循环的意思是当所有等待线程都被释放（也就是所有线程完成各自的任务，整个程序开始继续执行）以后，CyclicBarrier 可以被重用。而上面的 CountDownLatch 只能用一次。
 
@@ -203,7 +203,7 @@ Thread[pool-1-thread-4,5,main] 完成任务！等待队友 ing...
 */
 {% endhighlight java %}
 
-####3. DelayQueue
+#### 3. DelayQueue
 
 DelayQueue 就是一个无界队列，是用 PriorityQueue 实现的 BlockingQueue，如果要使用 DelayQueue，其中的元素必须实现 Delayed 接口，Delayed 接口有2个方法需要重写：compareTo()和 getDelay()方法。因为使用的是优先队列，所以需要确定元素之间的优先级，那么重写 compareTo()就很明显了，又为了满足 DelayQueue 的特性（每次队头是延期到期时间最长的元素），那么就需要知道元素的到期时间，而这个时间就是通过 getDelay()获取的。
 
@@ -211,7 +211,7 @@ DelayQueue 就是一个无界队列，是用 PriorityQueue 实现的 BlockingQue
 
 写了一个例子，但是因为输出有点问题，就看了一下 DelayQueue 的源码，发现里面的实现是委托给 PriorityQueue 的，于是写了篇文章跟了下 PriorityQueue 的基本操作（ 也是 DelayQueue 的基本操作），结合文档和源码和我给的例子，应该就非常 easy 了：[PriorityQueue 源码剖析](../priorityqueue)
 
-####4. PriorityBlockingQueue
+#### 4. PriorityBlockingQueue
 
 哈哈，前面刚看完 PriorityQueue 的源码，这里就遇到了 PriorityBlockingQueue，其实 PriorityBlockingQueue就是用 PriorityQueue 实现的 BlockingQueue，所以没啥可说的。写了个例子低空掠过：
 
@@ -303,7 +303,7 @@ public class WhoGoFirst {
 */
 {% endhighlight java %}
 
-####5. ScheduledExcutor
+#### 5. ScheduledExcutor
 
 这个小节讲的是定时触发任务，知道 crontab 的应该都不陌生。看完以后我 google 了一下，发现几个类似功能的类，先知道有这几个东西，用到了再具体看文档吧。
 
@@ -375,7 +375,7 @@ public class ScheduledThreadPoolExecutorTest {
 }
 {% endhighlight java %}
 
-####6. Semaphore
+#### 6. Semaphore
 
 Semaphore 是一个计数信号量，平常的锁（来自 concurrent.locks 或者内建的 synchronized)再任何时刻都只能允许一个任务访问一项资源，但是 Semaphore 允许 N 个任务同时访问这个资源。你还可以将信号量看做是在向外分发使用资源的“许可证”，尽管实际上没有使用任何许可证对象。
 
@@ -667,7 +667,7 @@ d: 16, Fat id: 17, Fat id: 6, Fat id: 18, Fat id: 20, Fat id: 21, Fat id: 22, Fa
 */
 {% endhighlight java %}
 
-####7. Exchanger
+#### 7. Exchanger
 
 终于来到21.7小节的最后一个构件了！！！！
 

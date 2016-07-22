@@ -5,10 +5,10 @@ categories: Java
 tags: Java编程思想
 ---
 
-###本章主题：
+### 本章主题：
 > JAVA中的数据都是通过使用操作符来操作的。作者建议熟悉C/C++语法的人，可以快速浏览本章和下一章，看到这句话顿时爽歪歪了，吼吼~
 
-###1. JAVA引用的一个坑
+### 1. JAVA引用的一个坑
 
 {% highlight java linenos %}
 Integer n1 = new Integer(47);
@@ -19,7 +19,7 @@ System.out.println(n1 != n2);
 
 如果是一个C/C++程序员，毫不犹豫就会得出答案为：```true false```。但是在JAVA中，"=="比较的只是n1和n2这两个引用，而它们指向了不同的对象，所以它们是不相等的。正确答案应该是```false true```。那么，如果我想比较n1和n2指向的对象是否相等呢？答案是使用equals()，比如n1.equals(n2)即可。而这个equals()也不简单，下面来谈谈。
 
-###2. 相等问题之——equals()和hashCode()
+### 2. 相等问题之——equals()和hashCode()
 
 在JAVA使用中，经常会碰到需要判断引用/对象是否相等的情况。但因为JAVA本身的语言特性，这点特别容易产生bug，所以应该彻底搞清楚才行。
 
@@ -67,7 +67,7 @@ public class B {
 
 * [Java 中正确使用 hashCode 和 equals 方法](http://www.oschina.net/question/82993_75533)
 
-###3. JAVA不必小心把"=="写成"="了
+### 3. JAVA不必小心把"=="写成"="了
 
 在JAVA中，“与”、“或”、“非”操作只可以应用在**布尔值**上面。与C/C++不同的是，不可将一个非布尔值当做布尔值在逻辑表达式中使用。比如:
 

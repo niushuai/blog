@@ -5,13 +5,13 @@ categories: Java
 tags: PriorityQueue
 ---
 
-###一、前言
+### 一、前言
 
 昨天看《Java 编程思想》21.7小节的 DelayQueue 的时候，写了一个小例子。但是程序的输出和我的预期输出不符，debug 了一下是 add 出了问题，但是因为已经23：30了就直接睡了，今天把这个坑填了。
 
 从文档我们知道，DelayQueue 是一个使用 PriorityQueue 的 BlockingQueue，其中优先级是由 Delayed 接口的 getDelay()方法返回的延迟到期时间决定的。问题就出在 DelayQueue.add()方法中。其实跟一下代码很好理解，我只是备忘一下。。。。。
 
-###二、问题引入
+### 二、问题引入
 
 首先描述一下我写的程序的需求：
 
@@ -206,7 +206,7 @@ student 16 未完成考试...期望用时：148, 实际用时：120
 {% endhighlight java %}
 
 上面的程序能完成我的需求，但是考试结束后的学生竟然不是按照期望用时排序的，让我很诧异。因为加入队列的 compareTo() 我已经重写了啊，是按照期望用时(workTime)从小到大排序的，怎么输出就不对了呢？那个141是什么鬼！！！！刚开始以为是 compareTo 有 bug？但是compareTo()已经写过 N 次，就是简单的 ASCII 码比较，没出 bug 的可能啊，然后怀疑是程序逻辑有问题，就打印了 DelayQueue，结果果然不是按照期望用时排序的，于是 debug 了一下 add() 方法才算恍然大悟。。。。额，也就是本文的目的了：PriorityQueue 源码剖析。
-###三、PriorityQueue 源码剖析
+### 三、PriorityQueue 源码剖析
 
 先上干货：
 
@@ -214,7 +214,7 @@ student 16 未完成考试...期望用时：148, 实际用时：120
 
 如果数据结构没白学，这个类的核心已经算掌握80%了，剩下的就是一些小细节了。额，我就简单八一八。。
 
-####0. 类属性 & 类方法
+#### 0. 类属性 & 类方法
 
 {% highlight java linenos %}
 //默认初始化大小，11是什么鬼！！！
@@ -246,7 +246,7 @@ private void grow(int minCapacity)
 private int indexOf(Object o)  
 {% endhighlight java %}
 
-####1. add()方法
+#### 1. add()方法
 
 堆在增加元素后，需要进行调整才能维护其最大堆或者最小堆的性质，下面以最小堆为例：
 
@@ -335,7 +335,7 @@ private void siftUpComparable(int k, E x) {
 }  
 {% endhighlight java %}
 
-####2. peek() 出队（不删除元素)
+#### 2. peek() 出队（不删除元素)
 
 {% highlight java linenos %}
 // 这个很简单，只是取出了其中的首位元素，但是并没有删除，不需要调整堆。
@@ -346,7 +346,7 @@ public E peek() {
 }  
 {% endhighlight java %}
 
-####3. poll() 出队（删除最小元素）
+#### 3. poll() 出队（删除最小元素）
 
 出队过程:
 
@@ -404,7 +404,7 @@ private void siftDownComparable(int k, E x) {
 {% endhighlight java %}
 
 
-####4. removeAt() 删除(这个有点意思，是删除堆中的某一个节点)
+#### 4. removeAt() 删除(这个有点意思，是删除堆中的某一个节点)
 
 {% highlight java linenos %}
 private E removeAt(int i) {  
@@ -432,7 +432,7 @@ private E removeAt(int i) {
 }
 {% endhighlight java %}  
 
-####5. clear() 清除
+#### 5. clear() 清除
 
 {% highlight java linenos %}
 // 这个很简单，只是遍历数组，删除（设为null）
@@ -444,7 +444,7 @@ public void clear() {
 } 
 {% endhighlight java %}
 
-####6. contains() 是否包含
+#### 6. contains() 是否包含
 
 {% highlight java linenos %}
 // 这个过程实际上就是查找过程
@@ -453,7 +453,7 @@ public boolean contains(Object o) {
 }  
 {% endhighlight java %}
 
-####7. idnexOf() 查找
+#### 7. idnexOf() 查找
 
 {% highlight java linenos %}
 private int indexOf(Object o) {  

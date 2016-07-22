@@ -5,7 +5,7 @@ categories: Java
 tags: EnumSet
 ---
 
-###long long ago...
+### long long ago...
 
 在很久以前，盘古开天辟地，女娲补天……咳咳，跑题了= =现在 PM大大提出了一个这样的需求:
 
@@ -59,7 +59,7 @@ public class LightControl {
 2. 修改代码非常容易出错
 3. 每个比特无法透漏该比特位代表的含义
 
-###EnumSet 从天而降
+### EnumSet 从天而降
 
 Java SE5引入了 EnumSet，是**为了通过 enum 创建一种替代品，以替代传统的基于 int 的“位标志”。**
 
@@ -109,7 +109,7 @@ public class _25_EnumSets {
 
 你会发现，EnumSet 真的很棒啊，因为它既实现了功能，又提供了和 bit 操作一样的性能，同时还屏蔽了位操作带来的晦涩难懂的代码。而且提供的功能很多，非常方便。那么，它是怎么实现的呢？下面就来揭开它的面纱。
 
-###EnumSet 源码赏析
+### EnumSet 源码赏析
 
 看 EnumSet 的源码总共加起来有1个半小时的样子，其实代码量很少。。但是写的很精彩，也学习/复习了不少的知识，收获还是挺大的，先罗列一下学到的东西：
 
@@ -124,7 +124,7 @@ public class _25_EnumSets {
 
 嗯，上面我把时间也给出了：1个半小时。感觉还是自己琢磨理解的更深，所以强烈建议自己搞定上面的问题后再看我的分析（其实搞定了也就完全不用看了= =）。。。
 
-####整体概览
+#### 整体概览
 
 再次重复一下 EnumSet 的着力点：
 
@@ -140,15 +140,15 @@ public class _25_EnumSets {
 
 咦，这个64是什么鬼？哦，原来是 EnumSet 内部用的 Long 来进行位操作，RegularEnumSet应用于一个 Long 元素的 set，很显然 JumboEnumSet 是应用于一个 Long[]元素的 set 喽。整体而言 位移操作都是一样的，只不过 JumboEnumSet 是数组类型的位移操作。这里我们主要学习一下位移操作即可，所以后面的代码都是**取自 RegularEnumSet。**
 
-####1. 原码、反码、补码
+#### 1. 原码、反码、补码
 
 不重复造轮子了，google 了一篇”不错“的文章：[原码, 反码, 补码 详解](http://www.cnblogs.com/zhangziqiu/archive/2011/03/30/computercode.html)。之所以加引号，是因为评论里有几个说楼主的理解大部分都是错的= =（38楼评论）额，附上38楼提供的 wiki：[Signed number representations](https://en.wikipedia.org/wiki/Signed_number_representations)
 
-####2. Java 位移操作符
+#### 2. Java 位移操作符
 
 [Oracle官方文档](http://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.19)
 
-####3. 增删操作
+#### 3. 增删操作
 
 看过位移操作后，再看 RegularEnumSet 的增删函数就非常简单了，比较有意思的是这个类判断元素是否添加/删除成功的方法是这么实现的：
 
@@ -180,7 +180,7 @@ public boolean remove(Object e) {
 
 判断元素有没有添加/删除成功，并不是去判断对应比特位上的数是0还是1，而是看添加/删除后elements数值有没有变化，这种方法在有大量添加/删除操作的场景中能发挥一定的作用，以后可以借鉴。
 
-####4. EnumSet.size()
+#### 4. EnumSet.size()
 
 怎么感觉像看算法题呢。。。这个说白了就是求 Long 的二进制中1的个数。编程之美里面有：[二进制中1的个数](http://www.newsjz.com/wxqgr/xxas/UploadFiles_3822/201107/2011072622450875.pdf)
 
@@ -201,7 +201,7 @@ public static int bitCount(long i) {
 
 具体的算法可以 google 一下，很多解释的。基本思想是把二进制中相邻位相加，然后以2位为单位再合并，再4位合并……直到把所有位都合并了。
 
-####5. addAll()
+#### 5. addAll()
 
 如果调用 `EnumSet.allOf()`，那么在枚举类元素小于64时会调用RegularEnumSet中的addAll()函数，addAll()函数的实现只有一行：
 
@@ -229,7 +229,7 @@ void addAll() {
 
 知道了这个技巧，我们就延伸一下，看看 Long 是如何运用这个 trick 的。
 
-####6. rotateLeft()/rotateRight()
+#### 6. rotateLeft()/rotateRight()
 
 在 Long 中有两个方法使用了同样的技巧：
 
@@ -246,7 +246,7 @@ public static long rotateRight(long i, int distance) {
 
 > 假如 i 只有8比特，1010 0000，那么循环左移2位的结果就是 10 0000 10.明白了吧！！！擦，要是我自己想。。。肯定写不出来这么简洁优雅的代码。。。
 
-####7. next()
+#### 7. next()
 
 对于 next 而言，首先我们需要拿到 elements 中迭代器当前元素的下一个非0比特位，又因为使用 Long 类型从低到高存储枚举是否在 set 中，**同时EnumSet 的 enum 实例顺序必须和枚举类声明顺序一致，**所以必须从低位到高位遍历elements 的比特位。也就是说要找到二进制数**最右边的1的比特位**，那下一次要找的就是二进制数中倒数第二个为1的比特位。这么一想，还是挺麻烦的。。。。看了下实现，服！
 

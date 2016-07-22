@@ -13,9 +13,8 @@ layout: page
   <li class="listing-item">
     <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
     <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
-    {% if site.truncate %}
-    <p>{{ post.content | strip_html | truncate: site.truncate }}</p>
-    {% endif%}
+    <!-- 文章中想显示摘要，可以将下面注释去掉。可显示100字摘要-->
+    <!--<p>{{ post.content | strip_html | truncate:100 }}</p>-->
   </li>
 {% endfor %}
 </ul>

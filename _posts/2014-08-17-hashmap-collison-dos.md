@@ -5,7 +5,7 @@ categories: 计算机知识
 tag: Hash
 ---
 
-###前言
+### 前言
 
 前几天看 HashMap 源码的时候，在网上搜了一阵子相关资料。遇到一个和 HashMap 相关的问题。因为前阵子爆出了各种数据库被黑的安全事件，同样 HashMap 也存在相同的漏洞。**有恶意的人会通过这个安全弱点会让你的服务器运行巨慢无比**。这个攻击的原理非常简单：
 
@@ -13,7 +13,7 @@ tag: Hash
 
 目前这个问题出现于很多语言开发的服务上，而 Perl 在很久前修复了这个安全漏洞。
 
-###一、攻击原理
+### 一、攻击原理
 
 上面其实已经提到了这篇文章的重点，这里详细说明一下。我们以 Java 为例，平时我们在程序中可能会频繁使用到这样一段代码：
 
@@ -35,7 +35,7 @@ tag: Hash
 
 其实，**request 中的 Parameter 就是用 HashMap 存储的啊**。所以，我可以给你后台提交一个有100K 字段的表单，这些字段名都被我精心地设计过，他们全是 Hash Collision ，于是你的 Web Server 处理这个表单的时候，就会建造这个 HashMap，于是在每插入一个表单字段的时候，都会先遍历一遍你所有已插入的字段看看有没有重复的 key，因为全是 Hash Collision，所以 HashMap 就退化成大链表，如果我请求的规模特别特别大，你的服务器 CPU 一下就100%了（因为这是 O(N^2)复杂度啊！！！）。你如果觉得这100K 没什么压力，那么我就`while(true)`发很多请求，那么服务器分分钟就跪了。。。。
 
-###二、怎样攻击呢？
+### 二、怎样攻击呢？
 
 我们可以在 stackoverflow 上看到这个讨论：[Application vulnerability due to Non Random Hash Functions](http://stackoverflow.com/questions/8669946/application-vulnerability-due-to-non-random-hash-functions)
 
@@ -80,7 +80,7 @@ tag: Hash
 
 在攻击时，我只需要把这些数据做成一个 HTTP POST 表单，然后写一个无限循环的程序，不停地提交这个表单。当然，如果更不要脸的话，可以把这个表单做成一个跨站脚本，找一些网站的漏洞放上去，于是就能过用户的力量帮你从不同的IP来攻击某服务器。
 
-###三、怎么修复这个漏洞？
+### 三、怎么修复这个漏洞？
 
 要防守 HashMap Collision，可以使用下面的方法：
 

@@ -24,7 +24,7 @@ tags: Bash
 > 凡是用账户名、密码登陆的就是login shell；不通过账户名、密码登陆的就是nonlogin shell。
 下面我们详细说一下bash环境是如何加载的。
 
-###一、login shell
+### 一、login shell
 
 对login shell来说，它只会读2个文件：
 
@@ -33,7 +33,7 @@ tags: Bash
 
 第二个的意思是3个文件依次查找，找到就不读后面的。比如3个文件都有，先找~/.bash_profile，系统发现有，就读取这个文件，后面2个就不读取了；如果没有~/.bash_profile，但是有~/.bash_login，那么就读取~/.bash_login，不读取~/.profile；如果前两个都没有，才会读取~/.profile。
 
-####1./etc/profile
+#### 1./etc/profile
 
 那么，/etc/profile究竟做了什么事情呢？我们先把/etc/profile拿出来看一下
 
@@ -117,7 +117,7 @@ export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib
 
 因为/etc/profile对所有登陆用户生效，所以如果想帮所有登陆用户设置整体bash环境，那么就可以在这里修改。比如上面的HADOOP_HOME/JAVA_HOME/ANT_HOME，因为所有登陆用户都需要，所以就在/etc/profile中设置，当用户登陆后会自动加载的。
 
-####2.~/.bash_profile
+#### 2.~/.bash_profile
 
 二话不说，先看看这个文件是干嘛滴
 
@@ -248,7 +248,7 @@ fi
 1.  加载登陆用户的专有变量，比如登陆用户的主文件夹、MAIL等等
 2.  根据UID区分不同用户，根据对应权限加载其他bash环境配置
 
-###二、nonlogin shell
+### 二、nonlogin shell
 
 对于nonlogin shell，读取的只有一个文件：
 
@@ -256,11 +256,11 @@ fi
 
 其实，我们从上面login shell的加载过程就应该能猜出来的。因为从.bash_profile出来的时候系统的一些配置（如$PATH）、登陆用户的个人变量（如$MAIL、$USERNAME）都已经设置过了。那么接下来就是根据用户UID来进行加载的（我们必须清楚：nonlogin shell虽然没有登陆，但是它是有UID信息的）。所以，.bashrc直接到达/etc/bashrc进行加载umask、PS1等等。
 
-###三、为什么要区分login shell 和nonlogin shell？
+### 三、为什么要区分login shell 和nonlogin shell？
 
 这个问题必须从用户说起，我们知道，linux是多用户、多任务系统，所以不想windows那样直接是管理员。我们各个用户之间的使用是独立的，但有些东西是共有的（比如我想更新一下索引数据库updatedb），这个东西是root管理的，我们这些苦逼的普通用户是无法更新的。于是我们可以su（switch user）到root后更新（前提是你有root密码）。
 
-###1.su、su -、sudo的区分
+### 1.su、su -、sudo的区分
 
 *   su：nonlogin shell，不完全切换到root
 *   su -：login shell，完全切换到root
@@ -277,7 +277,7 @@ fi
 
 但是问题是，如果用户都知道root的密码，那么很容易出现误操作。所以，为了安全起见，我给可以使用root命令的用户建立一个白名单-&gt; /etc/sudoers，这样，每当一个用户需要用到root权限时，系统管理员登陆root账号，通过visudo命令在/etc/sudoers中添加该用户为白名单，就解决了普通用户使用root和系统安全的问题。
 
-####2. login shell和nonlogin shell
+#### 2. login shell和nonlogin shell
 
 其实，通过su和su -的例子，我们就应该明白为啥有这两种shell模式的原因了。因为某些场景下，比如一个团队合作，有A/B两个账户，A工作需要用到B提供的数据，但是B的数据放在B才能进入的目录中，而A完整这个任务需要使用A环境的变量才能完成，那么我可以使用nonlogin shell使用B账户，这样就有了A环境+B账户的数据；而如果A活干完了，要开始干B的活了，而B活需要用到很多B账户的环境变量，那么我就用login shell登陆B。
 

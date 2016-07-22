@@ -15,7 +15,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 24.45-b08, mixed mode)
 
 接下来直接开始上代码了。
 
-###一、HashMap 的实现原理
+### 一、HashMap 的实现原理
 
 我们先从整体上把握一下 HashMap 的设计，其实也很简单，就是哈希表的使用，我们直接上图说明会更好。
 
@@ -25,7 +25,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 24.45-b08, mixed mode)
 
 > HashMap 使用哈希表作为底层数据结构，而哈希表的实现是结合**数组和链表**。我们知道数组的优点是分配连续内存，寻址迅速；而链表对于插入删除特别高效，所以综合使用数组和链表，就能进行互补。我们在插入删除的时候，首先根据 key 的 hash 值进行数组定位，每个数组都挂着一个链表，代表相同的 key 的元素，如果 hash 函数设计得当，基本不会出现链表过长的问题，这样就可以做到 O(1)插入、查询，所以极其高效。
 
-###二、文档
+### 二、文档
 
 第二步就是去看下文档，看看能不能捞到有效的信息。这里我直接 copy 一下官方文档吧。
 
@@ -51,9 +51,9 @@ Java HotSpot(TM) 64-Bit Server VM (build 24.45-b08, mixed mode)
 
 上面就是 HashMap 的文档，重要的地方我用黑体字注明并进行了简短的说明。下面就从代码开始剖析了。
 
-###三、源码剖析
+### 三、源码剖析
 
-####1. 类的声明
+#### 1. 类的声明
 
 首先我们看这个类都继承、实现了哪些东西：
 
@@ -63,7 +63,7 @@ public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneabl
 
 我们可以看到它实现了 Map 接口，继承了 AbstactMap 类。同时也实现了 Cloneable 和序列化接口。我们知道 HashMap 本质就是 Map 接口的实现，为什么又继承了 AbstactMap 呢？因为大部分的 AbstractXX 都是实现了一部分的 XX 接口，只留下一部分重要的方法让我们实现。所以当个人需要实现 Map，但是又不想实现全部方法，就可以去继承 AbstractMap 类了。
 
-####2. 类的成员属性
+#### 2. 类的成员属性
 
 还是直接先上源码：
 
@@ -236,7 +236,7 @@ static class Entry<K,V> implements Map.Entry<K,V> {
     }
 {% endhighlight java %}
 
-####3. 构造函数
+#### 3. 构造函数
 
 既然看完了 HashMap 的构造，下面我们就来看看如何初始化一个 HashMap，也就是构造函数。一共有4种：
 
@@ -296,7 +296,7 @@ static class Entry<K,V> implements Map.Entry<K,V> {
     }
 {% endhighlight java %}
 
-####4. put()方法——核心之一
+#### 4. put()方法——核心之一
 
 在使用 HashMap 时，最常用的肯定就是 get/set 操作了。当然，要先说 put，因为选择如何放入，才能决定 get 怎样进行。下面是 put()方法的源码：
 
@@ -508,7 +508,7 @@ PS:
     }
 {% endhighlight java %}
 
-####5. get()方法——核心之二
+#### 5. get()方法——核心之二
 
 下面是二个核心——`get()`方法，我们来看一下源码：
 
@@ -569,7 +569,7 @@ PS:
     }
 {% endhighlight java %}
 
-####6. 删除元素
+#### 6. 删除元素
 
 对于删除，很简单。就是先 get 到 index，然后从链表中删除这个节点即可。源码如下：
 
@@ -632,7 +632,7 @@ PS:
     }
 {% endhighlight java %}
 
-####7. 迭代器
+#### 7. 迭代器
 
 下面是 HashMap 内部实现的迭代器，在看《Thinking In Java》第十章内部类的时候，就提到过了容器的迭代类都是内部类，外部定义了一个迭代器的接口。每个容器在内部实现这个接口，那么使用容器的时候就有了统一的接口。HashMap 一共实现了下列几个迭代器：
 
