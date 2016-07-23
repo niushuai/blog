@@ -3,11 +3,24 @@
 <plist version="1.0">
 <dict>
 	<key>order</key>
-	<array/>
+	<array>
+		<string>2016-07-23-how-to-read-a-book.md</string>
+	</array>
 	<key>resolutionData</key>
 	<dict>
 		<key>order</key>
-		<dict/>
+		<dict>
+			<key>2016-07-23-how-to-read-a-book.md</key>
+			<dict>
+				<key>lastModification</key>
+				<real>490959827.67906201</real>
+				<key>version</key>
+				<dict>
+					<key>07c21978c4ba81bdabfffec5c745f75f5f54a60eba40009381f2495881ef3c1c</key>
+					<integer>30</integer>
+				</dict>
+			</dict>
+		</dict>
 	</dict>
 	<key>storeFormatVersion</key>
 	<integer>1</integer>
@@ -16,7 +29,7 @@
 		<key>order</key>
 		<dict>
 			<key>07c21978c4ba81bdabfffec5c745f75f5f54a60eba40009381f2495881ef3c1c</key>
-			<integer>24</integer>
+			<integer>30</integer>
 		</dict>
 	</dict>
 </dict>
