@@ -12,13 +12,13 @@ tags: Java编程思想
 1. 初始化(P96页)
 2. 清理
 
-C++提出了构造函数和析构函数。为了提高效率，这两项工作均由程序员完成。而JAVA仅提供了构造函数供程序员使用，对于清理工作，JAVA自带垃圾回收器。虽然安全性有了保证，但是也牺牲了一定的效率。
+C++提出了构造函数和析构函数。为了提高效率，这两项工作均由程序员完成。而Java仅提供了构造函数供程序员使用，对于清理工作，Java自带垃圾回收器。虽然安全性有了保证，但是也牺牲了一定的效率。
 
 所以，本章的主题就是初始化和清理。
 
 ### 1. this关键字
 
-假如A类有一个fun(int i)函数，现在A类创建了2个对象，2个引用指向了这两个新对象，2个引用为a和b。那么a和b调用fun(int i)的时候，fun(int i)怎么区分哪个是a哪个是b呢？其实这个工作是通过this实现的。编译器在编译的时候，会把```a.fun(1)```和```b.fun(2)```转化成```A.fun(a, 1)```和```A.fun(b, 2)```的。当然，这是编译器在幕后做的，我们使用的时候不能写成这种形式。
+假如A类有一个fun(int i)函数，现在A类创建了2个对象，2个引用指向了这两个新对象，2个引用为a和b。那么a和b调用fun(int i)的时候，fun(int i)怎么区分哪个是a哪个是b呢？其实这个工作是通过this实现的。编译器在编译的时候，会把`a.fun(1)`和`b.fun(2)`转化成`A.fun(a, 1)`和`A.fun(b, 2)`的。当然，这是编译器在幕后做的，我们使用的时候不能写成这种形式。
 
 ### 2. 构造函数中调用构造函数
 
@@ -29,28 +29,28 @@ C++提出了构造函数和析构函数。为了提高效率，这两项工作�
 
 ### 3. 对static的一点讨论
 
-3. 对于static来说，其实有一些争议。因为我们知道static是类的属性，与对象无关。但是JAVA标榜自己是完全面向对象的程序语言。类与类之间的沟通完全是通过对象的消息进行通信的。但是static却和对象没有关系，所以违背了JAVA的面向对象的说法。但是，我们知道事情都有两面性，在适当的时候能运用static还是非常有必要的，只是如果你程序中大量出现static的时候，就应该重新考虑一下设计的是否合理了。
+3. 对于static来说，其实有一些争议。因为我们知道static是类的属性，与对象无关。但是Java标榜自己是完全面向对象的程序语言。类与类之间的沟通完全是通过对象的消息进行通信的。但是static却和对象没有关系，所以违背了Java的面向对象的说法。但是，我们知道事情都有两面性，在适当的时候能运用static还是非常有必要的，只是如果你程序中大量出现static的时候，就应该重新考虑一下设计的是否合理了。
 
-### 4. JAVA垃圾回收
+### 4. Java垃圾回收
 
-首先大概了解一下JAVA垃圾回收机制的几种工作方式：
+首先大概了解一下Java垃圾回收机制的几种工作方式：
 
-1. [Java GC 机制学习](http://github.thinkingbar.com/garbage_collection)
-2. [Java 垃圾回收机制](http://www.thinkingbar.com/2013/11/java%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/)
+1. [Java GC 机制学习][1]
+2. [Java 垃圾回收机制][2]
 
-**时刻牢记：使用垃圾回收器的唯一原因是为了回收程序不再使用的内存。**所以对于与垃圾回收有关的任何行为来说（尤其是finalize()方法），它们也必须**同内存及其回收有关**。意思就是说，如果你的程序中有一个地方跟内存无关，那么垃圾回收器就不会管。比如JAVA中调用的C/C++程序，而C/C++程序申请/释放内存的话与JAVA无关，那么JAVA垃圾回收器就不会对这个内存起作用。而finalize()就是为解决这个问题提出的，先看以下三点：
+**时刻牢记：使用垃圾回收器的唯一原因是为了回收程序不再使用的内存。**所以对于与垃圾回收有关的任何行为来说（尤其是finalize()方法），它们也必须**同内存及其回收有关**。意思就是说，如果你的程序中有一个地方跟内存无关，那么垃圾回收器就不会管。比如Java中调用的C/C++程序，而C/C++程序申请/释放内存的话与Java无关，那么Java垃圾回收器就不会对这个内存起作用。而finalize()就是为解决这个问题提出的，先看以下三点：
 
 1. 对象可能不被垃圾回收
-2. 垃圾回收并不等于“析构“
+2. 垃圾回收并不等于”析构造”
 3. 垃圾回收只与内存有关
-	
-JAVA引入finalize()的原因是因为在分配内存时可能采用了类型C语言中的语法，而非JAVA中的通常做法。这种情况多发生在使用"本地方法"的情况下，本地方法是一种在JAVA中调用非JAVA代码的方式。本地方法目前只支持C/C++，但是在C/C++中又可以调用其他语言，所以从本质上来说，JAVA程序中可能出现所有编程语言。当然，每种编程语言有自己不同的内存分配策略，因为这与JAVA无关，所以JAVA的垃圾回收机制就不会作用于这些内存，当然需要程序员自己处理了。比如C代码中通过malloc()分配存储空间，除非调用了free()来释放这些存储空间，否则存储空间是不会释放的，这样就会造成内存泄露。当然，free()是C中的函数，必须在finalize()中用本地方法（这里是C方法）来调用它。
+	 
+Java引入finalize()的原因是因为在分配内存时可能采用了类型C语言中的语法，而非Java中的通常做法。这种情况多发生在使用"本地方法"的情况下，本地方法是一种在Java中调用非Java代码的方式。本地方法目前只支持C/C++，但是在C/C++中又可以调用其他语言，所以从本质上来说，Java程序中可能出现所有编程语言。当然，每种编程语言有自己不同的内存分配策略，因为这与Java无关，所以Java的垃圾回收机制就不会作用于这些内存，当然需要程序员自己处理了。比如C代码中通过malloc()分配存储空间，除非调用了free()来释放这些存储空间，否则存储空间是不会释放的，这样就会造成内存泄露。当然，free()是C中的函数，必须在finalize()中用本地方法（这里是C方法）来调用它。
 
 关于finalize()的知识，本书并没有过多涉及，如果想参考，可以看下《深入理解Java虚拟机》这本书，上面写的很详细。
 
 ### 5. 初始化
 
-{% highlight java linenos %}
+{% highlight Java linenos %}
 package Chapter05;
 
 class InitTest {
@@ -59,26 +59,26 @@ class InitTest {
 	public int j = 3;
 	
 	InitTest(int i) {
-		this.i = i;
-		j = 10;
+	    this.i = i;
+	    j = 10;
 	}
 	
 	public void print() {
-		System.out.println(number);
-		System.out.println(i);
-		System.out.println(j);
+	    System.out.println(number);
+	    System.out.println(i);
+	    System.out.println(j);
 	}
 }
 
 public class InitOrder {
 	public static void main(String[] args) {
-		InitTest initTest = new InitTest(20);
-		initTest.print();
+	    InitTest initTest = new InitTest(20);
+	    initTest.print();
 	}
 }
-{% endhighlight java %}
+{% endhighlight Java %}
 
-1. 当首次创建类型为InitTest的对象时（构造函数其实是静态方法），或者InitTest类的静态方法(main)/静态属性首次被访问的时候，JAVA解释器会根据CLASSPATH变量查找类路径，定位InitTest.class文件
+1. 当首次创建类型为InitTest的对象时（构造函数其实是静态方法），或者InitTest类的静态方法(main)/静态属性首次被访问的时候，Java解释器会根据CLASSPATH变量查找类路径，定位InitTest.class文件
 2. 然后使用classLoader载入InitTest.class（创建一个Class实例），有关静态初始化的所有动作都会执行，因此静态初始化只在class对象**首次加载**的时候进行一次(如果没有针对对象的new操作，初始化就完成了。接下来是创建对象才会触发的)
 3. 如果用new InitTest()创建对象，会在堆上为InitTest对象分配足够的存储空间
 4. 这块存储空间首先会被清零，自动将InitTest对象中的所有基本类型数据设置成默认值，引用初始化为null
@@ -87,70 +87,70 @@ public class InitOrder {
 
 所以上面的例子工作流程是这样的：
 
-1. 当在InitOrder中调用了public static void main(String[] args)就触发了InitTest的静态main方法，然后JAVA解释器通过CLASSPATH查找类路径，定位InitTest.class
+1. 当在InitOrder中调用了public static void main(String[] args)就触发了InitTest的静态main方法，然后Java解释器通过CLASSPATH查找类路径，定位InitTest.class
 2. 载入InitTest.class后，得到一个Class的实例，将static属性的number初始化为2014
 3. 因为有new操作，会在堆上为InitTest分配存储空间
 4. 内存首先被清空，i和j都会被置0（如果有引用的话，引用会被置null）
 5. j在定义处有初始化操作，所以j被重置为3
 6. 执行构造函数，i被重置为20，j被重置为10
-	
+	 
 有两点需要注意的是：
 
 1.对于static域，可以在定义的地方初始化，也可以在构造函数初始化。所以不能认为构造函数只是初始化非static域。而且对于static域，可以将static变量统一赋值。对于普通变量也可以使用类似的方法，只要在"{"前面去掉static就可以了。这种语法对于支持“匿名内部类”的初始化是必须的，但是它也使得你可以保证无论调用了哪个显式构造函数，某些操作都会发生。
 
-    {% highlight java linenos %}
-    static int i, j;
-    static {
-        i = 1;
-        j = 2;
-    }
-    {% endhighlight java %}
+	{% highlight Java linenos %}
+	static int i, j;
+	static {
+	    i = 1;
+	    j = 2;
+	}
+	{% endhighlight Java %}
 
 2.对于局部变量，你不初始化，编译时候肯定出错。因为局部变量说明程序员在这里用到才设置的，所以要提醒你。比如在C++中定义这样的
 
-    {% highlight java linenos %}
-    {
-        int i;
-        i++;
-        cout<<i<<endl;
-    }
-    {% endhighlight java %}
+	{% highlight Java linenos %}
+	{
+	    int i;
+	    i++;
+	    cout<<i<<endl;
+	}
+	{% endhighlight Java %}
 
-你运行的时候都不会出错，但是这个i到底是多少就不知道了。所以排查起来非常晦涩；而在JAVA中，你编译的时候就会出错（对于Eclipse来说，你写完这句话就会出现错误提示，提示你本地变量没有初始化），所以JAVA这点：**编译器可以为它赋值，但是未初始化的局部变量更可能是程序员的疏忽，采用默认值反而会掩盖错误。因此强制程序员提供一个初始值，往往能够找出程序的缺陷。**
-	
+你运行的时候都不会出错，但是这个i到底是多少就不知道了。所以排查起来非常晦涩；而在Java中，你编译的时候就会出错（对于Eclipse来说，你写完这句话就会出现错误提示，提示你本地变量没有初始化），所以Java这点：**编译器可以为它赋值，但是未初始化的局部变量更可能是程序员的疏忽，采用默认值反而会掩盖错误。因此强制程序员提供一个初始值，往往能够找出程序的缺陷。**
+ 
 ### 6. 创建数组的一个坑
-	
+ 
 * 如果是基本类型，你创建之后就可以使用了。默认初始化为0
 * 如果是对象，那么你创建的只是一个**引用数组**，数组中的元素都是引用，但是没有指向具体的对象。所以你使用之前必须让它们指向对象
 
 ### 7. 参数维护
 
-JAVA初始化数组有几个点和C++不一样，看head first java里没讲到这两个点：
+Java初始化数组有几个点和C++不一样，看head first Java里没讲到这两个点：
 
-{% highlight java linenos %}
+{% highlight Java linenos %}
 Integer[] a = new Integer[20];
-for(int i = 0; i < 20; ++i) {
-    a[i] = new Integer(i);
+for(int i = 0; i \< 20; ++i) {
+	a[i] = new Integer(i);
 }
 
 Integer[] b = { 
-    new Integer(1),
-    new Integer(2),
-    3,				//autoboxing
-    };
+	new Integer(1),
+	new Integer(2),
+	3,              //autoboxing
+	};
 Integer[] c = new Integer[]{
-    new Integer(1),
-    new Integer(2),
-    3,              //autoboxing
-    };
-{% endhighlight java %}
+	new Integer(1),
+	new Integer(2),
+	3,              //autoboxing
+	};
+{% endhighlight Java %}
 
 1. 发现3后面都有一个逗号，这一特性使得维护长列表变得更容易一些
-2. 比如：fun1(String[] strings)调用```fun1(new String[]{ "one", "two", "three"});```    
+2. 比如：fun1(String[] strings)调用`fun1(new String[]{ "one", "two", "three"});`    
 
 ### 8. 可变形参
 
-JAVA在SE 5提出了可变形参的概念，然后就再也不用显式地编写数组语法了，当你指定参数时，编译器实际上会为你去填充数组。但是我没觉得这玩意有什么大的用处啊？string []和string ...不都是实现相同的功能吗？不都是string个数不确定的意思吗？然后到JAVA论坛得到了满意的答复：
+Java在SE 5提出了可变形参的概念，然后就再也不用显式地编写数组语法了，当你指定参数时，编译器实际上会为你去填充数组。但是我没觉得这玩意有什么大的用处啊？string []和string ...不都是实现相同的功能吗？不都是string个数不确定的意思吗？然后到Java论坛得到了满意的答复：
 
 > **数组的功能是可变参数功能的子集，凡是用数组做形参的地方都可以用可变参数替换。可变参数的功能比数组更为强大，除了能够接收数组类型的实参外，还能够接收个数不限的单个实参。**写成“String... args”这样子，实际上是提醒编译器将接收到的若干单个实参整理成数组传给args，args归根结底接收到的还是数组。当然，你若直接给args传一个数组也没有错，这样反而省的编译器去整理了。
 
@@ -161,5 +161,8 @@ JAVA在SE 5提出了可变形参的概念，然后就再也不用显式地编写
 super和this本来是没有联系的，因为super是调用父类的函数，而this是调用本类的函数。但它们都算是一种代码复用吧？所以就放在一起说一下：
 
 * super：是因为子类需要在父类基础上再增加一些东西，比如起床函数，基类完成穿衣服、洗脸刷牙2个步骤，而由于子类是个近视，所以需要完成的有穿衣服、洗脸刷牙、戴眼镜三个，而前两个基类已经完成，你就可以调用super()，然后加入戴眼镜逻辑即可。
-* super：和继承中的构造函数也有关系，当基类自定义了无参/有参构造函数后，子类必须显示定义构造函数，并使用super来初始化基类。
+* super：和继承中的构造函数也有关系，当基类自定义了有参构造函数后，子类必须显示定义构造函数，并使用super来初始化基类。
 * this：this是用在本类中的，它的作用就是让一个构造函数来调用其他重载的构造函数，比如穿衣服初始化，一个构造函数是穿一个背心就搞定，另一个构造函数是穿一个厚外套，那么，在天气热的时候调用第一个构造函数；在天气冷的时候，我们在厚外套这个构造函数中先调用穿背心，然后再穿厚外套，就不用重复造“穿背心”这个轮子了。
+
+[1]:	http://github.thinkingbar.com/garbage_collection
+[2]:	http://www.thinkingbar.com/2013/11/Java%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/

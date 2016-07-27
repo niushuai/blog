@@ -476,14 +476,14 @@
 					<integer>2</integer>
 				</dict>
 			</dict>
-			<key>2014-02-22-thinking_in_java_chapter05.md</key>
+			<key>2014-02-22-thinking_in_Java_chapter05.md</key>
 			<dict>
 				<key>lastModification</key>
-				<real>487748065.68846101</real>
+				<real>491287676.00220102</real>
 				<key>version</key>
 				<dict>
 					<key>07c21978c4ba81bdabfffec5c745f75f5f54a60eba40009381f2495881ef3c1c</key>
-					<integer>2</integer>
+					<integer>41</integer>
 				</dict>
 			</dict>
 			<key>2014-02-24-thinking_in_java_chapter06.md</key>
@@ -2027,7 +2027,7 @@
 			<string>2014-02-24-thinking_in_java_chapter06.md</string>
 		</array>
 		<array>
-			<string>2014-02-22-thinking_in_java_chapter05.md</string>
+			<string>2014-02-22-thinking_in_Java_chapter05.md</string>
 		</array>
 		<array>
 			<string>2014-02-21-thinking_in_java_chapter04.md</string>
@@ -2180,7 +2180,7 @@
 		<key>sheetClusters</key>
 		<dict>
 			<key>07c21978c4ba81bdabfffec5c745f75f5f54a60eba40009381f2495881ef3c1c</key>
-			<integer>38</integer>
+			<integer>41</integer>
 		</dict>
 		<key>sheetOrder</key>
 		<dict>
