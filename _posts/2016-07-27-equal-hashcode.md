@@ -1,6 +1,6 @@
 ---
 layout: post
-title: equal()和 hashcode()的坑
+title: equals()和 hashCode()的坑
 categories: Java
 tags: equal+hashcode
 ---
@@ -12,7 +12,7 @@ tags: equal+hashcode
 1. 对hashCode()和equals()的讨论。
 2. 如何正确、高效的使用。 
 
-### hashCode()和 equals()
+### equals()和 hashCode()
 
 hashCode()和equals()定义在Object类中，这个类是所有java类的基类，所以所有的java类都继承这两个方法。其实官方文档已经详细的说明它们之间的关系了：
 
