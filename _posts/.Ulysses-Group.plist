@@ -1666,12 +1666,25 @@
 					<integer>37</integer>
 				</dict>
 			</dict>
+			<key>2016-07-27-equal-hashcode.md</key>
+			<dict>
+				<key>lastModification</key>
+				<real>491301097.16456199</real>
+				<key>version</key>
+				<dict>
+					<key>07c21978c4ba81bdabfffec5c745f75f5f54a60eba40009381f2495881ef3c1c</key>
+					<integer>44</integer>
+				</dict>
+			</dict>
 		</dict>
 		<key>sheetOrder</key>
 		<real>487747966.190602</real>
 	</dict>
 	<key>sheetClusters</key>
 	<array>
+		<array>
+			<string>2016-07-27-equal-hashcode.md</string>
+		</array>
 		<array>
 			<string>2016-07-23-how-to-read-a-book.md</string>
 		</array>
@@ -2180,7 +2193,7 @@
 		<key>sheetClusters</key>
 		<dict>
 			<key>07c21978c4ba81bdabfffec5c745f75f5f54a60eba40009381f2495881ef3c1c</key>
-			<integer>41</integer>
+			<integer>45</integer>
 		</dict>
 		<key>sheetOrder</key>
 		<dict>
