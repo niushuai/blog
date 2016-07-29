@@ -112,7 +112,7 @@ public class EqualsTest {
  public int hashCode() {
     final int PRIME = 31;
     int result = 1;
-    result = PRIME * result + getId();
+    result = PRIME \* result + getId();
     return result;
  }
 {% endhighlight java %}
@@ -128,4 +128,3 @@ public class EqualsTest {
 3. 使用一些第三方实现，比如 Apache Commons Lang提供的 EqualsBuilder 和 HashCodeBuilder，具体请查阅文档。
 
 然后需要说明的是，尽量使用**相同的属性**去实现 equals()和 hashCode()，比如我的例子里都是使用学号（id）。
-
