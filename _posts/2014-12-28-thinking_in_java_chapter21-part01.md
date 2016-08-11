@@ -114,17 +114,17 @@ System.out.println("Waiting for LiftOff");
 }
 {% endhighlight java %}
 
-如果现在出现意外状况，需要把线程全部关闭。那么你必须对5个Thread 对象进行操作。推而广之，越多的任务会带来更高的后续代价。但是我们尝试用 Executor 来完成同样的工作：
+如果现在出现意外状况，需要把线程全部关闭。那么你必须对5个 Thread 对象进行操作。推而广之，越多的任务会带来更高的后续代价。但是我们尝试用 Executor 来完成同样的工作：
 
 {% highlight java linenos %}
 public class CachedThreadPool {
-  public static void main(String[] args) {
-	ExecutorService exec = Executors.newCachedThreadPool();
-	for(int i = 0; i < 5; i++) {
-	  exec.execute(new LiftOff());
-	}
-	exec.shutdown();
-  }
+public static void main(String[] args) {
+ExecutorService exec = Executors.newCachedThreadPool();
+for(int i = 0; i \< 5; i++) {
+exec.execute(new LiftOff());
+}
+exec.shutdown();
+}
 }
 {% endhighlight java %}
 
@@ -153,38 +153,38 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-class TaskWithResult implements Callable<String> {
+class TaskWithResult implements Callable\<String\> {
 
   private int id;
 
   public TaskWithResult(int id) {
-	this.id = id;
+  this.id = id;
   }
 
   @Override
   public String call() {
-	return "result of TaskWithResult: " + id;
+  return "result of TaskWithResult: " + id;
   }
 }
 
 public class CallableDemo {
   public static void main(String[] args) {
-	ExecutorService exec = Executors.newCachedThreadPool();
-	ArrayList<Future<String>> result = new ArrayList<Future<String>>();
-	for (int i = 0; i < 10; i++) {
-	  result.add(exec.submit(new TaskWithResult(i)));
-	}
-	
-	for(Future<String> fs : result) {
-	  try {
-	    System.out.println(fs.get());
-	  } catch (InterruptedException | ExecutionException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	  } finally {
-	    exec.shutdown();
-	  }
-	}
+ExecutorService exec = Executors.newCachedThreadPool();
+ArrayList\<Future\<String\>\> result = new ArrayList\<Future\<String\>\>();
+for (int i = 0; i \< 10; i++) {
+result.add(exec.submit(new TaskWithResult(i)));
+}
+
+for(Future\<String\> fs : result) {
+try {
+System.out.println(fs.get());
+} catch (InterruptedException | ExecutionException e) {
+// TODO Auto-generated catch block
+e.printStackTrace();
+} finally {
+exec.shutdown();
+}
+}
   }
 }/\*output:
 result of TaskWithResult: 0
@@ -216,26 +216,26 @@ import java.util.concurrent.TimeUnit;
 public class SleepingTask extends LiftOff {
   @Override
   public void run() {
-	try {
-	  while(countDown-- > 0) {
-	    System.out.println(status());
-	    // Old-style:
-	    // Thread.sleep(100);
-	    // Java SE5/6-style:
-	    TimeUnit.MILLISECONDS.sleep(100);
-	  }
-	} catch(InterruptedException e) {
-	  System.err.println("Interrupted");
-	}
+  try {
+while(countDown-- \> 0) {
+  System.out.println(status());
+  // Old-style:
+  // Thread.sleep(100);
+  // Java SE5/6-style:
+  TimeUnit.MILLISECONDS.sleep(100);
+}
+  } catch(InterruptedException e) {
+System.err.println("Interrupted");
+  }
   }
   
   public static void main(String[] args) {
-	ExecutorService exec = Executors.newCachedThreadPool();
-	for(int i = 0; i < 5; i++) {
-	  exec.execute(new SleepingTask());
-	}
-	System.out.println("Waiting For LiftOff");
-	exec.shutdown();
+  ExecutorService exec = Executors.newCachedThreadPool();
+  for(int i = 0; i \< 5; i++) {
+exec.execute(new SleepingTask());
+  }
+  System.out.println("Waiting For LiftOff");
+  exec.shutdown();
   }
 }
 {% endhighlight java %}
@@ -267,32 +267,32 @@ import java.util.concurrent.TimeUnit;
 public class SimpleDaemons implements Runnable {
   @Override
   public void run() {
-	try {
-	  while (true) {
-	    TimeUnit.MILLISECONDS.sleep(100);
-	    System.out.println(Thread.currentThread() + " " + this);
-	  }
-	} catch (InterruptedException e) {
-	  System.out.println("sleep() interrupted");
-	  e.printStackTrace();
-	}
+  try {
+while (true) {
+  TimeUnit.MILLISECONDS.sleep(100);
+  System.out.println(Thread.currentThread() + " " + this);
+}
+  } catch (InterruptedException e) {
+System.out.println("sleep() interrupted");
+e.printStackTrace();
+  }
   }
   
   public static void main(String[] args) throws InterruptedException {
-	for(int i = 0; i < 10; i++) {
-	  Thread daemon = new Thread(new SimpleDaemons());
-	  daemon.setDaemon(true); // Must call before start();
-	  daemon.start();
-	}
-	System.out.println("All daemons started");
-	TimeUnit.MILLISECONDS.sleep(275); //不断调整这个时间，就能理解上面那段话了。
+  for(int i = 0; i \< 10; i++) {
+Thread daemon = new Thread(new SimpleDaemons());
+daemon.setDaemon(true); // Must call before start();
+daemon.start();
+  }
+  System.out.println("All daemons started");
+  TimeUnit.MILLISECONDS.sleep(275); //不断调整这个时间，就能理解上面那段话了。
   }
 }
 {% endhighlight java %}
 
 #### 8. 加入一个线程
 
-这个小节看的很恶心，主要是翻译的太晦涩了。我总结一下这个小节吧。
+这个小节看的很恶心，主要是翻译的太晦涩了。其实可以简单的认为，join()就是 C 语言中的宏替换。
 
 现在有2个线程 A 和 B，现在想在执行 B 的过程中调用 A 的逻辑，那么就可以在 B 中调用 A.join()，那么在 B 中就会等待 A 执行完毕才继续运行。下面是例子：
 
@@ -300,49 +300,49 @@ public class SimpleDaemons implements Runnable {
 class Sleeper extends Thread {
   private int duration;
   public Sleeper(String name, int sleepTime) {
-	super(name);
-	duration = sleepTime;
-	start();
+  super(name);
+  duration = sleepTime;
+  start();
   }
   
   public void run() {
-	try {
-	  sleep(duration);
-	} catch(InterruptedException e) {
-	  System.out.println(getName() + " was interrupted. " + "isInterrupted(): " + isInterrupted());
-	  return ;
-	}
-	System.out.println(getName() + " has awakened");
+  try {
+sleep(duration);
+  } catch(InterruptedException e) {
+System.out.println(getName() + " was interrupted. " + "isInterrupted(): " + isInterrupted());
+return ;
+  }
+  System.out.println(getName() + " has awakened");
   }
 }
 
 class Joiner extends Thread {
   private Sleeper sleeper;
   public Joiner(String name, Sleeper sleeper) {
-	super(name);
-	this.sleeper = sleeper;
-	start();
+  super(name);
+  this.sleeper = sleeper;
+  start();
   }
   
   public void run() {
-	try {
-	  sleeper.join();
-	} catch(InterruptedException e) {
-	  System.out.println("Interrpted");
-	}
-	System.out.println(getName() + " join completed");
+  try {
+sleeper.join();
+  } catch(InterruptedException e) {
+System.out.println("Interrpted");
+  }
+  System.out.println(getName() + " join completed");
   }
 }
 
 public class Joining {
   public static void main(String[] args) {
-	Sleeper sleepy = new Sleeper("Sleepy", 1500);
-	Sleeper grumpy = new Sleeper("grumpy", 1500);
-	
-	Joiner dopey = new Joiner("Dopey", sleepy);
-	Joiner doc = new Joiner("Doc", grumpy);
-	
-	grumpy.interrupt();
+  Sleeper sleepy = new Sleeper("Sleepy", 1500);
+  Sleeper grumpy = new Sleeper("grumpy", 1500);
+  
+  Joiner dopey = new Joiner("Dopey", sleepy);
+  Joiner doc = new Joiner("Doc", grumpy);
+  
+  grumpy.interrupt();
   }
 }/\*output:
 grumpy was interrupted. isInterrupted(): false
@@ -369,16 +369,16 @@ import java.util.concurrent.Executors;
 public class ExceptionThread implements Runnable {
   @Override
   public void run() {
-	throw new RuntimeException();
+  throw new RuntimeException();
   }
 
   public static void main(String[] args) {
-	try {
-	  ExecutorService exec = Executors.newCachedThreadPool();
-	  exec.execute(new ExceptionThread());
-	} catch (Exception e) {
-	  System.out.println("catch run() exception...");
-	}
+  try {
+ExecutorService exec = Executors.newCachedThreadPool();
+exec.execute(new ExceptionThread());
+  } catch (Exception e) {
+System.out.println("catch run() exception...");
+  }
   }
 }
 {% endhighlight java %}
@@ -395,36 +395,36 @@ import java.util.concurrent.ThreadFactory;
 class ExceptionThread2 implements Runnable {
   @Override
   public void run() {
-	Thread t = Thread.currentThread();
-	System.out.println("run() by " + t);
-	System.out.println("eh = " + t.getUncaughtExceptionHandler());
-	throw new RuntimeException();
+  Thread t = Thread.currentThread();
+  System.out.println("run() by " + t);
+  System.out.println("eh = " + t.getUncaughtExceptionHandler());
+  throw new RuntimeException();
   }
 }
 
 class MyUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
   @Override
   public void uncaughtException(Thread t, Throwable e) {
-	System.out.println("caught " + e);
+  System.out.println("caught " + e);
   }
 }
 
 class HandlerThreadFactory implements ThreadFactory {
   @Override
   public Thread newThread(Runnable r) {
-	System.out.println(this + " creating new Thread");
-	Thread t = new Thread(r);
-	System.out.println("created " + t);
-	t.setUncaughtExceptionHandler(new MyUncaughtExceptionHandler());
-	System.out.println("eh = " + t.getUncaughtExceptionHandler());
-	return t;
+  System.out.println(this + " creating new Thread");
+  Thread t = new Thread(r);
+  System.out.println("created " + t);
+  t.setUncaughtExceptionHandler(new MyUncaughtExceptionHandler());
+  System.out.println("eh = " + t.getUncaughtExceptionHandler());
+  return t;
   }
 }
 
 public class CaptureUncaughtException {
   public static void main(String[] args) {
-	ExecutorService exec = Executors.newCachedThreadPool(new HandlerThreadFactory());
-	exec.execute(new ExceptionThread2());
+  ExecutorService exec = Executors.newCachedThreadPool(new HandlerThreadFactory());
+  exec.execute(new ExceptionThread2());
   }
 }/\*output:
 concurrency.HandlerThreadFactory@5c647e05 creating new Thread
@@ -439,16 +439,14 @@ caught java.lang.RuntimeException
 \*/
 {% endhighlight java %}
 
-不知道为何我的输出多了一个线程Thread-1,5,main的创建。。。留待明天解决。。。。。。
-
 在实际使用时，可以按照具体情况重写 uncaughtException()来逐个处理不同的异常，如果在代码中都只使用相同的异常处理器，就可以设置 Thread 的静态域：
 
 {% highlight java linenos %}
 public class SettingDefaultHandler {
   public static void main(String[] args) {
-	Thread.setDefaultUncaughtExceptionHandler(new MyUncaughtExceptionHandler());
-	ExecutorService exec = Executors.newCachedThreadPool();
-	exec.execute(new ExceptionThread());
+  Thread.setDefaultUncaughtExceptionHandler(new MyUncaughtExceptionHandler());
+  ExecutorService exec = Executors.newCachedThreadPool();
+  exec.execute(new ExceptionThread());
   }
 }
 {% endhighlight java %}
