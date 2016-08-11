@@ -7,7 +7,7 @@ tags: Java编程思想
 
 ### 21.3小节：共享资源如何处理呢？
 
-这一小节其实也是基础知识，核心是处理**临界资源**，方法就是加锁。下面我们就简单说说。
+这一小节其实也是基础知识，核心是处理**临界资源**，方法就是加锁。下面我们就简单说说。因为单线程永远不需要担心两个实体同时使用一个资源，比如两个人同时说话，两个人同时走过一扇门。但是有了并发就不一样了，比如两个人同时使用打印机，如果不控制顺序，那就会出现两个人的文件串了的情况。而这个例子中的打印机就是临界资源，我们要在临界资源上保证串行，才能保证结果的正确性。而这里说的串行，就是通过锁机制实现的。
 
 #### 1. 一个使用临界资源的例子
 
@@ -17,18 +17,18 @@ tags: Java编程思想
 
 {% highlight java linenos %}
 public abstract class IntGenerator {
-	private volatile boolean canceled = false;
+private volatile boolean canceled = false;
 
-	public abstract int next();
+public abstract int next();
 
-	// Allow this to be canceled;
-	public void cancel() {
-		canceled = true;
-	}
+// Allow this to be canceled;
+public void cancel() {
+canceled = true;
+}
 
-	public boolean isCanceled() {
-		return canceled;
-	}
+public boolean isCanceled() {
+return canceled;
+}
 }
 {% endhighlight java %}
 
@@ -36,19 +36,19 @@ public abstract class IntGenerator {
 
 {% highlight java linenos %}
 public class EvenGenerator extends IntGenerator {
-	
-	private int currentEvenValue = 0;
+ 
+private int currentEvenValue = 0;
 
-	@Override
-	public int next() {
-		++currentEvenValue; //Danger point here!
-		++currentEvenValue;
-		return currentEvenValue;
-	}
-	
-	public static void main(String[] args) {
-		EvenChecker.test(new EvenGenerator());
-	}
+@Override
+public int next() {
+++currentEvenValue; //Danger point here!
+++currentEvenValue;
+return currentEvenValue;
+}
+
+public static void main(String[]() args) {
+EvenChecker.test(new EvenGenerator());
+}
 
 }
 {% endhighlight java %}
@@ -60,36 +60,36 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class EvenChecker implements Runnable {
-	private IntGenerator generator;
-	private final int id;
-	public EvenChecker(IntGenerator g, int ident) {
-		generator = g;
-		this.id = ident;
-	}
-	
-	@Override
-	public void run() {
-		while(!generator.isCanceled()) {
-			int val = generator.next();
-			if(val % 2 != 0) {
-				System.out.println(val + " not even!");
-				generator.cancel(); // Cancels all EvenCheckers
-			}
-		}
-	}
-	
-	public static void test(IntGenerator gp, int count) {
-		System.out.println("Press Control-C to exit!");
-		ExecutorService exec = Executors.newCachedThreadPool();
-		for(int i = 0; i < count; i++) {
-			exec.execute(new EvenChecker(gp, i));
-		}
-		exec.shutdown();
-	}
-	
-	public static void test(IntGenerator gp) {
-		test(gp, 10);
-	}
+private IntGenerator generator;
+private final int id;
+public EvenChecker(IntGenerator g, int ident) {
+generator = g;
+this.id = ident;
+}
+
+@Override
+public void run() {
+while(!generator.isCanceled()) {
+int val = generator.next();
+if(val % 2 != 0) {
+System.out.println(val + " not even!");
+generator.cancel(); // Cancels all EvenCheckers
+}
+}
+}
+
+public static void test(IntGenerator gp, int count) {
+System.out.println("Press Control-C to exit!");
+ExecutorService exec = Executors.newCachedThreadPool();
+for(int i = 0; i \< count; i++) {
+exec.execute(new EvenChecker(gp, i));
+}
+exec.shutdown();
+}
+
+public static void test(IntGenerator gp) {
+test(gp, 10);
+}
 }
 {% endhighlight java %}
 
@@ -113,7 +113,7 @@ public class EvenChecker implements Runnable {
 
 > 为什么提供两种？什么情况下使用第一种，什么情况下使用第二种？
 
-#####1）synchronized 的使用
+##### 1）synchronized 的使用
 
 要控制对共享资源的访问，得包装成一个对象。然后把所有要访问这个资源的方法标记为 synchronized。一般做法是使用 private 修饰这个临界资源的对象。注意，**在使用并发时，将域设置为 private 是非常重要的，否则，synchronized 关键字就不能防止其他任务直接访问域，这样会产生冲突。**基本的使用原则是：
 
@@ -123,19 +123,19 @@ public class EvenChecker implements Runnable {
 
 {% highlight java linenos %}
 public class EvenGenerator extends IntGenerator {
-	
-	private int currentEvenValue = 0;
+ 
+private int currentEvenValue = 0;
 
-	@Override
-	public synchronized int next() {
-		++currentEvenValue; //Danger point here!
-		++currentEvenValue;
-		return currentEvenValue;
-	}
-	
-	public static void main(String[] args) {
-		EvenChecker.test(new EvenGenerator());
-	}
+@Override
+public synchronized int next() {
+++currentEvenValue; //Danger point here!
+++currentEvenValue;
+return currentEvenValue;
+}
+
+public static void main(String[]() args) {
+EvenChecker.test(new EvenGenerator());
+}
 
 }
 {% endhighlight java %}
@@ -146,7 +146,7 @@ public class EvenGenerator extends IntGenerator {
 2. 还有一个比较好玩的是对象头中的锁不是 boolean 类型的，意思就是锁可以计数（应该是整型）。一个获取当前对象的锁的方法，可以调用另一个 synchronized 的方法，这时锁计数就是2，以此类推。当锁的计数变为0时候，就该释放锁了。
 3. 还有一点是，**针对每个类，也有一个锁（作为类的 Class 对象的一部分），所以 synchronized static 方法可以在类的范围内防止对 static 数据的并发访问。**
 
-#####2) Lock 的使用
+##### 2) Lock 的使用
 
 Java SE5的 java.util.concurrent 类库还包含有定义在 java.util.concurrent.locks 中的显式的互斥机制。Lock 对象必须显式的创建、锁定和释放。因此，它与 synchronized 提供的锁机制相比，代码缺少优雅性。但是对于有些场景，使用 Lock 会更加灵活。
 
@@ -157,24 +157,24 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class MutexEvenGenerator extends IntGenerator {
-	private int currentValue = 0;
-	private Lock lock = new ReentrantLock();
-	
-	public int next() {
-		lock.lock();
-		try {
-			++currentValue;
-			Thread.yield();
-			++currentValue;
-			return currentValue;
-		} finally {
-			lock.unlock();
-		}
-	}
-	
-	public static void main(String[] args) {
-		EvenChecker.test(new MutexEvenGenerator());
-	}
+private int currentValue = 0;
+private Lock lock = new ReentrantLock();
+
+public int next() {
+lock.lock();
+try {
+++currentValue;
+Thread.yield();
+++currentValue;
+return currentValue;
+} finally {
+lock.unlock();
+}
+}
+
+public static void main(String[]() args) {
+EvenChecker.test(new MutexEvenGenerator());
+}
 }
 {% endhighlight java %}
 
@@ -183,7 +183,7 @@ Notice:
 > return 语句必须在 try 子句中出现，以确保 unlock()不会过早发生，从而将数据暴露给第二个任务。
 
 
-#####3） 总结一下吧：）
+##### 3） 总结一下吧：）
 
 大体上，使用 synchronized 关键字时，需要写的代码量更少，并且用户错误出现的可能性也会降低，因此通常只有在解决特殊问题时，才使用显式的 Lock 对象。例如，用 synchronized 关键字不能尝试着获取锁且最终获取锁会失败，或者尝试着获取锁一段时间，然后放弃它，要实现这些，你必须使用 concurrent 类库：
 
@@ -192,65 +192,65 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class AttemptLocking {
-	private ReentrantLock lock = new ReentrantLock();
+private ReentrantLock lock = new ReentrantLock();
 
-	// 直接去获取锁，然后输出状态。
-	public void untimed() {
-		boolean captured = lock.tryLock();
-		try {
-			System.out.println("tryLock(): " + captured);
-		} finally {
-			if (captured) {
-				lock.unlock();
-			}
-		}
-	}
+// 直接去获取锁，然后输出状态。
+public void untimed() {
+boolean captured = lock.tryLock();
+try {
+System.out.println("tryLock(): " + captured);
+} finally {
+if (captured) {
+lock.unlock();
+}
+}
+}
 
-	//尝试获取2s，如果失败就返回。
-	public void timed() {
-		boolean captured = false;
-		try {
-			captured = lock.tryLock(2, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+//尝试获取2s，如果失败就返回。
+public void timed() {
+boolean captured = false;
+try {
+captured = lock.tryLock(2, TimeUnit.SECONDS);
+} catch (InterruptedException e) {
+throw new RuntimeException(e);
+}
 
-		try {
-			System.out.println("tryLock(2, TimeUnit.SECONDS): " + captured);
-		} finally {
-			if (captured) {
-				lock.unlock();
-			}
-		}
-	}
+try {
+System.out.println("tryLock(2, TimeUnit.SECONDS): " + captured);
+} finally {
+if (captured) {
+lock.unlock();
+}
+}
+}
 
-	public static void main(String[] args) throws InterruptedException {
-		final AttemptLocking al = new AttemptLocking();
-		al.untimed();
-		al.timed();
+public static void main(String[]() args) throws InterruptedException {
+final AttemptLocking al = new AttemptLocking();
+al.untimed();
+al.timed();
 
-		new Thread() {
-			{
-				setDaemon(true);
-			}
+new Thread() {
+{
+setDaemon(true);
+}
 
-			public void run() {
-				al.lock.lock();
-				System.out.println("acquired");
-			}
-		}.start();
-		TimeUnit.MILLISECONDS.sleep(1000);
-		al.untimed();
-		al.timed();
-	}
+public void run() {
+al.lock.lock();
+System.out.println("acquired");
+}
+}.start();
+TimeUnit.MILLISECONDS.sleep(1000);
+al.untimed();
+al.timed();
+}
 
-}/*output:
+}/\*output:
 tryLock(): true
 tryLock(2, TimeUnit.SECONDS): true
 acquired
 tryLock(): false
 tryLock(2, TimeUnit.SECONDS): false
-*/
+\*/
 {% endhighlight java %}
 
 
@@ -258,7 +258,7 @@ tryLock(2, TimeUnit.SECONDS): false
 
 {% highlight java linenos %}
 while(true) {
-	1. 首先使用boolean captured = lock.tryLock()，如果是 true 的话就走正常的逻辑
+1. 首先使用boolean captured = lock.tryLock()，如果是 true 的话就走正常的逻辑
 	2. 如果 false 的话，使用captured = lock.tryLock(2, TimeUnit.SECONDS)尝试获取锁，如果2秒内不断轮询并且获得了锁，就走正常的逻辑
 	3. 如果超过2s还是不能获取，我就干点其他的事情。
 } 
@@ -270,7 +270,8 @@ while(true) {
 
 这一节比较浅，大致的知识点如下所示，想要深入了解还是去看《深入理解 Java 虚拟机》，很好很强大：
 
-* long 和 double 是2字节的，所以很多操作不具有原子性，会产生字撕裂
+* 除了 Long 和 Double 的其他基本类型，对于简单的读写操作，可以认为具有原子性，线程的上下文切换不会产生问题
+* long 和 double 是占用2个 slot 的（64位），所以很多操作不具有原子性，会产生字撕裂。使用 volatile 的话，就会获得（简单的赋值与返回操作的）原子性
 * volatile 的使用以及2种使用场景
 * volatile 没有使用副本，而是直接作用于主内存。每个使用的线程都必须先从主内存刷新，所以不存在可视性问题
 * Java SE5引入了 AtomicInteger、AtomicLong、AtomicReference 等原子类(应该强调的是，**Atomic 类被设计用来构建 java.util.concurrent 中的类，因此只有在特殊情况下才在自己的代码中使用它们，即便使用了也不能认为万无一失。通常依赖于锁会更安全**)。它们提供下面形式的跟新操作：
@@ -282,8 +283,8 @@ while(true) {
 
 {% highlight java linenos %}
 synchronized(syncObject) {
-	//This code can be accessd
-	//by only one task at a time
+//This code can be accessd
+//by only one task at a time
 }
 {% endhighlight java %}
 
@@ -302,203 +303,200 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
+/\*\*
  * 定义一个坐标，重点在于 x 和 y 都有自加1操作.如果 x != y，会抛出一个自定义的运行时异常
  * @author niushuai
- *
- */
+ \*
+ \*/
 class Pair {
-	private int x, y;
+private int x, y;
 
-	public Pair(int x, int y) {
-		this.x = x;
-		this.y = y;
-	}
+public Pair(int x, int y) {
+this.x = x;
+this.y = y;
+}
 
-	public Pair() {
-		this(0, 0);
-	}
+public Pair() {
+this(0, 0);
+}
 
-	public int getX() {
-		return x;
-	}
+public int getX() {
+return x;
+}
 
-	public int getY() {
-		return y;
-	}
+public int getY() {
+return y;
+}
 
-	public void incrementX() {
-		x++;
-	}
+public void incrementX() {
+x++;
+}
 
-	public void incrementY() {
-		y++;
-	}
+public void incrementY() {
+y++;
+}
 
-	public String toString() {
-		return "x: " + x + ", y: " + y;
-	}
+public String toString() {
+return "x: " + x + ", y: " + y;
+}
 
-	/**
-	 * 如果 x != y 则抛出异常
+/**  * 如果 x != y 则抛出异常
 	 * @author niushuai
-	 *
-	 */
+	 *  */
 	public class PairValuesNotEqualException extends RuntimeException {
-		/**
-		 * 
+	/**  * 
 		 */
 		private static final long serialVersionUID = -7103813289682393079L;
 
 		public PairValuesNotEqualException() {
-			super("Pair values not equal: " + Pair.this);
+		super("Pair values not equal: " + Pair.this);
 		}
 	}
 
 	public void checkState() {
-		if (x != y) {
-			System.err.println("x != y");
-			throw new PairValuesNotEqualException();
-		}
+	if (x != y) {
+	System.err.println("x != y");
+	throw new PairValuesNotEqualException();
+	}
 	}
 }
 
-/**
+/\*\*
  * 对 Pair 进行管理的模板方法，如何对非线程安全的 Pair 进行自增？
  * 是同步整个方法？还是同步临界区？——子类实现
- */
+ \*/
 abstract class PairManager {
-	//check x != y 的次数
-	AtomicInteger checkCounter = new AtomicInteger(0);
-	protected Pair p = new Pair();
-	//synchronizedList 为线程安全，无论在同步块内还是同步块外都是线程安全的
-	private List<Pair> storage = Collections
-			.synchronizedList(new ArrayList<Pair>());
+//check x != y 的次数
+AtomicInteger checkCounter = new AtomicInteger(0);
+protected Pair p = new Pair();
+//synchronizedList 为线程安全，无论在同步块内还是同步块外都是线程安全的
+private List\<Pair\> storage = Collections
+.synchronizedList(new ArrayList\<Pair\>());
 
-	public synchronized Pair getPair() {
-		return new Pair(p.getX(), p.getY());
-	}
-
-	protected void store(Pair p) {
-		storage.add(p);
-		try {
-			TimeUnit.MILLISECONDS.sleep(50);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
-	// 如何增长？synchronized 修饰方法 还是 synchronized 修饰临界区？
-	public abstract void increment();
+public synchronized Pair getPair() {
+return new Pair(p.getX(), p.getY());
 }
 
-/**
+protected void store(Pair p) {
+storage.add(p);
+try {
+TimeUnit.MILLISECONDS.sleep(50);
+} catch (InterruptedException e) {
+e.printStackTrace();
+}
+}
+
+// 如何增长？synchronized 修饰方法 还是 synchronized 修饰临界区？
+public abstract void increment();
+}
+
+/\*\*
  * synchronized 修饰整个方法
  * @author niushuai
- *
- */
+ \*
+ \*/
 class PairManager1 extends PairManager {
-	public synchronized void increment() {
-		p.incrementX();
-		p.incrementY();
-		store(getPair());
-	}
+public synchronized void increment() {
+p.incrementX();
+p.incrementY();
+store(getPair());
+}
 }
 
-/**
+/\*\*
  * synchronized 修饰临界区
  * @author niushuai
- *
- */
+ \*
+ \*/
 class PairManager2 extends PairManager {
-	public void increment() {
-		Pair temp;
-		synchronized (this) {
-			p.incrementX();
-			p.incrementY();
-			temp = getPair();
-		}
-		store(temp);
-	}
+public void increment() {
+Pair temp;
+synchronized (this) {
+p.incrementX();
+p.incrementY();
+temp = getPair();
+}
+store(temp);
+}
 }
 
-/** 
+/\*\* 
  * 任务类1，可以使用不同的 PairManager 对 Pair 进行自增操作
  * @author niushuai
- *
- */
+ \*
+ \*/
 class PairManipulator implements Runnable {
-	private PairManager pm;
+private PairManager pm;
 
-	public PairManipulator(PairManager pm) {
-		this.pm = pm;
-	}
+public PairManipulator(PairManager pm) {
+this.pm = pm;
+}
 
-	@Override
-	public void run() {
-		while (true) {
-			pm.increment();
-		}
-	}
+@Override
+public void run() {
+while (true) {
+pm.increment();
+}
+}
 
-	public String toString() {
-		return "Pair: " + pm.getPair() + " checkCounter = "
-				+ pm.checkCounter.get();
+public String toString() {
+return "Pair: " + pm.getPair() + " checkCounter = "
++ pm.checkCounter.get();
 	}
 }
 
-/** 
+/\*\* 
  * 任务类2，不断的去检测 Pair 中的 x == y 状态
  * @author niushuai
- *
- */
+ \*
+ \*/
 class PairChecker implements Runnable {
-	private PairManager pm;
+private PairManager pm;
 
-	public PairChecker(PairManager pm) {
-		this.pm = pm;
-	}
+public PairChecker(PairManager pm) {
+this.pm = pm;
+}
 
-	@Override
-	public void run() {
-		while (true) {
-			pm.checkCounter.incrementAndGet();
-			pm.getPair().checkState();
-		}
-	}
+@Override
+public void run() {
+while (true) {
+pm.checkCounter.incrementAndGet();
+pm.getPair().checkState();
+}
+}
 }
 
 public class CriticalSection {
-	static void testApproaches(PairManager pman1, PairManager pman2) {
-		ExecutorService exec = Executors.newCachedThreadPool();
-		PairManipulator pm1 = new PairManipulator(pman1);
-		PairManipulator pm2 = new PairManipulator(pman2);
-		PairChecker pcheck1 = new PairChecker(pman1);
-		PairChecker pcheck2 = new PairChecker(pman2);
+static void testApproaches(PairManager pman1, PairManager pman2) {
+ExecutorService exec = Executors.newCachedThreadPool();
+PairManipulator pm1 = new PairManipulator(pman1);
+PairManipulator pm2 = new PairManipulator(pman2);
+PairChecker pcheck1 = new PairChecker(pman1);
+PairChecker pcheck2 = new PairChecker(pman2);
 
-		exec.execute(pm1);
-		exec.execute(pm2);
-		exec.execute(pcheck1);
-		exec.execute(pcheck2);
-		try {
-			TimeUnit.MILLISECONDS.sleep(500);
-		} catch (InterruptedException e) {
-			System.out.println("Sleep interrupted");
-		}
-		System.out.println("pm1: " + pm1 + "\npm2: " + pm2);
-		System.exit(0);
-	}
+exec.execute(pm1);
+exec.execute(pm2);
+exec.execute(pcheck1);
+exec.execute(pcheck2);
+try {
+TimeUnit.MILLISECONDS.sleep(500);
+} catch (InterruptedException e) {
+System.out.println("Sleep interrupted");
+}
+System.out.println("pm1: " + pm1 + "\npm2: " + pm2);
+System.exit(0);
+}
 
-	public static void main(String[] args) {
-		PairManager pman1 = new PairManager1();
-		PairManager pman2 = new PairManager2();
+public static void main(String[]() args) {
+PairManager pman1 = new PairManager1();
+PairManager pman2 = new PairManager2();
 
-		testApproaches(pman1, pman2);
-	}
-}/*output:
+testApproaches(pman1, pman2);
+}
+}/\*output:
 pm1: Pair: x: 165, y: 165 checkCounter = 6
 pm2: Pair: x: 166, y: 166 checkCounter = 370681186
-*/
+\*/
 {% endhighlight java %}
 
 这段代码略长一点点，但是很简单。总结来说就是两个线程跑自增操作，区别是一个用的同步整个方法，一个是同步临界区，然后又又两个线程去检查x 和 y 是否相等。那么，区别在哪里呢？
@@ -513,35 +511,35 @@ pm2: Pair: x: 166, y: 166 checkCounter = 370681186
 
 {% highlight java linenos %}
 class DualSynch {
-	private Object syncObject = new Object();
-	public synchronized void f() {
-		for(int i = 0; i < 5; i++) {
-			System.out.println("f()");
-			Thread.yield();
-		}
-	}
-	
-	public void g() {
-		synchronized(syncObject) {
-			for(int i = 0; i < 5; i++) {
-				System.out.println("g()");
-				Thread.yield();
-			}
-		}
-	}
+private Object syncObject = new Object();
+public synchronized void f() {
+for(int i = 0; i \< 5; i++) {
+System.out.println("f()");
+Thread.yield();
+}
+}
+
+public void g() {
+synchronized(syncObject) {
+for(int i = 0; i \< 5; i++) {
+System.out.println("g()");
+Thread.yield();
+}
+}
+}
 }
 
 public class SyncObject {
-	public static void main(String[] args) {
-		final DualSynch ds = new DualSynch();
-		new Thread() {
-			public void run() {
-				ds.f();
-			}
-		}.start();
-		ds.g();
-	}
-}/*output:
+public static void main(String[]() args) {
+final DualSynch ds = new DualSynch();
+new Thread() {
+public void run() {
+ds.f();
+}
+}.start();
+ds.g();
+}
+}/\*output:
 f()
 g()
 f()
@@ -552,7 +550,7 @@ g()
 f()
 g()
 g()
-*/
+\*/
 {% endhighlight java %}
 
 这个例子中，通过 Thread 创建了一个线程，这个线程会持续输出5次 f()才会停止，因为它是方法级别的，就是 this 级别的。那么其他 synchronized 方法或者 synchronized(this)临界区都无法同时运行。但是上面输出是同时的。因为我们用了另一个对象锁进行同步。这样就达到了同时运行的目的。但是也有一点需要注意：
@@ -561,4 +559,6 @@ g()
 
 #### 6. 线程本地存储
 
-虽然在《Java 编程思想》中仅仅占用了1页的篇幅，但是感觉很有用处。果然挖出了不少东西，于是单独写一篇文章分析 ThreadLocal 吧，详情请见[理解 ThreadLocal](../threadlocal)
+虽然在《Java 编程思想》中仅仅占用了1页的篇幅，但是感觉很有用处。果然挖出了不少东西，于是单独写一篇文章分析 ThreadLocal 吧，详情请见[理解 ThreadLocal][7]
+
+[7]:	../threadlocal
