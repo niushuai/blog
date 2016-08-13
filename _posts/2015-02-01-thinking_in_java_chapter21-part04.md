@@ -47,30 +47,30 @@ class Car {
 	 * false：抛光
 	 */
 	private boolean waxOn = false;
-
+	
 	// 完成凃蜡，可以进行抛光了
 	public synchronized void waxed() {
-		waxOn = true;
-		notifyAll();
+	    waxOn = true;
+	    notifyAll();
 	}
-
+	
 	// 完成抛光，可以进行下一层凃蜡了
 	public synchronized void buffed() {
-		waxOn = false;
-		notifyAll();
+	    waxOn = false;
+	    notifyAll();
 	}
-
+	
 	// 这里为什么要用 while()不断监测？为什么不用 if()？
 	public synchronized void waitForWaxing() throws InterruptedException {
-		while (waxOn == false) {
-			wait();
-		}
+	    while (waxOn == false) {
+	        wait();
+	    }
 	}
-
+	
 	public synchronized void waitForBuffing() throws InterruptedException {
-		while (waxOn == true) {
-			wait();
-		}
+	    while (waxOn == true) {
+	        wait();
+	    }
 	}
 }
 
@@ -78,20 +78,20 @@ class Car {
 class WaxOn implements Runnable {
 	private Car car;
 	public WaxOn(Car c) {
-		this.car = c;
+	    this.car = c;
 	}
 	public void run() {
-		try {
-			while(!Thread.interrupted()) {
-				System.out.println("开始凃蜡...");
-				TimeUnit.MILLISECONDS.sleep(200);
-				car.waxed();
-				car.waitForBuffing();
-			}
- 		} catch(InterruptedException e) {
- 			System.out.println("Exit via interrupt");
- 		}
-		System.out.println("结束凃蜡任务");
+	    try {
+	        while(!Thread.interrupted()) {
+	            System.out.println("开始凃蜡...");
+	            TimeUnit.MILLISECONDS.sleep(200);
+	            car.waxed();
+	            car.waitForBuffing();
+	        }
+	    } catch(InterruptedException e) {
+	        System.out.println("Exit via interrupt");
+	    }
+	    System.out.println("结束凃蜡任务");
 	}
 }
 
@@ -99,34 +99,34 @@ class WaxOn implements Runnable {
 class WaxOff implements Runnable {
 	private Car car;
 	public WaxOff(Car car) {
-		this.car = car;
+	    this.car = car;
 	}
 	public void run() {
-		try {
-			while(!Thread.interrupted()) {
-				car.waitForWaxing();
-				System.out.println("开始抛光...");
-				TimeUnit.MICROSECONDS.sleep(200);
-				car.buffed();
-			}
-		} catch(InterruptedException e) {
-			System.out.println("Exit via interupt");
-		}
-		System.out.println("结束抛光任务");
+	    try {
+	        while(!Thread.interrupted()) {
+	            car.waitForWaxing();
+	            System.out.println("开始抛光...");
+	            TimeUnit.MICROSECONDS.sleep(200);
+	            car.buffed();
+	        }
+	    } catch(InterruptedException e) {
+	        System.out.println("Exit via interupt");
+	    }
+	    System.out.println("结束抛光任务");
 	}
 }
 
-/*
+/\*
  * 特意先开始抛光任务，再开始凃蜡任务
- */
+ \*/
 public class WaxOMatic {
 	public static void main(String[] args) throws InterruptedException {
-		Car car = new Car();
-		ExecutorService exec = Executors.newCachedThreadPool();
-		exec.execute(new WaxOff(car));
-		exec.execute(new WaxOn(car));
-		TimeUnit.SECONDS.sleep(5);
-		exec.shutdownNow();
+	    Car car = new Car();
+	    ExecutorService exec = Executors.newCachedThreadPool();
+	    exec.execute(new WaxOff(car));
+	    exec.execute(new WaxOn(car));
+	    TimeUnit.SECONDS.sleep(5);
+	    exec.shutdownNow();
 	}
 }
 {% endhighlight java %}
@@ -136,7 +136,7 @@ public class WaxOMatic {
 1. 首先定义一个车，waxed()代表凃蜡完成，buffed()代表抛光完成。waitForWaxing()等待凃蜡，如果 waxOn = false 就说明还在抛光；waitForBuffing()等待抛光，如果 waxOn = true 就说明还在凃蜡。（但是waxOn 究竟代表完成，还是进行中呢？如果代表完成，那么 waitForWaxing()的 waxOn = false 就代表抛光完成，可以进行凃蜡了。明明可以工作了好吗！！！竟然是 wait()。正好和我理解的相反；如果理解成进行中，那么 waxed()中又立即调用了 notifyAll()，明显是完成了凃蜡的意思。）
 2. WaxOn 就是凃蜡了，因为这个肯定是起始动作。所以 run()中先进行凃蜡，然后等待抛光
 3. WaxOff 就是抛光了，因为它肯定在凃蜡操作后执行，所以 run()中先等凃蜡完成后才能进行抛光操作，抛光完成后就再等待下一次凃蜡完成。
-4. main()为了突出这个逻辑，特意先调用了抛光过程，这个希望你能注意到（感觉作者对每个例子都好用心的T_T）
+4. main()为了突出这个逻辑，特意先调用了抛光过程，这个希望你能注意到（感觉作者对每个例子都好用心的T\_T）
 
 一定要多看看其中是如何使用 wait()和 nofityAll()，如果能提出问题就更好了。一个非常值得思考的问题是：为什么 wait()要使用 while()去监测，既然 notifyAll()发送了资源可用的信号，那么 wait()收到这个消息，用 if()就足够了呀。这是为什么呢？原因如下：
 
@@ -160,17 +160,17 @@ public class WaxOMatic {
 {% highlight java linenos %}
 T1:
 	synchronized(sharedMonitor) {
-		<setup condition for T2>
-		shareMonitor.notify();
+	    <setup condition for T2>
+	    shareMonitor.notify();
 	}
 
 T2:
 	while(someCondition) {
-		//Point 1
-		synchronized(sharedMonitor) {
-			sharedMonitor.wait();
-		}
-	}	
+	    //Point 1
+	    synchronized(sharedMonitor) {
+	        sharedMonitor.wait();
+	    }
+	}   
 {% endhighlight java %}
 
 两个线程 T1和 T2的协作正确吗？如果不正确，会发生什么问题呢？
@@ -181,10 +181,10 @@ T2:
 
 {% highlight java linenos %}
 	synchronized(sharedMonitor) {
-		while(someCondition) {
-			sharedMonitor.wait();
-		}
-	}	
+	    while(someCondition) {
+	        sharedMonitor.wait();
+	    }
+	}   
 {% endhighlight java %}
 
 
@@ -194,7 +194,7 @@ T2:
 
 其实从名字可以猜个大概，notify()是对于单个线程来说的，notifyAll()是对于所有线程而言的。举个例子，现在大家都在教室自习，有个家长来找自己的孩子，那么 notify()就是去那个家长的孩子座位上单独告诉他，notifyAll()就是在班里大吼一声某某的家长在外面，让所有学生都知道，然后某某出去，其他孩子继续干自己的事情。
 
-实际上，notify()和 notifyAll()的区别还是非常值得研究的，stackoverflow 上也有这个问题的讨论：[Java: notify() vs. notifyAll() all over again](http://stackoverflow.com/questions/37026/java-notify-vs-notifyall-all-over-again#)
+实际上，notify()和 notifyAll()的区别还是非常值得研究的，stackoverflow 上也有这个问题的讨论：[Java: notify() vs. notifyAll() all over again][1]
 
 #### 4. 生产者与消费者
 
@@ -206,110 +206,110 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 class Meal {
-    private final int orderNum;
-
-    public Meal(int orderNum) {
-        this.orderNum = orderNum;
-    }
-
-    public String toString() {
-        return "Meal " + orderNum;
-    }
+	private final int orderNum;
+	
+	public Meal(int orderNum) {
+	    this.orderNum = orderNum;
+	}
+	
+	public String toString() {
+	    return "Meal " + orderNum;
+	}
 }
 
 class Waiter implements Runnable {
 
-    private Restaurant restaurant;
-
-    public Waiter(Restaurant restaurant) {
-        this.restaurant = restaurant;
-    }
-
-    @Override
-    public void run() {
-        try {
-            while (!Thread.interrupted()) {
-                synchronized (this) {
-                    while (restaurant.meal == null) {
-                        wait();
-                    }
-                }
-                System.out.println("Waiter got " + restaurant.meal);
-                // 为什么要选择 chef 作为同步控制块的锁呢？
-                // 废话，想通知 chef，肯定要调用 chef.notifyAll()。因为 notifyAll()必须在
-                // 同步控制块中调用，而且释放的是 chef 的锁，肯定需要先获取 chef 的锁了。。。
-                synchronized (restaurant.chef) {
-                    restaurant.meal = null;
-                    restaurant.chef.notifyAll(); // 准备下一道菜
-                }
-            }
-        } catch (InterruptedException e) {
-            System.out.println("Waiter interrupted");
-        }
-    }
+	private Restaurant restaurant;
+	
+	public Waiter(Restaurant restaurant) {
+	    this.restaurant = restaurant;
+	}
+	
+	@Override
+	public void run() {
+	    try {
+	        while (!Thread.interrupted()) {
+	            synchronized (this) {
+	                while (restaurant.meal == null) {
+	                    wait();
+	                }
+	            }
+	            System.out.println("Waiter got " + restaurant.meal);
+	            // 为什么要选择 chef 作为同步控制块的锁呢？
+	            // 废话，想通知 chef，肯定要调用 chef.notifyAll()。因为 notifyAll()必须在
+	            // 同步控制块中调用，而且释放的是 chef 的锁，肯定需要先获取 chef 的锁了。。。
+	            synchronized (restaurant.chef) {
+	                restaurant.meal = null;
+	                restaurant.chef.notifyAll(); // 准备下一道菜
+	            }
+	        }
+	    } catch (InterruptedException e) {
+	        System.out.println("Waiter interrupted");
+	    }
+	}
 }
 
 class Chef implements Runnable {
 
-    private Restaurant restaurant;
-    private int count = 0;
-
-    public Chef(Restaurant restaurant) {
-        this.restaurant = restaurant;
-    }
-
-    @Override
-    public void run() {
-        try {
-            while (!Thread.interrupted()) {
-                synchronized (this) {
-                    while (restaurant.meal != null) {
-                        wait();
-                    }
-                }
-
-                if (++count == 11) {
-                    System.out.println("菜上齐了");
-                    //这块只是向 chef 和 waiter 发送一个 interrupt 信号
-                    //但是因为 synchronized 和 IO 是不能被中断的，所以这里会通过可中断的
-                    //sleep()抛出 InterruptedException。
-                    //而 waiter 只能通过 while(Thread.interrupted())抛出的 InterruptedException返回
-                    
-                    //而且我们会发现，多做了一个菜！本来做了10个就够了。11个本意想关闭程序，但是因为
-                    //synchronized 无法中断，只好又做了一个菜（厨师也饿了）。但是因为服务员在 wait()，可以被中断
-                    //所以做好的菜没有被服务员上去。。。。
-                    restaurant.exec.shutdownNow();
-                }
-
-                System.out.print("做菜ing...");
-                synchronized (restaurant.waiter) {
-                    restaurant.meal = new Meal(count);
-                    restaurant.waiter.notifyAll();
-                }
-
-                TimeUnit.MILLISECONDS.sleep(100);
-            }
-        } catch (InterruptedException e) {
-            System.out.println("chef interrupted");
-        }
-    }
+	private Restaurant restaurant;
+	private int count = 0;
+	
+	public Chef(Restaurant restaurant) {
+	    this.restaurant = restaurant;
+	}
+	
+	@Override
+	public void run() {
+	    try {
+	        while (!Thread.interrupted()) {
+	            synchronized (this) {
+	                while (restaurant.meal != null) {
+	                    wait();
+	                }
+	            }
+	
+	            if (++count == 11) {
+	                System.out.println("菜上齐了");
+	                //这块只是向 chef 和 waiter 发送一个 interrupt 信号
+	                //但是因为 synchronized 和 IO 是不能被中断的，所以这里会通过可中断的
+	                //sleep()抛出 InterruptedException。
+	                //而 waiter 只能通过 while(Thread.interrupted())抛出的 InterruptedException返回
+	
+	                //而且我们会发现，多做了一个菜！本来做了10个就够了。11个本意想关闭程序，但是因为
+	                //synchronized 无法中断，只好又做了一个菜（厨师也饿了）。但是因为服务员在 wait()，可以被中断
+	                //所以做好的菜没有被服务员上去。。。。
+	                restaurant.exec.shutdownNow();
+	            }
+	
+	            System.out.print("做菜ing...");
+	            synchronized (restaurant.waiter) {
+	                restaurant.meal = new Meal(count);
+	                restaurant.waiter.notifyAll();
+	            }
+	
+	            TimeUnit.MILLISECONDS.sleep(100);
+	        }
+	    } catch (InterruptedException e) {
+	        System.out.println("chef interrupted");
+	    }
+	}
 }
 
 public class Restaurant {
-    Meal meal;
-    ExecutorService exec = Executors.newCachedThreadPool();
-    Waiter waiter = new Waiter(this);
-    Chef chef = new Chef(this);
-
-    public Restaurant() {
-        exec.execute(chef);
-        exec.execute(waiter);
-    }
-
-    public static void main(String[] args) {
-        new Restaurant();
-    }
-}/*output:
+	Meal meal;
+	ExecutorService exec = Executors.newCachedThreadPool();
+	Waiter waiter = new Waiter(this);
+	Chef chef = new Chef(this);
+	
+	public Restaurant() {
+	    exec.execute(chef);
+	    exec.execute(waiter);
+	}
+	
+	public static void main(String[] args) {
+	    new Restaurant();
+	}
+}/\*output:
 做菜ing...Waiter got Meal 1
 做菜ing...Waiter got Meal 2
 做菜ing...Waiter got Meal 3
@@ -323,14 +323,14 @@ public class Restaurant {
 菜上齐了
 Waiter interrupted
 做菜ing...chef interrupted
-*/
+\*/
 {% endhighlight java %}
 
 这个程序的输出会发现，最后一道菜已经做了，但是没有上。写完迷糊了好久才想起来，synchronized 不可被中断，但是 wait()可以被中断啊（同时中断状态被清除，抛出一个 InterruptedException）！！！！
 
 #### 5. 生产者-消费者与队列
 
-上面是生产者消费者模型的最基本实现——厨师做完一道菜后通知服务员取菜，服务员取菜之后通知厨师做菜。这样的做法太低效，因为每次交互都需要握手。在更高效的程序中，可以使用**同步队列**来解决任务协作问题，**同步队列在任何时刻都只允许一个任务插入或移除元素**。在 java.util.concurrent.BlockingQueue 接口中提供了这种队列，这个接口有大量的标准实现。通常可以使用 LinkedBlockingQueue，它是一个无界队列，还可以使用 ArrayBlockingQueue，它又固定的大小，因此可以在它被阻塞之前向其中放置有限数量的元素。
+上面是生产者消费者模型的最基本实现——厨师做完一道菜后通知服务员取菜，服务员取菜之后通知厨师做菜。这样的做法太低效，因为每次交互都需要握手。在更高效的程序中，可以使用**同步队列**来解决任务协作问题，**同步队列在任何时刻都只允许一个任务插入或移除元素**。在 java.util.concurrent.BlockingQueue 接口中提供了这种队列，这个接口有大量的标准实现。通常可以使用 LinkedBlockingQueue，它是一个无界队列，还可以使用 ArrayBlockingQueue，它有固定的大小，因此可以在它被阻塞之前向其中放置有限数量的元素。
 
 并且，使用同步队列可以简化上面繁琐的握手方式。如果消费者任务试图从队列中获取元素，而该队列为空，那么这些队列还可以挂起消费者任务，当有更多的元素可用时，又会恢复消费者任务。阻塞队列可以解决非常大量的问题，而方式与 wait()和 notifyAll()相比，则简单可靠的多。
 
@@ -348,77 +348,77 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.SynchronousQueue;
 
 class LiftOffRunner implements Runnable {
-    private BlockingQueue<LiftOff> rockets;
-
-    public LiftOffRunner(BlockingQueue<LiftOff> rockets) {
-        this.rockets = rockets;
-    }
-
-    //生产者
-    public void add(LiftOff lo) {
-        try {
-            rockets.put(lo);
-        } catch(InterruptedException e) {
-            System.out.println("Interrupted during put()");
-        }
-    }
-    
-    //消费者——注意后面的程序先启动了消费者。
-    public void run() {
-        try {
-            while(!Thread.interrupted()) {
-                LiftOff rocket = rockets.take();
-                rocket.run();
-            }
-        } catch(InterruptedException e) {
-            System.out.println("waking from take()");
-        }
-        System.out.println("Exiting LiftOffRunner");
-    }
+	private BlockingQueue<LiftOff> rockets;
+	
+	public LiftOffRunner(BlockingQueue<LiftOff> rockets) {
+	    this.rockets = rockets;
+	}
+	
+	//生产者
+	public void add(LiftOff lo) {
+	    try {
+	        rockets.put(lo);
+	    } catch(InterruptedException e) {
+	        System.out.println("Interrupted during put()");
+	    }
+	}
+	
+	//消费者——注意后面的程序先启动了消费者。
+	public void run() {
+	    try {
+	        while(!Thread.interrupted()) {
+	            LiftOff rocket = rockets.take();
+	            rocket.run();
+	        }
+	    } catch(InterruptedException e) {
+	        System.out.println("waking from take()");
+	    }
+	    System.out.println("Exiting LiftOffRunner");
+	}
 }
 
 public class TestBlockingQueues {
-    /**
-     * 其实getkey()仅仅是为了隔开 BlockingQueue 的不同实现类。
-     */
-    static void getkey() {
-        try {
-            new BufferedReader(new InputStreamReader(System.in)).readLine();
-        } catch(IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    static void getkey(String message) {
-        System.out.println(message);
-        getkey();
-    }
-    
-    /**
-     * 每次测试一种 BlockingQueue 的实现。其中先调用t.start()是为了启动消费者。
-     * 因为没有启动生产者，所以 BlockingQueue 会自动挂起。然后使用 for 循环生产 rockets 的元素。
-     * 
-     * 所以不仅实例了 BlockingQueue 作为一个 Queue 的使用，也演示了当生产者或者消费者阻塞时，BlockingQueue
-     * 会自动帮我们处理，使我们可以专注于业务逻辑。
-     */
-    static void test(String msg, BlockingQueue<LiftOff> queue) {
-        System.out.println(msg);
-        LiftOffRunner runner = new LiftOffRunner(queue);
-        Thread t = new Thread(runner);
-        t.start();
-        for(int i = 0; i < 5; i++) {
-            runner.add(new LiftOff(5));
-        }
-        getkey("Press 'Enter' (" + msg + ")");
-        t.interrupt();
-        System.out.println("Finished " + msg + " test");
-    }
-    
-    public static void main(String[] args) {
-        test("LinkedBlockingQueue", new LinkedBlockingDeque<LiftOff>());
-        test("ArrayBlockingQueue", new ArrayBlockingQueue<LiftOff>(3));
-        test("SynchronousQueue", new SynchronousQueue<LiftOff>());
-    }
+	/**
+	 * 其实getkey()仅仅是为了隔开 BlockingQueue 的不同实现类。
+	 */
+	static void getkey() {
+	    try {
+	        new BufferedReader(new InputStreamReader(System.in)).readLine();
+	    } catch(IOException e) {
+	        throw new RuntimeException(e);
+	    }
+	}
+	
+	static void getkey(String message) {
+	    System.out.println(message);
+	    getkey();
+	}
+	
+	/**
+	 * 每次测试一种 BlockingQueue 的实现。其中先调用t.start()是为了启动消费者。
+	 * 因为没有启动生产者，所以 BlockingQueue 会自动挂起。然后使用 for 循环生产 rockets 的元素。
+	 * 
+	 * 所以不仅实例了 BlockingQueue 作为一个 Queue 的使用，也演示了当生产者或者消费者阻塞时，BlockingQueue
+	 * 会自动帮我们处理，使我们可以专注于业务逻辑。
+	 */
+	static void test(String msg, BlockingQueue<LiftOff> queue) {
+	    System.out.println(msg);
+	    LiftOffRunner runner = new LiftOffRunner(queue);
+	    Thread t = new Thread(runner);
+	    t.start();
+	    for(int i = 0; i < 5; i++) {
+	        runner.add(new LiftOff(5));
+	    }
+	    getkey("Press 'Enter' (" + msg + ")");
+	    t.interrupt();
+	    System.out.println("Finished " + msg + " test");
+	}
+	
+	public static void main(String[] args) {
+	    test("LinkedBlockingQueue", new LinkedBlockingDeque<LiftOff>());
+	    test("ArrayBlockingQueue", new ArrayBlockingQueue<LiftOff>(3));
+	    test("SynchronousQueue", new SynchronousQueue<LiftOff>());
+	}
 }
 {% endhighlight java %}
 
@@ -433,103 +433,103 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 
-/**
+/\*\*
  * 这个例子的一个收获是：
- * 
+ \* 
  * 想要抛出异常必须得有载体。比如：
- * 
+ \* 
  * while(!Thread.interrupted()) {
  * }
- * 
+ \* 
  * 是不会抛出异常的。
- * 
+ \* 
  * 只有当里面有 sleep()/wait()/join()在运行（让线程处于阻塞状态），然后才能从阻塞状态退出，
  * 并抛出一个 InterruptedException。
- * 
- */
+ \* 
+ \*/
 
 class NewMeal {
-    private final int orderNum;
-
-    public NewMeal(int orderNum) {
-        this.orderNum = orderNum;
-    }
-
-    public String toString() {
-        return "Meal " + orderNum;
-    }
+	private final int orderNum;
+	
+	public NewMeal(int orderNum) {
+	    this.orderNum = orderNum;
+	}
+	
+	public String toString() {
+	    return "Meal " + orderNum;
+	}
 }
 
 class NewWaiter implements Runnable {
-    private RestaurantWithBlockingQueue restaurant;
-
-    public NewWaiter(RestaurantWithBlockingQueue restaurant) {
-        this.restaurant = restaurant;
-    }
-
-    @Override
-    public void run() {
-        try {
-            while (!Thread.interrupted()) {
-                while (!restaurant.meal.isEmpty()) {
-                    NewMeal meal = restaurant.meal.take();
-                    System.out.println("Waiter got " + meal);
-                }
-            }
-        } catch (InterruptedException e) {
-            System.out.println("Interrupted waiter");
-        }
-    }
+	private RestaurantWithBlockingQueue restaurant;
+	
+	public NewWaiter(RestaurantWithBlockingQueue restaurant) {
+	    this.restaurant = restaurant;
+	}
+	
+	@Override
+	public void run() {
+	    try {
+	        while (!Thread.interrupted()) {
+	            while (!restaurant.meal.isEmpty()) {
+	                NewMeal meal = restaurant.meal.take();
+	                System.out.println("Waiter got " + meal);
+	            }
+	        }
+	    } catch (InterruptedException e) {
+	        System.out.println("Interrupted waiter");
+	    }
+	}
 }
 
 class NewChef implements Runnable {
-    private RestaurantWithBlockingQueue restaurant;
-
-    public NewChef(RestaurantWithBlockingQueue restaurant) {
-        this.restaurant = restaurant;
-    }
-
-    @Override
-    public void run() {
-        try {
-            while (!Thread.interrupted()) {
-                for (int i = 1; i <= 11; i++) {
-
-                    if (i == 11) {
-                        restaurant.exec.shutdownNow();
-                        continue;
-                    }
-
-                    System.out.println("做菜...");
-                    restaurant.meal.add(new NewMeal(i));
-                    TimeUnit.MILLISECONDS.sleep(100);
-                }
-            }
-        } catch (InterruptedException e) {
-            System.out.println("Interrupted chef");
-        }
-    }
+	private RestaurantWithBlockingQueue restaurant;
+	
+	public NewChef(RestaurantWithBlockingQueue restaurant) {
+	    this.restaurant = restaurant;
+	}
+	
+	@Override
+	public void run() {
+	    try {
+	        while (!Thread.interrupted()) {
+	            for (int i = 1; i <= 11; i++) {
+	
+	                if (i == 11) {
+	                    restaurant.exec.shutdownNow();
+	                    continue;
+	                }
+	
+	                System.out.println("做菜...");
+	                restaurant.meal.add(new NewMeal(i));
+	                TimeUnit.MILLISECONDS.sleep(100);
+	            }
+	        }
+	    } catch (InterruptedException e) {
+	        System.out.println("Interrupted chef");
+	    }
+	}
 }
 
 public class RestaurantWithBlockingQueue {
-    LinkedBlockingQueue<NewMeal> meal = new LinkedBlockingQueue<NewMeal>();
-    ExecutorService exec = Executors.newCachedThreadPool();
-    NewWaiter waiter = new NewWaiter(this);
-    NewChef chef = new NewChef(this);
-
-    public RestaurantWithBlockingQueue() {
-        exec.execute(waiter);
-        exec.execute(chef);
-
-    }
-
-    public static void main(String[] args) {
+	LinkedBlockingQueue<NewMeal> meal = new LinkedBlockingQueue<NewMeal>();
+	ExecutorService exec = Executors.newCachedThreadPool();
+	NewWaiter waiter = new NewWaiter(this);
+	NewChef chef = new NewChef(this);
+	
+	public RestaurantWithBlockingQueue() {
+	    exec.execute(waiter);
+	    exec.execute(chef);
+	
+	}
+	
+	public static void main(String[] args) {
 //        while(!Thread.interrupted()) {
 //            System.out.println("ehl");
 //        }
-        new RestaurantWithBlockingQueue();
-    }
-}/*output:
+	    new RestaurantWithBlockingQueue();
+	}
+}/\*output:
 做菜...
 Waiter got Meal 1
 做菜...
@@ -550,7 +550,7 @@ Waiter got Meal 8
 Waiter got Meal 9
 做菜...
 Waiter got Meal 10
-*/
+\*/
 {% endhighlight java %}
 
 通过这个程序得出的结论是：
@@ -573,167 +573,162 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 class Toast {
-    public enum Status {
-        DRY, BUTTERED, JAMMED
-    };
-
-    private Status status = Status.DRY;
-    private final int id;
-
-    public Toast(int id) {
-        this.id = id;
-    }
-
-    public void butter() {
-        status = Status.BUTTERED;
-    }
-
-    public void jam() {
-        status = Status.JAMMED;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String toString() {
-        return "Toast " + id + ": " + status;
-    }
+	public enum Status {
+	    DRY, BUTTERED, JAMMED
+	};
+	
+	private Status status = Status.DRY;
+	private final int id;
+	
+	public Toast(int id) {
+	    this.id = id;
+	}
+	
+	public void butter() {
+	    status = Status.BUTTERED;
+	}
+	
+	public void jam() {
+	    status = Status.JAMMED;
+	}
+	
+	public Status getStatus() {
+	    return status;
+	}
+	
+	public int getId() {
+	    return id;
+	}
+	
+	public String toString() {
+	    return "Toast " + id + ": " + status;
+	}
 
 }
 
-/**
+/\*\*
  * ToastQueue 充当别名的作用。就好像 typedef
- *
- */
+ \*
+ \*/
 class ToastQueue extends LinkedBlockingQueue<Toast> {
-    
 }
 
 //制造吐司
 class Toaster implements Runnable {
-    
-    private ToastQueue toastQueue;
-    private int count = 0;
-    private Random rand = new Random(47);
-    public Toaster(ToastQueue toastQueue) {
-        this.toastQueue = toastQueue;
-    }
-    
-    @Override
-    public void run() {
-        try {
-            while(!Thread.interrupted()) {
-                TimeUnit.MILLISECONDS.sleep(100 + rand.nextInt(500));
-                Toast toast = new Toast(count++);
-                System.out.println(toast);
-                toastQueue.add(toast);
-            }
-        } catch(InterruptedException e) {
-            System.out.println("制造吐司 is interrupted!");
-        }
-        System.out.println("Toaster off");
-    }
+	private ToastQueue toastQueue;
+	private int count = 0;
+	private Random rand = new Random(47);
+	public Toaster(ToastQueue toastQueue) {
+	    this.toastQueue = toastQueue;
+	}
+	
+	@Override
+	public void run() {
+	    try {
+	        while(!Thread.interrupted()) {
+	            TimeUnit.MILLISECONDS.sleep(100 + rand.nextInt(500));
+	            Toast toast = new Toast(count++);
+	            System.out.println(toast);
+	            toastQueue.add(toast);
+	        }
+	    } catch(InterruptedException e) {
+	        System.out.println("制造吐司 is interrupted!");
+	    }
+	    System.out.println("Toaster off");
+	}
 }
 
 //抹黄油
 class Butterer implements Runnable {
-    
-    private ToastQueue dryQueue, butteredQueue;
-    public Butterer(ToastQueue dryQueue, ToastQueue butteredQueue) {
-        this.dryQueue = dryQueue;
-        this.butteredQueue = butteredQueue;
-    }
-    
-    @Override
-    public void run() {
-        try {
-            while(!Thread.interrupted()) {
-                Toast toast = dryQueue.take();
-                toast.butter();
-                System.out.println(toast);
-                butteredQueue.put(toast);
-            }
-        } catch(InterruptedException e) {
-            System.out.println("抹黄油 is interrupted!");
-        }
-        System.out.println("Butterer off");
-    }
+	private ToastQueue dryQueue, butteredQueue;
+	public Butterer(ToastQueue dryQueue, ToastQueue butteredQueue) {
+	    this.dryQueue = dryQueue;
+	    this.butteredQueue = butteredQueue;
+	}
+	
+	@Override
+	public void run() {
+	    try {
+	        while(!Thread.interrupted()) {
+	            Toast toast = dryQueue.take();
+	            toast.butter();
+	            System.out.println(toast);
+	            butteredQueue.put(toast);
+	        }
+	    } catch(InterruptedException e) {
+	        System.out.println("抹黄油 is interrupted!");
+	    }
+	    System.out.println("Butterer off");
+	}
 }
 
 //抹果酱
 class Jammer implements Runnable {
-    
-    private ToastQueue butteredQueue, finishedQueue;
-    public Jammer(ToastQueue butteredQueue, ToastQueue finishedQueue) {
-        this.butteredQueue = butteredQueue;
-        this.finishedQueue = finishedQueue;
-    }
-    
-    @Override
-    public void run() {
-        try {
-            while(!Thread.interrupted()) {
-                Toast toast = butteredQueue.take();
-                toast.jam();
-                System.out.println(toast);
-                finishedQueue.put(toast);
-            }
-        } catch(InterruptedException e) {
-            System.out.println("抹果酱 is interrupted!");
-        }
-        System.out.println("Jammer off");
-    }
+	private ToastQueue butteredQueue, finishedQueue;
+	public Jammer(ToastQueue butteredQueue, ToastQueue finishedQueue) {
+	    this.butteredQueue = butteredQueue;
+	    this.finishedQueue = finishedQueue;
+	}
+	
+	@Override
+	public void run() {
+	    try {
+	        while(!Thread.interrupted()) {
+	            Toast toast = butteredQueue.take();
+	            toast.jam();
+	            System.out.println(toast);
+	            finishedQueue.put(toast);
+	        }
+	    } catch(InterruptedException e) {
+	        System.out.println("抹果酱 is interrupted!");
+	    }
+	    System.out.println("Jammer off");
+	}
 }
 
 //吃吃吃
 class Eater implements Runnable {
-    
-    private ToastQueue finishedQueue;
-    private int count = 0;
-    public Eater(ToastQueue finishedQueue) {
-        this.finishedQueue = finishedQueue;
-    }
-    
-    @Override
-    public void run() {
-        try {
-            while(!Thread.interrupted()) {
-                Toast toast = finishedQueue.take();
-                //检查吐司是否按照 order 送来，而且所有都是经过黄油、果酱加工
-                if(toast.getId() != count++ || toast.getStatus() != Toast.Status.JAMMED) {
-                    System.err.println("Error: " + toast);
-                    System.exit(1);
-                } else {
-                    System.out.println("真好吃啊！！！");
-                }
-                
-            }
-        } catch(InterruptedException e) {
-            System.out.println("吃吃吃 is interrupted!");
-        }
-        System.out.println("Eater off");
-    }
+	private ToastQueue finishedQueue;
+	private int count = 0;
+	public Eater(ToastQueue finishedQueue) {
+	    this.finishedQueue = finishedQueue;
+	}
+	
+	@Override
+	public void run() {
+	    try {
+	        while(!Thread.interrupted()) {
+	            Toast toast = finishedQueue.take();
+	            //检查吐司是否按照 order 送来，而且所有都是经过黄油、果酱加工
+	            if(toast.getId() != count++ || toast.getStatus() != Toast.Status.JAMMED) {
+	                System.err.println("Error: " + toast);
+	                System.exit(1);
+	            } else {
+	                System.out.println("真好吃啊！！！");
+	            }
+	
+	        }
+	    } catch(InterruptedException e) {
+	        System.out.println("吃吃吃 is interrupted!");
+	    }
+	    System.out.println("Eater off");
+	}
 }
 
 public class ToastMatic {
-    public static void main(String[] args) throws Exception {
-        ToastQueue dryQueue = new ToastQueue(),
-                butteredQueue = new ToastQueue(),
-                finishedQueue = new ToastQueue();
-        ExecutorService exec = Executors.newCachedThreadPool();
-        exec.execute(new Toaster(dryQueue));
-        exec.execute(new Butterer(dryQueue, butteredQueue));
-        exec.execute(new Jammer(butteredQueue, finishedQueue));
-        exec.execute(new Eater(finishedQueue));
-        
-        TimeUnit.SECONDS.sleep(5);
-        exec.shutdownNow();
-    }
+	public static void main(String[] args) throws Exception {
+	    ToastQueue dryQueue = new ToastQueue(),
+	            butteredQueue = new ToastQueue(),
+	            finishedQueue = new ToastQueue();
+	    ExecutorService exec = Executors.newCachedThreadPool();
+	    exec.execute(new Toaster(dryQueue));
+	    exec.execute(new Butterer(dryQueue, butteredQueue));
+	    exec.execute(new Jammer(butteredQueue, finishedQueue));
+	    exec.execute(new Eater(finishedQueue));
+	
+	    TimeUnit.SECONDS.sleep(5);
+	    exec.shutdownNow();
+	}
 }
 {% endhighlight java %}
 
@@ -762,68 +757,70 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-/**
+/\*\*
  * PipedWriter.write()和 PipedReader.read() 都可以中断，这是和普通 IO 之间最重要的区别了。
- */
+ \*/
 class Sender implements Runnable {
-    private Random rand = new Random(47);
-    private PipedWriter out = new PipedWriter();
-
-    public PipedWriter getPipedWriter() {
-        return out;
-    }
-
-    @Override
-    public void run() {
-        try {
-            //while (true) {
-                for(Integer i = 0; i < 10000000; i++) {
-                    out.write(i);
-                    //TimeUnit.MILLISECONDS.sleep(rand.nextInt(500));
-                }
-            //}
-        } catch (IOException e) {
-            System.out.println(e + " Sender write exception");
-        }
+	private Random rand = new Random(47);
+	private PipedWriter out = new PipedWriter();
+	
+	public PipedWriter getPipedWriter() {
+	    return out;
+	}
+	
+	@Override
+	public void run() {
+	    try {
+	        //while (true) {
+	            for(Integer i = 0; i < 10000000; i++) {
+	                out.write(i);
+	                //TimeUnit.MILLISECONDS.sleep(rand.nextInt(500));
+	            }
+	        //}
+	    } catch (IOException e) {
+	        System.out.println(e + " Sender write exception");
+	    }
 //        } catch (InterruptedException e) {
 //            System.out.println(e + " Sender sleep interrupted");
 //        }
-    }
+	}
 }
 
 class Receiver implements Runnable {
-    private PipedReader in;
-
-    //必须和一个 PipedWriter 相关联
-    public Receiver(Sender sender) throws IOException {
-        in = new PipedReader(sender.getPipedWriter());
-    }
-
-    @Override
-    public void run() {
-        try {
-            while (true) {
-                //调用 P ipedReader.read()，如果管道没有数据会自动阻塞
-                System.out.print("Read: " + (char) in.read() + ", ");
-            }
-        } catch (IOException e) {
-            System.out.println(e + " Receiver read exception");
-        }
-    }
+	private PipedReader in;
+	
+	//必须和一个 PipedWriter 相关联
+	public Receiver(Sender sender) throws IOException {
+	    in = new PipedReader(sender.getPipedWriter());
+	}
+	
+	@Override
+	public void run() {
+	    try {
+	        while (true) {
+	            //调用 P ipedReader.read()，如果管道没有数据会自动阻塞
+	            System.out.print("Read: " + (char) in.read() + ", ");
+	        }
+	    } catch (IOException e) {
+	        System.out.println(e + " Receiver read exception");
+	    }
+	}
 }
 
 public class PipedIO {
-    public static void main(String[] args) throws Exception {
-        Sender sender = new Sender();
-        Receiver receiver = new Receiver(sender);
-        ExecutorService exec = Executors.newCachedThreadPool();
-        exec.execute(sender);
-        exec.execute(receiver);
-
-        TimeUnit.SECONDS.sleep(1);
-        exec.shutdownNow();
-    }
+	public static void main(String[] args) throws Exception {
+	    Sender sender = new Sender();
+	    Receiver receiver = new Receiver(sender);
+	    ExecutorService exec = Executors.newCachedThreadPool();
+	    exec.execute(sender);
+	    exec.execute(receiver);
+	
+	    TimeUnit.SECONDS.sleep(1);
+	    exec.shutdownNow();
+	}
 }
 {% endhighlight java %}
 
 开头就说了，现在 PipedWriter 和 PipedReader 已经被 BlockingQueue 取代，所以了解即可。记住一点，PipedWriter 和 PipedReader 是可以被中断的。
+
+[1]:	http://stackoverflow.com/questions/37026/java-notify-vs-notifyall-all-over-again#
