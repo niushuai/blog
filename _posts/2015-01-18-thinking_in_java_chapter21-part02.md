@@ -113,7 +113,7 @@ test(gp, 10);
 
 > 为什么提供两种？什么情况下使用第一种，什么情况下使用第二种？
 
-##### 1）synchronized 的使用
+#### 1）synchronized 的使用
 
 要控制对共享资源的访问，得包装成一个对象。然后把所有要访问这个资源的方法标记为 synchronized。一般做法是使用 private 修饰这个临界资源的对象。注意，**在使用并发时，将域设置为 private 是非常重要的，否则，synchronized 关键字就不能防止其他任务直接访问域，这样会产生冲突。**基本的使用原则是：
 
@@ -146,7 +146,7 @@ EvenChecker.test(new EvenGenerator());
 2. 还有一个比较好玩的是对象头中的锁不是 boolean 类型的，意思就是锁可以计数（应该是整型）。一个获取当前对象的锁的方法，可以调用另一个 synchronized 的方法，这时锁计数就是2，以此类推。当锁的计数变为0时候，就该释放锁了。
 3. 还有一点是，**针对每个类，也有一个锁（作为类的 Class 对象的一部分），所以 synchronized static 方法可以在类的范围内防止对 static 数据的并发访问。**
 
-##### 2) Lock 的使用
+#### 2) Lock 的使用
 
 Java SE5的 java.util.concurrent 类库还包含有定义在 java.util.concurrent.locks 中的显式的互斥机制。Lock 对象必须显式的创建、锁定和释放。因此，它与 synchronized 提供的锁机制相比，代码缺少优雅性。但是对于有些场景，使用 Lock 会更加灵活。
 
@@ -183,7 +183,7 @@ Notice:
 > return 语句必须在 try 子句中出现，以确保 unlock()不会过早发生，从而将数据暴露给第二个任务。
 
 
-##### 3） 总结一下吧：）
+#### 3） 总结一下吧：）
 
 大体上，使用 synchronized 关键字时，需要写的代码量更少，并且用户错误出现的可能性也会降低，因此通常只有在解决特殊问题时，才使用显式的 Lock 对象。例如，用 synchronized 关键字不能尝试着获取锁且最终获取锁会失败，或者尝试着获取锁一段时间，然后放弃它，要实现这些，你必须使用 concurrent 类库：
 
@@ -340,19 +340,19 @@ public String toString() {
 return "x: " + x + ", y: " + y;
 }
 
-/**  * 如果 x != y 则抛出异常
+/\*\*  \* 如果 x != y 则抛出异常
 	 * @author niushuai
 	 *  */
 	public class PairValuesNotEqualException extends RuntimeException {
 	/**  * 
-		 */
-		private static final long serialVersionUID = -7103813289682393079L;
-
-		public PairValuesNotEqualException() {
-		super("Pair values not equal: " + Pair.this);
-		}
+	     */
+	    private static final long serialVersionUID = -7103813289682393079L;
+	
+	    public PairValuesNotEqualException() {
+	    super("Pair values not equal: " + Pair.this);
+	    }
 	}
-
+	
 	public void checkState() {
 	if (x != y) {
 	System.err.println("x != y");

@@ -119,7 +119,7 @@ return sum;
 }
 }
 
-// 5个门，运行3s 后通过 exec.shutdown()发送 interrupt()中断
+// 5个门，运行3s
 public class OrnametalGarden {
 public static void main(String[]() args) throws InterruptedException {
 ExecutorService exec = Executors.newCachedThreadPool();

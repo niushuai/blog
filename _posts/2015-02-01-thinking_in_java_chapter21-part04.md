@@ -152,6 +152,81 @@ public class WaxOMatic {
 
 > 尽管乍一想有点奇怪，但是我们来分析一下。锁存在于**所有对象的对象头**中，所以任何同步控制的地方都用到了锁，而用到锁的地方当然也可以进行线程协作。如果把这3个方法实现在 Thread 中，那么使用线程协作的范围就会缩小到继承了 Thread 或者实现了 Runnable 接口的类的对象中，而不是所有对象。实际上，也**只能在同步控制块中调用 wait()、notify()、notifyAll()，因为它们都和锁关联，而 sleep()因为不用操作锁，所以可以在非同步控制方法中调用**，如果在非同步控制方法中调用了这3个方法，程序能够通过编译，不过在运行的时候，将得到 IllegalMonitorStateException 异常，并伴随着一些含糊的信息，比如“当前线程不是拥有者”。消息的意思是，调用 wait()、notify()、notifyAll()的任务在调用这些方法前必须“拥有”（获取）对象的锁。
 
+
+然后还有一个面试的经典题目：用两个线程交替打印100以内的奇偶数。
+{% highlight java linenos %}
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class TestWaitNotify {
+
+private static Boolean flag = false;
+private static Integer count = 0;
+
+// 这是锁，因为wait()/notify()都是
+private static Object mutex = new Object();
+
+// 打印奇数
+static class PrintOdd implements Runnable {
+
+@Override
+public void run() {
+synchronized (mutex) {
+// 思考一下，这里为什么是 N - 1.因为如果是 N 的话，N - 1还是进来wait()，那PrintEven 输出 N 后，这里还会继续到 N + 1
+while (count \< 99) {
+while (flag) {
+try {
+mutex.wait();
+} catch (InterruptedException e) {
+e.printStackTrace();
+}
+}
+
+System.out.println(++count);
+flag = true;
+mutex.notifyAll();
+}
+}
+}
+
+}
+
+// 打印偶数
+static class PrintEven implements Runnable {
+
+@Override
+public void run() {
+
+synchronized (mutex) {
+while (count \< 100) {
+while (!flag) {
+try {
+mutex.wait();
+} catch (InterruptedException e) {
+e.printStackTrace();
+}
+}
+
+System.out.println(++count);
+flag = false;
+mutex.notifyAll();
+}
+}
+}
+
+}
+
+public static void main(String[] args) {
+ExecutorService exec = Executors.newFixedThreadPool(2);
+exec.execute(new PrintEven());
+exec.execute(new PrintOdd());
+
+exec.shutdown();
+}
+}  
+{% endhighlight java %}
+
+
 #### 2. 虽然使用了 notifyAll(),但是信号一定能被 wait()收到吗？——错失的信号
 
 当线程使用 wait()/notify()或者 wait()/notifyAll()时，均可能发生错失信号的问题。想想这是什么原因呢？比如下面这段代码你能看出问题吗？
